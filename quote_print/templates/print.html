@@ -140,7 +140,7 @@
     </style>
     <div class="container" id="contenido-popup">
         <div class="header">
-            <img src="{% static 'Logo Pamo Png.png' %}" width="400px" alt="Logo de FEPRIN SAS">
+            <img src="{% static 'images/Logo Pamo Png.png' %}" width="400px" alt="Logo de FEPRIN SAS">
             <div class="company-info">
                 <p>FEPRIN SAS</p>
                 <p>PAMO.CO</p>
@@ -185,7 +185,7 @@
                 </script>
                 <tr>
                     {% for i in info.lineItems.edges %}
-                    <td><img src= {% if i.scr %} {{i.scr}} {% else %} "{% static 'Logo Pamo Png.png' %}" width = 80px   {% endif %} alt="{% static 'Logo Pamo Png.png' %}" width="40"></td>
+                    <td><img src= {% if i.scr %} {{i.scr}} {% else %} "{% static 'images/Logo Pamo Png.png' %}" width = 80px   {% endif %} alt="No photo" width="40"></td>
                     <td>{{i.sku}}</td>
                     <td>{{i.node.title}}</td>
                     <td>{{i.node.quantity}}</td>
@@ -209,7 +209,7 @@
         <div class = cont_ends>
             <div class="payment-methods">
                 <p>Por favor ingresa al enlace del pedido y completa la información de envío y facturación. El sistema calculará los costos de envío si son aplicables.</p>
-                <a href="{{info.invoiceUrl}}"> <img class="image_pay"  src="{% static 'pague aqui.png' %}" ></a>
+                <a href="{{info.invoiceUrl}}"> <img class="image_pay"  src="{% static 'images/pague aqui.png' %}" ></a>
             </div>
             <div class="totals">
                 <p><strong> Subtotal: </strong> 
@@ -229,38 +229,11 @@
     </div>  
         <div class="menu">
             <a href="#">
-                <img id="botonImprimir" src="{% static 'descarga.png' %}" width="50" alt="Imprimir">
+                <img id="botonImprimir" src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
                 <span>Imprimir</span>
-            </a>
-            <a href="#">
-                <img id="descargarPDF" src="{% static 'download.png' %}" width="50" alt="Descargar">
-                <span>Descargar</span>
-            </a>
         </div> 
-
-
 <script>
     document.getElementById('botonImprimir').addEventListener('click', function() {
         window.print();
     });
-</script>
-
-
-
-<script type="module">
-    import html2pdf from 'html2pdf.js'; 
-    
-    function generarPDF() {
-        console.log('descargar');
-        const doc = new jsPDF();
-        const contenidoPopup = document.getElementById('contenido-popup');
-        
-        html2canvas(contenidoPopup).then(function(canvas) {
-            const imgData = canvas.toDataURL('image/jpeg');
-            doc.addImage(imgData, 'JPEG', 10, 10, 190, 0);
-            doc.save('documento.pdf');
-        });
-    }
-
-    document.getElementById('descargarPDF').addEventListener('click', generarPDF);
 </script>

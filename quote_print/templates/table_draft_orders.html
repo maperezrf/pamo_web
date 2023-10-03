@@ -17,7 +17,7 @@
         </thead>
           {% for i in table %}
           <tr>
-            <td class="h5">{{i.node.name}}</td>
+            <td class="h5 name" id = 'name'>{{i.node.name}}</td>
             <td class="h5">{% if i.node.customer.firstName %} {{i.node.customer.firstName|title}} {% endif %}  {% if i.node.customer.lastName %} {{i.node.customer.lastName|title}} {% endif %}</td>
             <td class="h5">{{i.node.createdAt}}</td>
             <td class="h5">{{i.node.updatedAt}}</td>
@@ -30,6 +30,7 @@
 </div>
 
 <script>
+
   let dataTable;
   let dataTableIsInitialized = false;
   
@@ -37,6 +38,7 @@
     pageLength:10,
     destroy:true,
     columnDefs:[{className:'text-center', targets:[0,1,2,3,4]}],
+    order: [[1, 'asc']],
     language: {
       "sProcessing": "Procesando...",
       "sLengthMenu": "Mostrar _MENU_ registros por página",
@@ -56,10 +58,6 @@
         "sNext": "Siguiente",
         "sPrevious": "Anterior"
       },
-          "oAria": {
-            "sSortAscending": ": Activar para ordenar la columna en orden ascendente",
-            "sSortDescending": ": Activar para ordenar la columna en orden descendente"
-          }
     },
   }
 
