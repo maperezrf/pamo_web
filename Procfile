@@ -1,0 +1,1 @@
+web: gunicorn pamo.wsgi --log-file -
