@@ -27,7 +27,7 @@ SECRET_KEY = SECRET_KEY_DJANGO
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG_VAR
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['pamoweb-production.up.railway.app']
 
 
 # Application definition
