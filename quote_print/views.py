@@ -6,19 +6,16 @@ from pamo.queries import *
 from datetime import timedelta, datetime
 import re
 
-
-
 def index(request):
     ConnectionsShopify()
     shopify = ConnectionsShopify()
     response = shopify.request_graphql(GET_DRAFT_ORDERS)
-    # if response.json()['data']['draftOrders']['hasNextPage']:
-    #     pass
     res  = response.json()
     for i in range(len(res['data']['draftOrders']['edges'])):
         res['data']['draftOrders']['edges'][i]['node']['createdAt'] = datetime.strptime((res['data']['draftOrders']['edges'][i]['node']['createdAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
         res['data']['draftOrders']['edges'][i]['node']['updatedAt'] = datetime.strptime((res['data']['draftOrders']['edges'][i]['node']['updatedAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-    data = {"table" : res['data']['draftOrders']['edges']}
+        res['data']['draftOrders']['edges'][i]['node']['name'] = int(res['data']['draftOrders']['edges'][i]['node']['name'][2:])
+    data = {"table" :res['data']['draftOrders']['edges']}
     return render(request, 'table_draft_orders.html', data)
 
 def print_drafr(request,id):

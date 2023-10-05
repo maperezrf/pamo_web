@@ -18,7 +18,7 @@
           {% for i in table %}
           <tr>
             <td class="h5 name" id = 'name'>{{i.node.name}}</td>
-            <td class="h5">{% if i.node.customer.firstName %} {{i.node.customer.firstName|title}} {% endif %}  {% if i.node.customer.lastName %} {{i.node.customer.lastName|title}} {% endif %}</td>
+            <td class="h5">{% if i %} {{i.node.customer.firstName|title}} {% endif %}  {% if i.node.customer.lastName %} {{i.node.customer.lastName|title}} {% endif %}</td>
             <td class="h5">{{i.node.createdAt}}</td>
             <td class="h5">{{i.node.updatedAt}}</td>
             <td><button class="imprimir-btn btn btn-primary" id_draft ="{{i.node.id}}" data-cotizacion="cotizacion1">Ver</button></td> 
@@ -37,8 +37,8 @@
   const dataTableOptions = {
     pageLength:10,
     destroy:true,
+    order: [[0, 'desc']],
     columnDefs:[{className:'text-center', targets:[0,1,2,3,4]}],
-    order: [[1, 'asc']],
     language: {
       "sProcessing": "Procesando...",
       "sLengthMenu": "Mostrar _MENU_ registros por página",
