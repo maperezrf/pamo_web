@@ -45,6 +45,8 @@ MANIFEST
 *.xlsx
 *.csv¨
 *.ipynb
+input/
+output/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
