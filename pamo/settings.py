@@ -13,8 +13,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from pamo.constants import *
-import dj_database_url
-from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -87,7 +85,6 @@ DATABASES = {
         'PASSWORD':'GP85Axpkg2N6QalOoigN',
         'HOST': 'containers-us-west-93.railway.app',
         'PORT': '7902'
-
     }
 }
 
