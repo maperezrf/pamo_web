@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<h1 class="container text-center space">Cotizaciones</h1>
+<div class = "container my-4"> 
+  <div class = "row" >  
+    <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
+      <table class="table table-striped container space"  id="cotizaciones">
+        <thead >
+          <tr >  
+            <th scope="col" class = 'h4 text-center'># Cotizacíon</th>
+            <th scope="col" class = 'h4 text-center'>Cliente</th>
+            <th scope="col" class = 'h4 text-center'>Fecha Creacion</th>
+            <th scope="col" class = 'h4 text-center'>Fecha actualización</th>
+            <th scope="col" class = 'h4 text-center'>Detalle</th>
+          </tr>
+        </thead>
+          {% for i in table %}
+          <tr>
+            <td class="h5 name" id = 'name'>{{i.node.name}}</td>
+            <td class="h5">{% if i.node.customer.firstName %} {{i.node.customer.firstName|title}} {% endif %}  {% if i.node.customer.lastName %} {{i.node.customer.lastName|title}} {% endif %}</td>
+            <td class="h5">{{i.node.createdAt}}</td>
+            <td class="h5">{{i.node.updatedAt}}</td>
+            <td><button class="imprimir-btn btn btn-primary" id_draft ="{{i.node.id}}" data-cotizacion="cotizacion1">Ver</button></td> 
+          </tr>
+          {% endfor %}
+        </table>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  let dataTable;
+  let dataTableIsInitialized = false;
+  
+  const dataTableOptions = {
+    pageLength:10,
+    destroy:true,
+    columnDefs:[{className:'text-center', targets:[0,1,2,3,4]}],
+    order: [[1, 'asc']],
+    language: {
+      "sProcessing": "Procesando...",
+      "sLengthMenu": "Mostrar _MENU_ registros por página",
+      "sZeroRecords": "No se encontraron resultados",
+      "sEmptyTable": "Ningún dato disponible en esta tabla",
+      "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+      "sInfoEmpty": "Mostrando 0 a 0 de 0 registros",
+      "sInfoFiltered": "(filtrado de _MAX_ registros en total)",
+      "sInfoPostFix": "",
+      "sSearch": "Buscar:",
+      "sUrl": "",
+      "sInfoThousands": ",",
+      "sLoadingRecords": "Cargando...",
+      "oPaginate": {
+        "sFirst": "Primero",
+        "sLast": "Último",
+        "sNext": "Siguiente",
+        "sPrevious": "Anterior"
+      },
+    },
+  }
+
+  const initDataTable = async() => {
+    if(dataTableIsInitialized){
+      dataTable.destroy();
+    }
+    dataTable=$("#cotizaciones").DataTable(dataTableOptions);
+    dataTableIsInitialized = true;
+    console.log('inicia')
+  }
+  
+  const botonesImprimir = document.querySelectorAll('.imprimir-btn');
+  botonesImprimir.forEach((boton) => {
+    boton.addEventListener('click', function() {
+      console.log(this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/',''))
+      const popup = window.open('http://127.0.0.1:8000/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1000,height=700'); 
+    })
+  })
+
+  window.addEventListener("load", async () =>{
+    await initDataTable();
+  })
+
+</script>
+{% endblock %}

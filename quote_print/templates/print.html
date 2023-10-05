@@ -1,0 +1,239 @@
+{% load static %}
+    <style>
+        @media print {
+            @page {
+                margin: 0;
+            }
+            body::before {
+                content: "";
+                display: none;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header img {
+            max-width: 150px;
+            margin-right: 20px;
+        }
+
+        .company-info {
+            flex-grow: 1;
+        }
+
+        .company-info p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .customer-quote {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid black; /* Línea que separa cliente y cotización */
+            padding: 10px;
+        }
+
+        .customer-info,
+        .quote-info {
+            flex-basis: 335px;
+        }
+
+        .quote-info {
+            margin-left: 0px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #ccc;
+        }
+        .cont_ends {
+        display: flex;
+        justify-content: space-between;
+        }
+
+        p {
+            display: block;
+            margin-block-start: 0;
+            margin-block-end: 0;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+        }
+
+        .totals {
+            margin-top: 20px;
+            text-align: right; 
+        }
+
+        .payment-methods {
+           margin-top: 20px;
+           text-align: left;
+           width: 570px;
+        }
+        .cont_ends p{
+            margin: 5px;  
+            width: 300x;
+        }
+        .header img {
+            max-width: 300px;
+            margin-right: 20px;
+        }
+        .img_pago{
+            max-width: 100px;
+        }
+        .image_pay {
+            display: block;
+            margin: 0 auto;
+            width: 150px;
+        }
+        .menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu a {
+            text-align: center;
+            margin: 50px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .menu img {
+            display: block;
+        }
+
+        @media print {
+            .menu {
+                display: none;
+            }
+        }
+
+    </style>
+    <div class="container" id="contenido-popup">
+        <div class="header">
+            <img src="{% static 'images/Logo Pamo Png.png' %}" width="400px" alt="Logo de FEPRIN SAS">
+            <div class="company-info">
+                <p>FEPRIN SAS</p>
+                <p>PAMO.CO</p>
+                <p>NIT: 900.382.733-3 RÉGIMEN COMÚN</p>
+                <p>Actividad Económica 4752 Tarifa Renta 0,40%</p>
+                <p>AV CARACAS Nº 66 - 67 BOGOTA - D.C.</p>
+                <p>Teléfonos: (601)9168880 3124875756</p>
+                <p>No somos Autoretenedores - No somos Grandes Contribuyentes</p>
+                <p>Régimen IVA: COMÚN Actividad ICA: 47521 6,90x mil</p>
+            </div>
+        </div>
+        <div class="customer-quote">
+            <div class="customer-info">
+                {% if nit %}<p> <strong>Nit:</strong> {{nit}}</p> {% endif %}
+                {% if info.customer.defaultAddress.company %}<p>  <strong>Empresa:</strong> {{ info.customer.defaultAddress.company|title}} {% else %}</p> {% endif %}
+                {% if info.customer.displayName %} <p> <strong>Nombre Cliente:</strong> {{info.customer.displayName|title}} {% endif %}
+                {% if info.defaultAddress.address1 %}<p> <strong>Dirección:</strong> {{info.default_address.address1|title}}</p> {% endif %}
+                {% if info.customer.email %}<p> <strong>Correo:</strong> {{info.customer.email}} {% else %}</p> {% endif %}
+                {% if info.customer.defaultAddress.phone %}<p> <strong>Teléfono:</strong> {{info.customer.defaultAddress.phone}} </p>{% endif %}
+            </div>
+            <div class="quote-info">
+                <p><strong>Número de Cotización:</strong> {{info.name}}</p>
+                <p><strong>Fecha:</strong> {{update}}</p>
+                <p><strong>Plazo:</strong> 10 dias</p>
+                <p><strong>Fecha de Vencimiento:</strong> {{plazo}}</p>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>SKU</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>Costo Unitario</th>
+                    <th>Costo Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <script>
+                    var total = 0
+                </script>
+                <tr>
+                    {% for i in info.lineItems.edges %}
+                    <td><img src= {% if i.scr %} {{i.scr}} {% else %} "{% static 'images/Logo Pamo Png.png' %}" width = 80px   {% endif %} alt="No photo" width="40"></td>
+                    <td>{{i.sku}}</td>
+                    <td>{{i.node.title}}</td>
+                    <td>{{i.node.quantity}}</td>
+                    <td>
+                        <script>                            
+                            document.write((parseInt({{ i.node.originalUnitPrice }} /1.19).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0})).replace("COP", "$"));
+                        </script>
+                    </td>
+                    <td>
+                        <script>
+                            var price_cant = parseInt(({{ i.node.quantity }}/1.19) * {{ i.node.originalUnitPrice }})
+                            document.write(price_cant.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"));
+                            total = total + price_cant
+                            var total_iva = total * 0.19
+                        </script>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class = cont_ends>
+            <div class="payment-methods">
+                <p>Por favor ingresa al enlace del pedido y completa la información de envío y facturación. El sistema calculará los costos de envío si son aplicables.</p>
+                <a href="{{info.invoiceUrl}}"> <img class="image_pay"  src="{% static 'images/pague aqui.png' %}" ></a>
+            </div>
+            <div class="totals">
+                <p><strong> Subtotal: </strong> 
+                    <script>
+                        document.write(total.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))
+                    </script>
+                </p>
+                <p><strong>IVA:</strong> <script> document.write(parseInt(total_iva).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> </p>
+                
+                {% if info.appliedDiscount.amount %}<p><strong>Descuento:</strong> <script> 
+                    var discount ={{info.appliedDiscount.amount}}
+                    document.write( discount.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$ -")) </script> </p> {% endif %}
+                <p><strong>Total:</strong> {% if info.appliedDiscount.amount %} <script> document.write((parseInt(total_iva) + parseInt(total) - parseInt(discount)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))</script>
+                    {% else %} <script>document.write((parseInt(total_iva) + parseInt(total)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> {% endif %}</p>
+            </div>
+        </div>
+    </div>  
+        <div class="menu">
+            <a href="#">
+                <img id="botonImprimir" src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
+                <span>Imprimir</span>
+        </div> 
+<script>
+    document.getElementById('botonImprimir').addEventListener('click', function() {
+        window.print();
+    });
+</script>
