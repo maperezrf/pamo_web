@@ -1,1 +1,1 @@
-web: gunicorn pamo.wsgi --log-file -
+web: python manage.py migrate && gunicorn pamo.wsgi
