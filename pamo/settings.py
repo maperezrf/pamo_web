@@ -16,7 +16,7 @@ from pamo.constants import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+BASE_URL = 'https://pamoweb-production.up.railway.app'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -27,7 +27,7 @@ SECRET_KEY = SECRET_KEY_DJANGO
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG_VAR
 
-ALLOWED_HOSTS = ['pamoweb-production.up.railway.app']
+ALLOWED_HOSTS = [BASE_URL,'*']
 
 
 # Application definition
