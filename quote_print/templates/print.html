@@ -1,4 +1,275 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cotizacion</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff; /* Color de fondo */
+        } 
+
+        .page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .page:nth-child(odd) {
+            background-color: #f0f0f0;
+        }
+        .header{
+            display:block;
+        }
+        .insignia {
+            width: 55px;
+            margin-left: 890px;
+        }
+        .logo{
+            width:50px;
+        }
+        .compani-info{
+            display:flex;
+        }
+        .texto-derecha {
+            text-align: right;
+        }
+        .page img{
+            width:1131px;
+            height:1600px
+        }
+        .container {
+            position: relative; 
+        }
+        
+        .overlay-text {
+            position: absolute;
+            top: 114px;
+            left: 579px;
+            width: 458px;
+            display: flex;
+            background-color: rgba(0, 0, 0, 0);
+            color: black;
+        }
+
+        .info-customer {
+        position: absolute;
+        display: flex;
+        justify-content: space-between;
+        top: 330px;
+        width: 957px;
+        left: 80px;
+        }
+
+        .product-table  {
+            position: absolute;
+            top: 510px;
+            left: 81px;
+            border-collapse: collapse;
+            width: 957px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+        } 
+        th {
+            background-color: #d1d1d1; 
+            color: black; 
+        }
+        th:not(:first-child) {
+            border-left: 1px solid withe;
+        }
+
+        .column {
+            flex: 1;
+            padding: 8px;
+            border-right: 1px solid white ; 
+        }
+        .linea-vertical {
+            position: absolute;
+            top:544px;
+            bottom: 455px;   
+            width: 1px;
+            background-color: #d1d1d1; 
+        }
+        .l1{
+            left:171px; 
+        }
+        .l2{
+            left:340px; 
+        }
+        .l3{
+            left:725px; 
+        }
+        .l4{
+            left:835px;
+            bottom : 350px 
+        }
+        .l5{
+            left:956px; 
+            bottom : 350px 
+        }
+        .btns{
+            position: absolute;
+            left: 80px;
+            bottom: 280px;
+            font-size: 13px;
+        }
+        .btns img{
+            height: 30px;
+            width: auto;
+        }
+
+        .politics{
+            position: absolute;
+            left: 80px;
+            font-size: 13px;
+            width: 957px;
+            bottom: 70px;
+        }
+
+        .linea-horizontal {
+            border-top: 1px solid;
+            position: absolute;
+            left: 80px;
+            width: 957px;
+            color: #d1d1d1
+        }
+        .lh1{
+            bottom: 453px;
+        }
+
+        .lh2{
+            bottom: 255px;
+        }
+        
+
+
+
+
+    </style>
+</head>
+<body>
+    <div class="page">
+            <img src="{% static 'images/cotizacion/Pg1.png' %}" alt="page_1">
+    </div>
+    <div class="page ">
+            <img src="{% static 'images/cotizacion/Pg2.png' %}" alt="page_2">
+    </div>
+    <div class="page">
+        <div class="container">
+            <div class="background-image">
+                <img src="{% static 'images/cotizacion/Pg3.png' %}" alt="Imagen de fondo">
+            </div>
+            <div class="overlay-text">
+                <p class="texto-derecha">FEPRIN SAS / PAMO.CO<br>
+                    NIT: 900.382.733-3 Régimen Común<br>
+                    Actividad Económica 4752 Tarifa Renta 0,40%<br>
+                    AV CARACAS No 66 - 67 BOGOTA - D.C.<br>
+                    Teléfonos: (601)9168880 3124875756<br><br>
+                    No somos Autoretenedores - No somos Grandes Contribuyentes<br>
+                    Régimen IVA: COMÚN Actividad ICA: 47521 6,90x mil</p>
+            </div>
+            <div class= 'info-customer'>
+                <p>Nombre / Empresa: Inversiones Hoteleras Rosales Sas<br><br>
+                    Correo: gerencia@hotelrosalesplaza.com<br><br>
+                    Dirección: Bogota - Colombia<br><br>
+                    Plazo: 10 dias Fecha de Vencimiento: 29/09/2023
+                </P>
+                <p>Teléfono: 316 7578855</P>
+                <p class="texto-derecha">Fecha: <u>08</u>/<u>08</u>/<u>2023/</u><br><br>Cotización No. D693</P>
+            </div> 
+            <div>
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th class="column" >FOTO</th>
+                            <th class="column" style="padding: 8px 60px;">SKU</th>
+                            <th class="column" style="padding: 8px 120px;">DESCRIPCIÓN</th>
+                            <th class="column" >CANTIDAD</th>
+                            <th class="column" >P. UNITARIO</th>
+                            <th class="column" >TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Imagen 1</td>
+                            <td>12345</td>
+                            <td>Producto 1</td>
+                            <td>5</td>
+                            <td>$20.00</td>
+                            <td>$100.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+                    <div class="linea-vertical l1"></div>
+                    <div class="linea-vertical l2"></div>
+                    <div class="linea-vertical l3"></div>
+                    <div class="linea-vertical l4"></div>
+                    <div class="linea-vertical l5"></div>
+                    <div class="linea-horizontal lh1"></div>
+                    <div class="linea-horizontal lh2" ></div>
+            <div class='btns'>
+                <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la<br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
+                <img src="{% static 'images/cotizacion/Bot-pago.png' %}" width='30px' alt="boton pago">
+                <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
+                <img src="{% static 'images/cotizacion/bton-W.png' %}" width= '30px' alt="boton w">
+            </div>
+            <div class= 'politics'>
+                <p >
+                    POLITICAS DE REEMBOLSO DE FREPIN SAS<br>
+                    Consulta nuestra politica de reembolso https://www.pamo.co/policies/refund-policy<br>
+                    <span style='text-align: justify;' >
+                    Todas las devoluciones y/o garantías estarán sujetas al derecho de retracto y a la política de garantías por lo que toda solicitud debe ser notificada por el correo lidercomercial1@pamo.co, en el tiempo establecido por PAMO COLOMBIA que equivalen a treinta (30) días fecha calendario a partir de que el cliente tenga el producto. Si la garantía de
+                    tu producto es procedente, se realizará la reparación pertinente totalmente gratuita de los defectos del bien y se suministrará oportunamente los repuestos requeridos siempre
+                    y cuando el producto cumpla con los siguientes requisitos: 1. El producto de venir correctamente embalado 2. El producto debe venir limpio y desinfectado (sin ningún tipo de
+                    residuo) previamente antes de ser recibido. PORFAVOR CONSERVE EL EMPAQUE Y GUIAS DEL PRODUCTO PARA SU RESPECTIVA GARANTIA YA QUE EL PRODUCTO PUDO VERSE
+                    AFECTADO POR EL MALTRATO EN SU EMBALAJE.
+                    POLITICAS DE PRIVACIDAD DE FREPIN SAS
+                    Consulta nuestra politica de Privacidad</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% load static %}
     <style>
         @media print {
             @page {
@@ -136,8 +407,9 @@
                 display: none;
             }
         }
+</style> {% endcomment %}
 
-    </style>
+{% comment %} 
     <div class="container" id="contenido-popup">
         <div class="header">
             <img src="{% static 'images/Logo Pamo Png.png' %}" width="400px" alt="Logo de FEPRIN SAS">
@@ -236,4 +508,4 @@
     document.getElementById('botonImprimir').addEventListener('click', function() {
         window.print();
     });
-</script>
+</script>  {% endcomment %}
