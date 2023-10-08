@@ -16,7 +16,7 @@ from pamo.constants import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_URL = "http://127.0.0.1:8000" if DEBUG_VAR else "https://pamoweb-production.up.railway.app"
+BASE_URL = "https://pamoweb-production.up.railway.app"
 print(f'link {BASE_URL}')
 
 # Quick-start development settings - unsuitable for production
