@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cotizacion</title>
+    <title>{{info.name|slice:"1:"}}{% if info.customer.displayName %}-{{ info.customer.displayName }}{% endif %}</title>
     <style>
         @page {
             size: A4;
@@ -27,7 +27,7 @@
         }
 
         .page:nth-child(odd) {
-            background-color: #f0f0f0;
+            background-color: #F2F2F2;
         }
         .header{
             display:block;
@@ -45,7 +45,7 @@
         .texto-derecha {
             text-align: right;
         }
-        .page img{
+        .bg{
             width:1131px;
             height:1600px
         }
@@ -107,17 +107,17 @@
             left:171px; 
         }
         .l2{
-            left:340px; 
+            left:325px; 
         }
         .l3{
-            left:725px; 
+            left:677px; 
         }
         .l4{
-            left:835px;
+            left:798px;
             bottom : 350px 
         }
         .l5{
-            left:956px; 
+            left:930px; 
             bottom : 350px 
         }
         .btns{
@@ -153,24 +153,37 @@
         .lh2{
             bottom: 255px;
         }
+
+        .totales{
+                position: absolute;
+                display: flex;
+                bottom: 360px;
+                left: 856px;
+        }
+
+        .totales p{
+            margin: 2px;
+        }
+
+        .img-product{
+            width:100%;
+            height:auto
+        }
         
-
-
-
 
     </style>
 </head>
 <body>
     <div class="page">
-            <img src="{% static 'images/cotizacion/Pg1.png' %}" alt="page_1">
+            <img class ='bg' src="{% static 'images/cotizacion/Pg1.png' %}" alt="page_1">
     </div>
     <div class="page ">
-            <img src="{% static 'images/cotizacion/Pg2.png' %}" alt="page_2">
+            <img class ='bg' src="{% static 'images/cotizacion/Pg2.png' %}" alt="page_2">
     </div>
-    <div class="page">
+    <div class="page" id='cotizacion'>
         <div class="container">
             <div class="background-image">
-                <img src="{% static 'images/cotizacion/Pg3.png' %}" alt="Imagen de fondo">
+                <img class='bg' src="{% static 'images/cotizacion/Pg3.png' %}" alt="Imagen de fondo">
             </div>
             <div class="overlay-text">
                 <p class="texto-derecha">FEPRIN SAS / PAMO.CO<br>
@@ -182,37 +195,74 @@
                     Régimen IVA: COMÚN Actividad ICA: 47521 6,90x mil</p>
             </div>
             <div class= 'info-customer'>
-                <p>Nombre / Empresa: Inversiones Hoteleras Rosales Sas<br><br>
-                    Correo: gerencia@hotelrosalesplaza.com<br><br>
-                    Dirección: Bogota - Colombia<br><br>
-                    Plazo: 10 dias Fecha de Vencimiento: 29/09/2023
+                <p>{% if info.customer.displayName %}  <strong>Nombre / Empresa:</strong> {{info.customer.displayName|title}} <br><br> {% endif %}
+                    {% if info.customer.email %} <strong>Correo:</strong> {{info.customer.email}} <br><br> {% endif %}
+                    {% if nit %} <strong>Nit:</strong> {{nit}} <br><br> {% endif %}
+                    {% if info.customer.defaultAddress.phone %} <strong>Teléfono:</strong> {{info.customer.defaultAddress.phone|cut:"0123456789"}} <br><br> {% endif %}
+                    Plazo: 10 dias Fecha de Vencimiento: {{plazo}}
                 </P>
                 <p>Teléfono: 316 7578855</P>
-                <p class="texto-derecha">Fecha: <u>08</u>/<u>08</u>/<u>2023/</u><br><br>Cotización No. D693</P>
+                <p class="texto-derecha">Fecha: <u>{{update}}/</u><br><br>Cotización No. {{info.name|slice:"1:" }}</P>
             </div> 
             <div>
                 <table class="product-table">
                     <thead>
                         <tr>
-                            <th class="column" >FOTO</th>
+                            <th class="column" style="width: 74px;">FOTO</th>
                             <th class="column" style="padding: 8px 60px;">SKU</th>
                             <th class="column" style="padding: 8px 120px;">DESCRIPCIÓN</th>
-                            <th class="column" >CANTIDAD</th>
-                            <th class="column" >P. UNITARIO</th>
-                            <th class="column" >TOTAL</th>
+                            <th class="column" style="width: 104.4px;" >CANTIDAD</th>
+                            <th class="column" style="width: 114.9px;">P. UNITARIO</th>
+                            <th class="column" style="width: 90.65px;">TOTAL</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <script>
+                            var total = 0
+                        </script>
                         <tr>
-                            <td>Imagen 1</td>
-                            <td>12345</td>
-                            <td>Producto 1</td>
-                            <td>5</td>
-                            <td>$20.00</td>
-                            <td>$100.00</td>
+                            {% for i in info.lineItems.edges %}
+                            <td><img class='img-product' src= {% if i.scr %} {{i.scr}} {% else %} "{% static 'images/Logo Pamo Png.png' %}"  {% endif %}  alt ="No photo"></td>
+                            <td>{{i.sku}}</td>
+                            <td>{{i.node.title}}</td>
+                            <td>{{i.node.quantity}}</td>
+                            <td>
+                                <script>                        
+                                    document.write((parseInt({{ i.node.originalUnitPrice }} /1.19).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0})).replace("COP", "$"));
+                                </script>
+                            </td>
+                            <td>
+                                <script>
+                                    var price_cant = parseInt(({{ i.node.quantity }}/1.19) * {{ i.node.originalUnitPrice }})
+                                    document.write(price_cant.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"));
+                                    total = total + price_cant
+                                    var total_iva = total * 0.19
+                                </script>
+                            </td>
+                        </tr>
+                        {% endfor %}
                         </tr>
                     </tbody>
                 </table>
+                <div class= "totales">
+                    <div class='texto-derecha' style = "margin-right: 10px;">
+                        <p><strong>Subtotal</strong></p>
+                        <p><strong>IVA</strong></p>
+                        {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong> {% endif %}
+                        <p><strong>Total</strong></p>
+                    </div>
+                    <div>
+                        <p><script>
+                            document.write(total.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))
+                        </script></p>
+                        <p><script> document.write(parseInt(total_iva).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> </p>
+                        <p> {% if info.appliedDiscount.amount %}<script> 
+                            var discount ={{info.appliedDiscount.amount}}
+                            document.write( discount.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$ -")) </script> </p> {% endif %}</p>
+                        <p> {% if info.appliedDiscount.amount %} <script> document.write((parseInt(total_iva) + parseInt(total) - parseInt(discount)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))</script>
+                            {% else %} <script>document.write((parseInt(total_iva) + parseInt(total)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> {% endif %}</p></p>
+                    </div>
+                </div>
                     <div class="linea-vertical l1"></div>
                     <div class="linea-vertical l2"></div>
                     <div class="linea-vertical l3"></div>
@@ -222,7 +272,8 @@
                     <div class="linea-horizontal lh2" ></div>
             <div class='btns'>
                 <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la<br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
-                <img src="{% static 'images/cotizacion/Bot-pago.png' %}" width='30px' alt="boton pago">
+                
+                <a href="{{info.invoiceUrl}}"> <img src="{% static 'images/cotizacion/Bot-pago.png' %}" width='30px' alt="boton pago"></a>
                 <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
                 <img src="{% static 'images/cotizacion/bton-W.png' %}" width= '30px' alt="boton w">
             </div>
@@ -242,8 +293,20 @@
             </div>
         </div>
     </div>
+<script>
+
+</script>
 </body>
 </html>
+<script>
+    window.onload = function() {
+        var elemento = document.getElementById("cotizacion");
+        if (elemento) {
+          elemento.scrollIntoView();
+        }
+      };
+      
+</script>
 
 
 
