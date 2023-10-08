@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.conf import settings
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.constants import *
 from pamo.queries import *
@@ -15,7 +16,7 @@ def index(request):
         res['data']['draftOrders']['edges'][i]['node']['createdAt'] = datetime.strptime((res['data']['draftOrders']['edges'][i]['node']['createdAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
         res['data']['draftOrders']['edges'][i]['node']['updatedAt'] = datetime.strptime((res['data']['draftOrders']['edges'][i]['node']['updatedAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
         res['data']['draftOrders']['edges'][i]['node']['name'] = int(res['data']['draftOrders']['edges'][i]['node']['name'][2:])
-    data = {"table" :res['data']['draftOrders']['edges']}
+    data = {"table" :res['data']['draftOrders']['edges'], 'url_base':settings.BASE_URL}
     return render(request, 'table_draft_orders.html', data)
 
 def print_drafr(request,id):
