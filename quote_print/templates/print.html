@@ -32,52 +32,51 @@
         .header{
             display:block;
         }
-        .insignia {
+        {% comment %} .insignia {
             width: 55px;
             margin-left: 890px;
-        }
+        } {% endcomment %}
         .logo{
             width:50px;
         }
-        .compani-info{
+        {% comment %} .compani-info{
             display:flex;
-        }
+        } {% endcomment %}
         .texto-derecha {
             text-align: right;
         }
-        .bg{
+        {% comment %} .bg{
             width:1131px;
             height:1600px
-        }
+        } {% endcomment %}
         .container {
-            position: relative; 
+            position: relative;
         }
-        
         .overlay-text {
-            position: absolute;
-            top: 114px;
-            left: 579px;
-            width: 458px;
-            display: flex;
-            background-color: rgba(0, 0, 0, 0);
-            color: black;
+            position: relative;
+            width: 1080px;
+            margin-top: 100px;
+            margin-left: -85px;
         }
 
         .info-customer {
-        position: absolute;
-        display: flex;
-        justify-content: space-between;
-        top: 330px;
-        width: 957px;
-        left: 80px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0px 81px;
+            padding-bottom: 13px;
         }
 
         .product-table  {
-            position: absolute;
-            top: 510px;
-            left: 81px;
             border-collapse: collapse;
-            width: 957px;
+            width: 990px;
+            margin: auto;
+        }
+        .product-table td{
+            vertical-align: top;
+        }
+        .product-table tr{
+            height: 40px;
+            border-bottom: 1px solid #d1d1d1;
         }
         th, td {
             text-align: left;
@@ -103,28 +102,10 @@
             width: 1px;
             background-color: #d1d1d1; 
         }
-        .l1{
-            left:171px; 
-        }
-        .l2{
-            left:325px; 
-        }
-        .l3{
-            left:677px; 
-        }
-        .l4{
-            left:798px;
-            bottom : 350px 
-        }
-        .l5{
-            left:930px; 
-            bottom : 350px 
-        }
         .btns{
-            position: absolute;
-            left: 80px;
-            bottom: 280px;
             font-size: 13px;
+            width: 100%;
+            padding-left: 51px;
         }
         .btns img{
             height: 30px;
@@ -132,33 +113,21 @@
         }
 
         .politics{
-            position: absolute;
             left: 80px;
             font-size: 13px;
-            width: 957px;
-            bottom: 70px;
+            width: 974px;
+            margin: auto;
         }
 
         .linea-horizontal {
             border-top: 1px solid;
-            position: absolute;
-            left: 80px;
-            width: 957px;
-            color: #d1d1d1
+            width: 990px;
+            color: #d1d1d1;
+            margin: 10px auto;
         }
-        .lh1{
-            bottom: 453px;
-        }
-
-        .lh2{
-            bottom: 255px;
-        }
-
         .totales{
-                position: absolute;
-                display: flex;
-                bottom: 360px;
-                left: 856px;
+            display: flex;
+            margin-right: 81px;
         }
 
         .totales p{
@@ -169,22 +138,65 @@
             width:100%;
             height:auto
         }
+        .back {
+            width: 1080px;
+            height: 1528px;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
         
+        .pg1{ 
+        background-image: url('{% static "images/cotizacion/Pg1.png" %}')
+        }
+        .pg2{ 
+        background-image: url('{% static "images/cotizacion/Pg2.png" %}')   
+        }
+        .pg3{ 
+        background-image: url('{% static "images/cotizacion/Pg3.png" %}')
+        }
+
+        .cont_ends {
+            display: flex;
+            justify-content: space-between; /* Distribuye los elementos a los extremos del contenedor */
+        }
+
+        .boton-imagen {
+            display: block;
+            text-align: center;
+            text-decoration: none; /* Evita el subrayado de enlaces */
+          }
+        
+          .boton-imagen img {
+            display: block;
+            margin: 0 auto; /* Centra la imagen horizontalmente */
+          }
+        
+          .boton-imagen span {
+            display: block;
+            text-align: center;
+          }
+        
+          @media print {
+            .boton-imagen {
+              display: none;
+            }
+          }
+
 
     </style>
 </head>
 <body>
     <div class="page">
-            <img class ='bg' src="{% static 'images/cotizacion/Pg1.png' %}" alt="page_1">
+        <div class='back pg1' >
+        </div> 
     </div>
-    <div class="page ">
-            <img class ='bg' src="{% static 'images/cotizacion/Pg2.png' %}" alt="page_2">
+    <div class="page">
+        <div class='back pg2' >
+        </div>
     </div>
     <div class="page" id='cotizacion'>
+        <div class='back pg3' >
         <div class="container">
-            <div class="background-image">
-                <img class='bg' src="{% static 'images/cotizacion/Pg3.png' %}" alt="Imagen de fondo">
-            </div>
             <div class="overlay-text">
                 <p class="texto-derecha">FEPRIN SAS / PAMO.CO<br>
                     NIT: 900.382.733-3 Régimen Común<br>
@@ -203,9 +215,9 @@
                 </P>
                 <p>Teléfono: 316 7578855</P>
                 <p class="texto-derecha">Fecha: <u>{{update}}/</u><br><br>Cotización No. {{info.name|slice:"1:" }}</P>
-            </div> 
+            </div>
             <div>
-                <table class="product-table">
+                <table class="product-table" id="product-table">
                     <thead>
                         <tr>
                             <th class="column" style="width: 74px;">FOTO</th>
@@ -217,68 +229,38 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <script>
-                            var total = 0
-                        </script>
-                        <tr>
-                            {% for i in info.lineItems.edges %}
-                            <td><img class='img-product' src= {% if i.scr %} {{i.scr}} {% else %} "{% static 'images/Logo Pamo Png.png' %}"  {% endif %}  alt ="No photo"></td>
-                            <td>{{i.sku}}</td>
-                            <td>{{i.node.title}}</td>
-                            <td>{{i.node.quantity}}</td>
-                            <td>
-                                <script>                        
-                                    document.write((parseInt({{ i.node.originalUnitPrice }} /1.19).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0})).replace("COP", "$"));
-                                </script>
-                            </td>
-                            <td>
-                                <script>
-                                    var price_cant = parseInt(({{ i.node.quantity }}/1.19) * {{ i.node.originalUnitPrice }})
-                                    document.write(price_cant.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"));
-                                    total = total + price_cant
-                                    var total_iva = total * 0.19
-                                </script>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-                <div class= "totales">
-                    <div class='texto-derecha' style = "margin-right: 10px;">
-                        <p><strong>Subtotal</strong></p>
-                        <p><strong>IVA</strong></p>
-                        {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong> {% endif %}
-                        <p><strong>Total</strong></p>
+                </tbody>
+            </table>
+            <div id = "footer">
+                <div class = 'cont_ends' >
+                    <div class='btns'>
+                        <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la<br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
+                        <a href="{{info.invoiceUrl}}"> <img src="{% static 'images/cotizacion/Bot-pago.png' %}" width='30px' alt="boton pago"></a>
+                        <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
+                        <img src="{% static 'images/cotizacion/bton-W.png' %}" width= '30px' alt="boton w">
                     </div>
-                    <div>
-                        <p><script>
-                            document.write(total.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))
-                        </script></p>
-                        <p><script> document.write(parseInt(total_iva).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> </p>
-                        <p> {% if info.appliedDiscount.amount %}<script> 
-                            var discount ={{info.appliedDiscount.amount}}
-                            document.write( discount.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$ -")) </script> </p> {% endif %}</p>
-                        <p> {% if info.appliedDiscount.amount %} <script> document.write((parseInt(total_iva) + parseInt(total) - parseInt(discount)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))</script>
-                            {% else %} <script>document.write((parseInt(total_iva) + parseInt(total)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> {% endif %}</p></p>
+                    <div class= "totales">
+                        <div class='texto-derecha' style = "margin-right: 10px;">
+                            <p><strong>Subtotal</strong></p>
+                            <p><strong>IVA</strong></p>
+                            {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong> {% endif %}
+                                <p><strong>Total</strong></p>
+                        </div>
+                        <div>
+                            <p id= 'subtotal'>
+                            </p>
+                            <p id ='iva' >
+                            </p>
+                            {% if info.appliedDiscount.amount %}<p id = 'descuento'>{% endif %}
+                                
+                            <p  id = 'total'> 
+                        </div>
                     </div>
                 </div>
-                    <div class="linea-vertical l1"></div>
-                    <div class="linea-vertical l2"></div>
-                    <div class="linea-vertical l3"></div>
-                    <div class="linea-vertical l4"></div>
-                    <div class="linea-vertical l5"></div>
-                    <div class="linea-horizontal lh1"></div>
-                    <div class="linea-horizontal lh2" ></div>
-            <div class='btns'>
-                <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la<br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
-                
-                <a href="{{info.invoiceUrl}}"> <img src="{% static 'images/cotizacion/Bot-pago.png' %}" width='30px' alt="boton pago"></a>
-                <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
-                <img src="{% static 'images/cotizacion/bton-W.png' %}" width= '30px' alt="boton w">
-            </div>
-            <div class= 'politics'>
-                <p >
+                <div class="linea-horizontal"></div>
+                <div class= 'politics'>
+                    <div class= 'linea-vertical'></div>
+                <p>
                     POLITICAS DE REEMBOLSO DE FREPIN SAS<br>
                     Consulta nuestra politica de reembolso https://www.pamo.co/policies/refund-policy<br>
                     <span style='text-align: justify;' >
@@ -290,23 +272,160 @@
                     POLITICAS DE PRIVACIDAD DE FREPIN SAS
                     Consulta nuestra politica de Privacidad</span>
                 </p>
+                <a href="#"class = 'boton-imagen' id="botonImprimir">
+                    <img  src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
+                    <span>Imprimir</span>
+                </a>
             </div>
         </div>
     </div>
-<script>
-
-</script>
+    </div> 
 </body>
+
 </html>
 <script>
     window.onload = function() {
-        var elemento = document.getElementById("cotizacion");
-        if (elemento) {
-          elemento.scrollIntoView();
+
+    document.getElementById('botonImprimir').addEventListener('click', function() {
+        window.print();
+        });
+
+
+      var elemento = document.getElementById("cotizacion");
+      if (elemento) {
+        elemento.scrollIntoView();
+      }
+      totales = {}
+      totales.totalSinIva = 0
+      totales.total = 0
+      total = 0
+
+      json = "{{info|safe}}".replace(/'/g, '"');
+      json = json.replace(/None/g, 'null');
+      datos = JSON.parse(json);
+      data = JSON.parse(json).lineItems.edges;
+      data.forEach(function(element) {
+      totales.total += (element.node.originalUnitPrice * element.node.quantity)
+      totales.iva = (totales.totalSinIva/ 1.19) - totales.totalSinIva
+        });
+        console.log(totales.total);
+        totales.iva = totales.total - (totales.total/1.19)
+        totales.totalSinIva = totales.total - totales.iva
+        totales.descuento = datos.appliedDiscount == null ? '' : datos.appliedDiscount.amount
+        totales.total = totales.total - totales.descuento 
+        document.getElementById('subtotal').textContent =  formatNumber(totales.totalSinIva)
+        document.getElementById('iva').textContent =  formatNumber(totales.iva)
+        console.log(document.getElementById('descuento'))
+        document.getElementById('descuento') == null ? '' : document.getElementById('descuento').textContent = formatNumber(totales.descuento)
+        document.getElementById('total').textContent =  formatNumber(totales.total)
+        console.log(totales.totalSinIva);
+        console.log(totales.iva);
+        console.log(totales.total);
+
+      function setTable(table, data) {
+        var tbody = table.getElementsByTagName('tbody')[0];
+        data.forEach(function(item) {
+          var row = tbody.insertRow();
+          var cell1 = row.insertCell(0);
+          var cell2 = row.insertCell(1);
+          var cell3 = row.insertCell(2);
+          var cell4 = row.insertCell(3);
+          var cell5 = row.insertCell(4);
+          var cell6 = row.insertCell(5);
+  
+          imagen = document.createElement('img');
+          imagen.src = item.scr == undefined ? "{% static 'images/cotizacion/photo.jpg' %}" : item.scr;
+          imagen.width = 75;
+          imagen.height = 75;
+          cell1.appendChild(imagen);
+          cell2.innerHTML = item.sku == undefined ? "" : item.sku;
+          cell3.innerHTML = item.node.title == undefined ? "" : item.node.title;
+          cell4.innerHTML = item.node.quantity == undefined ? "" : item.node.quantity;
+          vUnit = item.node.originalUnitPrice / 1.19;
+          cell5.innerHTML = item.node.originalUnitPrice == undefined ? "" : formatNumber(vUnit);
+          totalItem = item.node.originalUnitPrice / 1.19 * item.node.quantity;
+          cell6.innerHTML = item.node.originalUnitPrice == undefined ? "" : formatNumber(totalItem);
+        });
+      }
+  
+      function formatNumber(number) {
+        return (number).toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP'
+        }).replace(/,\d{2}/g, '');
+      }
+  
+      var limit = 10;
+      const rowGroups = [];
+      let currentGroup = [];
+      let rowCount = 0;
+      for (const row of data) {
+        currentGroup.push(row);
+        rowCount++;
+        if (rowCount >= limit) {
+          rowGroups.push(currentGroup);
+          currentGroup = [];
+          rowCount = 0;
         }
-      };
-      
-</script>
+      }
+  
+      if (currentGroup.length > 0) {
+        rowGroups.push(currentGroup);
+      }
+      console.log(rowGroups)
+      var divs = [];
+      rowGroups.forEach((group, index) => {
+        console.log(index)
+        divPage = document.getElementById('cotizacion');
+        if (index == 0){
+            table = divPage.getElementsByClassName('product-table')[0];
+            setTable(table, group);
+            if (rowGroups.length > 1){
+                footer = document.getElementById('footer');
+                footer.remove()
+            }
+        }
+        else {
+            var divPageAdd = divPage.cloneNode(true); //clona el div
+            //quita datos de cliente
+            infoCustomers = divPageAdd.getElementsByClassName('info-customer');
+            while (infoCustomers.length > 0) {
+            infoCustomers[0].parentNode.removeChild(infoCustomers[0]);
+            }//hasta aqui quita datos de cliente
+            table = divPageAdd.getElementsByClassName('product-table')[0];
+            var tbody = table.getElementsByTagName('tbody')[0];
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+              }
+            setTable(table, group);
+            divPageAdd.id = 'cotizacion_' + index.toString();
+            group.forEach((row) => {
+            document.body.appendChild(divPageAdd);
+            });
+            container = divPageAdd.getElementsByClassName('container')[0] 
+
+                if ((container.offsetHeight + 322) > 1200  && (rowGroups.length == index+1)){
+                    container.appendChild(footer.getElementsByClassName('cont_ends')[0]);
+                    var divPageAdd = divPage.cloneNode(true); //clona el div
+                    //quita datos de cliente
+                    infoCustomers = divPageAdd.getElementsByClassName('info-customer');
+                    while (infoCustomers.length > 0) {
+                    infoCustomers[0].parentNode.removeChild(infoCustomers[0]);
+                    }//hasta aqui quita datos de cliente
+                    table = divPageAdd.getElementsByClassName('product-table')[0];
+                    table.remove()
+                    console.log('final')
+                    document.body.appendChild(divPageAdd);
+                    container = divPageAdd.getElementsByClassName('container')[0] ;
+                    politics = footer.getElementsByClassName('politics')[0]
+                    politics.style.marginTop = "60px";
+                    container.appendChild(politics);
+                }
+            }    
+      });
+    };
+  </script>
+  
 
 
 
