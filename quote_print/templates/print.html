@@ -32,23 +32,23 @@
         .header{
             display:block;
         }
-        .insignia {
+        {% comment %} .insignia {
             width: 55px;
             margin-left: 890px;
-        }
+        } {% endcomment %}
         .logo{
             width:50px;
         }
-        .compani-info{
+        {% comment %} .compani-info{
             display:flex;
-        }
+        } {% endcomment %}
         .texto-derecha {
             text-align: right;
         }
-        .bg{
+        {% comment %} .bg{
             width:1131px;
             height:1600px
-        }
+        } {% endcomment %}
         .container {
             position: relative;
         }
@@ -70,13 +70,12 @@
             border-collapse: collapse;
             width: 990px;
             margin: auto;
-            min-height: 790px;
         }
         .product-table td{
             vertical-align: top;
         }
         .product-table tr{
-            min-height: 40px;
+            height: 40px;
             border-bottom: 1px solid #d1d1d1;
         }
         th, td {
@@ -103,23 +102,6 @@
             width: 1px;
             background-color: #d1d1d1; 
         }
-        .l1{
-            left:171px; 
-        }
-        .l2{
-            left:325px; 
-        }
-        .l3{
-            left:677px; 
-        }
-        .l4{
-            left:798px;
-            bottom : 350px 
-        }
-        .l5{
-            left:930px; 
-            bottom : 350px 
-        }
         .btns{
             font-size: 13px;
             width: 100%;
@@ -143,15 +125,6 @@
             color: #d1d1d1;
             margin: 10px auto;
         }
-        
-        .lh1{
-            bottom: 453px;
-        }
-
-        .lh2{
-            bottom: 255px;
-        }
-
         .totales{
             display: flex;
             margin-right: 81px;
@@ -186,6 +159,28 @@
             display: flex;
             justify-content: space-between; /* Distribuye los elementos a los extremos del contenedor */
         }
+
+        .boton-imagen {
+            display: block;
+            text-align: center;
+            text-decoration: none; /* Evita el subrayado de enlaces */
+          }
+        
+          .boton-imagen img {
+            display: block;
+            margin: 0 auto; /* Centra la imagen horizontalmente */
+          }
+        
+          .boton-imagen span {
+            display: block;
+            text-align: center;
+          }
+        
+          @media print {
+            .boton-imagen {
+              display: none;
+            }
+          }
 
 
     </style>
@@ -234,31 +229,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% comment %} <script>
-                            var total = 0
-                        </script>
-                        <tr>
-                            {% for i in info.lineItems.edges %}
-                            <td><img class='img-product' src= {% if i.scr %} {{i.scr}} {% else %} "{% static 'images/Logo Pamo Png.png' %}"  {% endif %}  alt ="No photo"></td>
-                            <td>{{i.sku}}</td>
-                            <td>{{i.node.title}}</td>
-                            <td>{{i.node.quantity}}</td>
-                            <td>
-                                <script>                        
-                                    document.write((parseInt({{ i.node.originalUnitPrice }} /1.19).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0})).replace("COP", "$"));
-                                </script>
-                            </td>
-                            <td>
-                                <script>
-                                    var price_cant = parseInt(({{ i.node.quantity }}/1.19) * {{ i.node.originalUnitPrice }})
-                                    document.write(price_cant.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"));
-                                    total = total + price_cant
-                                    var total_iva = total * 0.19
-                                </script>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tr> {% endcomment %}
                 </tbody>
             </table>
             <div id = "footer">
@@ -277,20 +247,19 @@
                                 <p><strong>Total</strong></p>
                         </div>
                         <div>
-                            <p><script>
-                                document.write(total.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))
-                            </script></p>
-                            <p><script> document.write(parseInt(total_iva).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> </p>
-                            <p> {% if info.appliedDiscount.amount %}<script> 
-                                var discount ={{info.appliedDiscount.amount}}
-                                document.write( discount.toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$ -")) </script> </p> {% endif %}</p>
-                            <p> {% if info.appliedDiscount.amount %} <script> document.write((parseInt(total_iva) + parseInt(total) - parseInt(discount)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$"))</script>
-                                {% else %} <script>document.write((parseInt(total_iva) + parseInt(total)).toLocaleString('en-GB', {style: 'currency',currency: 'COP', minimumFractionDigits: 0}).replace("COP", "$")) </script> {% endif %}</p></p>
+                            <p id= 'subtotal'>
+                            </p>
+                            <p id ='iva' >
+                            </p>
+                            {% if info.appliedDiscount.amount %}<p id = 'descuento'>{% endif %}
+                                
+                            <p  id = 'total'> 
                         </div>
                     </div>
                 </div>
                 <div class="linea-horizontal"></div>
                 <div class= 'politics'>
+                    <div class= 'linea-vertical'></div>
                 <p>
                     POLITICAS DE REEMBOLSO DE FREPIN SAS<br>
                     Consulta nuestra politica de reembolso https://www.pamo.co/policies/refund-policy<br>
@@ -303,97 +272,160 @@
                     POLITICAS DE PRIVACIDAD DE FREPIN SAS
                     Consulta nuestra politica de Privacidad</span>
                 </p>
+                <a href="#"class = 'boton-imagen' id="botonImprimir">
+                    <img  src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
+                    <span>Imprimir</span>
+                </a>
             </div>
         </div>
     </div>
-    </div>
+    </div> 
 </body>
+
 </html>
 <script>
     window.onload = function() {
-        var elemento = document.getElementById("cotizacion");
-        if (elemento) {
-          elemento.scrollIntoView();
-        }
-        
-        footer = document.getElementById('footer')
 
-          json = "{{info|safe}}".replace(/'/g, '"')
-          json = json.replace(/None/g, 'null')
-          data = JSON.parse(json).lineItems.edges
-          data.forEach(function(element){
-            console.log(element.sku)
-          })
-
-          var table = document.getElementById('product-table')
-          var tbody = table.getElementsByTagName('tbody')[0];
-          data.forEach(function(item) {
-            var row = tbody.insertRow();
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-            var cell3 = row.insertCell(2);
-            var cell4 = row.insertCell(3);
-            var cell5 = row.insertCell(4);
-            var cell6 = row.insertCell(5);
-        
-            imagen = document.createElement('img')
-            imagen.src = item.scr == undefined ? "{% static 'images/Logo Pamo Png.png' %}": item.scr;
-            imagen.width = 75; 
-            imagen.height = 75;
-            //cell1.appendChild(imagen)
-            //cell2.innerHTML = item.sku == undefined ? "": item.sku
-            //cell3.innerHTML = item.node.title == undefined ? "": item.node.title
-            //cell4.innerHTML = item.node.quantity == undefined ? "": item.node.quantity
-            //vUnit = item.node.originalUnitPrice/1.19
-            //cell5.innerHTML = item.node.originalUnitPrice == undefined ? "": formatNumber(vUnit)
-            //totalItem = item.node.originalUnitPrice/1.19 * item.node.quantity
-            //cell6.innerHTML = item.node.originalUnitPrice == undefined ? "": formatNumber(totalItem)
-
+    document.getElementById('botonImprimir').addEventListener('click', function() {
+        window.print();
         });
 
-        function formatNumber(number){
-            return (number).toLocaleString('es-CO', {
-                style: 'currency',
-                currency: 'COP'
-            }).replace(/,\d{2}/g,'');
+
+      var elemento = document.getElementById("cotizacion");
+      if (elemento) {
+        elemento.scrollIntoView();
+      }
+      totales = {}
+      totales.totalSinIva = 0
+      totales.total = 0
+      total = 0
+
+      json = "{{info|safe}}".replace(/'/g, '"');
+      json = json.replace(/None/g, 'null');
+      datos = JSON.parse(json);
+      data = JSON.parse(json).lineItems.edges;
+      data.forEach(function(element) {
+      totales.total += (element.node.originalUnitPrice * element.node.quantity)
+      totales.iva = (totales.totalSinIva/ 1.19) - totales.totalSinIva
+        });
+        console.log(totales.total);
+        totales.iva = totales.total - (totales.total/1.19)
+        totales.totalSinIva = totales.total - totales.iva
+        totales.descuento = datos.appliedDiscount == null ? '' : datos.appliedDiscount.amount
+        totales.total = totales.total - totales.descuento 
+        document.getElementById('subtotal').textContent =  formatNumber(totales.totalSinIva)
+        document.getElementById('iva').textContent =  formatNumber(totales.iva)
+        console.log(document.getElementById('descuento'))
+        document.getElementById('descuento') == null ? '' : document.getElementById('descuento').textContent = formatNumber(totales.descuento)
+        document.getElementById('total').textContent =  formatNumber(totales.total)
+        console.log(totales.totalSinIva);
+        console.log(totales.iva);
+        console.log(totales.total);
+
+      function setTable(table, data) {
+        var tbody = table.getElementsByTagName('tbody')[0];
+        data.forEach(function(item) {
+          var row = tbody.insertRow();
+          var cell1 = row.insertCell(0);
+          var cell2 = row.insertCell(1);
+          var cell3 = row.insertCell(2);
+          var cell4 = row.insertCell(3);
+          var cell5 = row.insertCell(4);
+          var cell6 = row.insertCell(5);
+  
+          imagen = document.createElement('img');
+          imagen.src = item.scr == undefined ? "{% static 'images/cotizacion/photo.jpg' %}" : item.scr;
+          imagen.width = 75;
+          imagen.height = 75;
+          cell1.appendChild(imagen);
+          cell2.innerHTML = item.sku == undefined ? "" : item.sku;
+          cell3.innerHTML = item.node.title == undefined ? "" : item.node.title;
+          cell4.innerHTML = item.node.quantity == undefined ? "" : item.node.quantity;
+          vUnit = item.node.originalUnitPrice / 1.19;
+          cell5.innerHTML = item.node.originalUnitPrice == undefined ? "" : formatNumber(vUnit);
+          totalItem = item.node.originalUnitPrice / 1.19 * item.node.quantity;
+          cell6.innerHTML = item.node.originalUnitPrice == undefined ? "" : formatNumber(totalItem);
+        });
+      }
+  
+      function formatNumber(number) {
+        return (number).toLocaleString('es-CO', {
+          style: 'currency',
+          currency: 'COP'
+        }).replace(/,\d{2}/g, '');
+      }
+  
+      var limit = 10;
+      const rowGroups = [];
+      let currentGroup = [];
+      let rowCount = 0;
+      for (const row of data) {
+        currentGroup.push(row);
+        rowCount++;
+        if (rowCount >= limit) {
+          rowGroups.push(currentGroup);
+          currentGroup = [];
+          rowCount = 0;
         }
-
-
-
-        var limit = 10
-        const rowGroups = [];
-        let currentGroup = [];
-        let rowCount = 0;
-        for (const row of data) {
-            currentGroup.push(row);
-            rowCount++;
-            if (rowCount >= limit) {
-              rowGroups.push(currentGroup);
-              currentGroup = [];
-              rowCount = 0;
+      }
+  
+      if (currentGroup.length > 0) {
+        rowGroups.push(currentGroup);
+      }
+      console.log(rowGroups)
+      var divs = [];
+      rowGroups.forEach((group, index) => {
+        console.log(index)
+        divPage = document.getElementById('cotizacion');
+        if (index == 0){
+            table = divPage.getElementsByClassName('product-table')[0];
+            setTable(table, group);
+            if (rowGroups.length > 1){
+                footer = document.getElementById('footer');
+                footer.remove()
             }
-          }
-          if (currentGroup.length > 0) {
-            rowGroups.push(currentGroup);
-          }
-        console.log(data.length)
-        console.log(rowGroups)
-        rowGroups.forEach((group, index) => {
-            console.log(index)
-            divPage = document.getElementById('cotizacion');
-            var divPageAdd = divPage.cloneNode(true);
-            divPageAdd.id = 'cotizacion_' + index.toString()
+        }
+        else {
+            var divPageAdd = divPage.cloneNode(true); //clona el div
+            //quita datos de cliente
+            infoCustomers = divPageAdd.getElementsByClassName('info-customer');
+            while (infoCustomers.length > 0) {
+            infoCustomers[0].parentNode.removeChild(infoCustomers[0]);
+            }//hasta aqui quita datos de cliente
+            table = divPageAdd.getElementsByClassName('product-table')[0];
+            var tbody = table.getElementsByTagName('tbody')[0];
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+              }
+            setTable(table, group);
+            divPageAdd.id = 'cotizacion_' + index.toString();
             group.forEach((row) => {
-                document.body.appendChild(divPageAdd);
-        });
-        
-        //divPage = document.getElementById('cotizacion');
-        //var divPageAdd = divPage.cloneNode(true);
-        //document.body.appendChild(divPageAdd);
-        });
+            document.body.appendChild(divPageAdd);
+            });
+            container = divPageAdd.getElementsByClassName('container')[0] 
+
+                if ((container.offsetHeight + 322) > 1200  && (rowGroups.length == index+1)){
+                    container.appendChild(footer.getElementsByClassName('cont_ends')[0]);
+                    var divPageAdd = divPage.cloneNode(true); //clona el div
+                    //quita datos de cliente
+                    infoCustomers = divPageAdd.getElementsByClassName('info-customer');
+                    while (infoCustomers.length > 0) {
+                    infoCustomers[0].parentNode.removeChild(infoCustomers[0]);
+                    }//hasta aqui quita datos de cliente
+                    table = divPageAdd.getElementsByClassName('product-table')[0];
+                    table.remove()
+                    console.log('final')
+                    document.body.appendChild(divPageAdd);
+                    container = divPageAdd.getElementsByClassName('container')[0] ;
+                    politics = footer.getElementsByClassName('politics')[0]
+                    politics.style.marginTop = "60px";
+                    container.appendChild(politics);
+                }
+            }    
+      });
     };
-      
-</script>
+  </script>
+  
 
 
 
