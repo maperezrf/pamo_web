@@ -4,21 +4,21 @@ query {
     pageInfo {
       hasNextPage
       endCursor
-    }
-    edges {
-      node {
+    }}
+    edges {{
+      node {{
         id
         name
         createdAt
         updatedAt
-        customer {
+        customer {{
           firstName
           lastName
-        }
-      }
-    }
-  }
-}
+        }}
+      }}
+    }}
+  }}
+}}
 """
 
 GET_DRAFT_ORDER =consulta = """
