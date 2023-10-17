@@ -10,13 +10,16 @@ import re
 def index(request):
     ConnectionsShopify()
     shopify = ConnectionsShopify()
-    response = shopify.request_graphql(GET_DRAFT_ORDERS)
-    res  = response.json()
-    for i in range(len(res['data']['draftOrders']['edges'])):
-        res['data']['draftOrders']['edges'][i]['node']['createdAt'] = datetime.strptime((res['data']['draftOrders']['edges'][i]['node']['createdAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-        res['data']['draftOrders']['edges'][i]['node']['updatedAt'] = datetime.strptime((res['data']['draftOrders']['edges'][i]['node']['updatedAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-        res['data']['draftOrders']['edges'][i]['node']['name'] = int(res['data']['draftOrders']['edges'][i]['node']['name'][2:])
-    data = {"table" :res['data']['draftOrders']['edges'], 'url_base':settings.BASE_URL}
+    response = shopify.request_graphql(GET_DRAFT_ORDERS.format(cursor=''))
+    res  = response.json()['data']['draftOrders']['edges']
+    daft_orders = make_json(res)
+    has_next = response.json()['data']['draftOrders']['pageInfo']['hasNextPage']
+    while has_next:
+        response = shopify.request_graphql(GET_DRAFT_ORDERS.format( cursor= f",after:\"{response.json()['data']['draftOrders']['pageInfo']['endCursor']}\""))
+        res  = response.json()['data']['draftOrders']['edges']
+        daft_orders.extend(make_json(res))
+        has_next = response.json()['data']['draftOrders']['pageInfo']['hasNextPage']
+    data = {"table" :daft_orders, 'url_base':settings.BASE_URL}
     return render(request, 'table_draft_orders.html', data)
 
 def print_drafr(request,id):
@@ -40,3 +43,10 @@ def print_drafr(request,id):
             pass
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
     return render(request, 'print.html', data)
+
+def make_json(res):
+    for i in range(len(res)):
+        res[i]['node']['createdAt'] = datetime.strptime((res[i]['node']['createdAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
+        res[i]['node']['updatedAt'] = datetime.strptime((res[i]['node']['updatedAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
+        res[i]['node']['name'] = int(res[i]['node']['name'][2:])
+    return(res)

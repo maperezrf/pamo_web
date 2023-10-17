@@ -1,24 +1,24 @@
 GET_DRAFT_ORDERS = """
-query {
-  draftOrders(first: 250) {
-    pageInfo {
+query {{
+  draftOrders(first: 250 {cursor}){{
+    pageInfo {{
       hasNextPage
       endCursor
-    }
-    edges {
-      node {
+    }}
+    edges {{
+      node {{
         id
         name
         createdAt
         updatedAt
-        customer {
+        customer {{
           firstName
           lastName
-        }
-      }
-    }
-  }
-}
+        }}
+      }}
+    }}
+  }}
+}}
 """
 
 GET_DRAFT_ORDER =consulta = """
