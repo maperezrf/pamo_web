@@ -1,7 +1,7 @@
 GET_DRAFT_ORDERS = """
-query {
-  draftOrders(first: 250,after: "eyJsYXN0X2lkIjoxMTM0OTcyMTc0NjEzLCJsYXN0X3ZhbHVlIjoiMTEzNDk3MjE3NDYxMyJ9") {
-    pageInfo {
+query {{
+  draftOrders(first: 250 {cursor}){{
+    pageInfo {{
       hasNextPage
       endCursor
     }}
