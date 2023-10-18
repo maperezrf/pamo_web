@@ -105,9 +105,9 @@ def download_quote(request, id):
     response['Content-Disposition'] = 'attachment; filename="report.pdf"'
     # find the template and render it.
     template = get_template(template_path)
-    print('por aqui si pasa')
     html = template.render(data)
     # create a pdf
+    print('por aqui si pasa')
     pisa_status = pisa.CreatePDF(
        html, dest=response, link_callback=link_callback)
     # if error then show some funny view
