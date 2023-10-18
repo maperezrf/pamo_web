@@ -6,7 +6,7 @@ from pamo.constants import *
 from pamo.queries import *
 from datetime import timedelta, datetime
 from django.template.loader import get_template
-from xhtml2pdf import pisa
+# from xhtml2pdf import pisa
 from django.contrib.staticfiles import finders
 import re
 import os
