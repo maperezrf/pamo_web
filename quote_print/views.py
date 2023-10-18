@@ -43,6 +43,9 @@ def print_drafr(request,id):
         try:
             i['sku'] = i['node']['product']['variants']['edges'][0]['node']['sku']
             i['scr'] = i['node']['product']['images']['edges'][0]['node']['originalSrc']
+            if '"' in i['node']['title']: 
+                i['node']['title'] = i['node']['title'].replace('"','~')
+                print(i['node']['title'])
         except:
             pass
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}

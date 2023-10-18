@@ -284,11 +284,10 @@
 </html>
 <script>
     window.onload = function() {
-
+  
     document.getElementById('botonImprimir').addEventListener('click', function() {
         window.print();
         });
-
 
       var elemento = document.getElementById("cotizacion");
       if (elemento) {
@@ -306,20 +305,16 @@
       data.forEach(function(element) {
       totales.total += (element.node.originalUnitPrice * element.node.quantity)
       totales.iva = (totales.totalSinIva/ 1.19) - totales.totalSinIva
+      element.node.title = element.node.title.replace('~', '\"')
         });
-        console.log(totales.total);
         totales.iva = totales.total - (totales.total/1.19)
         totales.totalSinIva = totales.total - totales.iva
         totales.descuento = datos.appliedDiscount == null ? '' : datos.appliedDiscount.amount
         totales.total = totales.total - totales.descuento 
         document.getElementById('subtotal').textContent =  formatNumber(totales.totalSinIva)
         document.getElementById('iva').textContent =  formatNumber(totales.iva)
-        console.log(document.getElementById('descuento'))
         document.getElementById('descuento') == null ? '' : document.getElementById('descuento').textContent = formatNumber(totales.descuento)
         document.getElementById('total').textContent =  formatNumber(totales.total)
-        console.log(totales.totalSinIva);
-        console.log(totales.iva);
-        console.log(totales.total);
 
       function setTable(table, data) {
         var tbody = table.getElementsByTagName('tbody')[0];
@@ -371,10 +366,8 @@
       if (currentGroup.length > 0) {
         rowGroups.push(currentGroup);
       }
-      console.log(rowGroups)
       var divs = [];
       rowGroups.forEach((group, index) => {
-        console.log(index)
         divPage = document.getElementById('cotizacion');
         if (index == 0){
             table = divPage.getElementsByClassName('product-table')[0];
@@ -413,7 +406,6 @@
                     }//hasta aqui quita datos de cliente
                     table = divPageAdd.getElementsByClassName('product-table')[0];
                     table.remove()
-                    console.log('final')
                     document.body.appendChild(divPageAdd);
                     container = divPageAdd.getElementsByClassName('container')[0] ;
                     politics = footer.getElementsByClassName('politics')[0]
