@@ -16,7 +16,7 @@ from pamo.constants import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_URL = "https://pamoweb-production.up.railway.app"
+BASE_URL =  "https://pamoweb-production.up.railway.app" 
 print(f'link {BASE_URL}')
 
 # Quick-start development settings - unsuitable for production
@@ -28,7 +28,7 @@ SECRET_KEY = SECRET_KEY_DJANGO
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG_VAR
 
-ALLOWED_HOSTS = [BASE_URL,'*']
+ALLOWED_HOSTS = ['https://pamoweb-production.up.railway.app','*','http://127.0.0.1:8000/']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'quote_print',
 ]
 
 MIDDLEWARE = [
@@ -81,19 +82,20 @@ WSGI_APPLICATION = 'pamo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD':'GP85Axpkg2N6QalOoigN',
-        'HOST': 'containers-us-west-93.railway.app',
-        'PORT': '7902'
+        'NAME': NAME_VAR,
+        'USER': USER_VAR,
+        'PASSWORD':PASSWORD_VAR,
+        'HOST': HOST_VAR,
+        'PORT': PORT_VAR,
     }
 }
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default = DATABASE_URL
-#     )
-# }
+if DEBUG:
+    try :
+        from .local_settings import *
+    except ImportError:
+        pass
+
 
 
 

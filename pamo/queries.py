@@ -21,7 +21,7 @@ query {{
 }}
 """
 
-GET_DRAFT_ORDER =consulta = """
+GET_DRAFT_ORDER = """
 {{
   draftOrders(first: 1 query:"id:{}") {{
     edges {{
@@ -65,7 +65,7 @@ GET_DRAFT_ORDER =consulta = """
                     }}
                   }}
                 }}
-                variants(first: 1) {{  # Agregamos este campo para obtener el SKU
+                variants(first: 1) {{ 
                   edges {{
                     node {{
                       sku

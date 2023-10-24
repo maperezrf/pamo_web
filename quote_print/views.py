@@ -6,20 +6,37 @@ from pamo.constants import *
 from pamo.queries import *
 from datetime import timedelta, datetime
 import re
+from django.contrib.auth.decorators import login_required
+from quote_print.models import Quote
 
-def index(request):
+@login_required
+def list(request):
+    last_element = Quote.objects.latest('id')
+    end_cursor = last_element.cursor
     ConnectionsShopify()
     shopify = ConnectionsShopify()
-    response = shopify.request_graphql(GET_DRAFT_ORDERS.format(cursor=''))
-    res  = response.json()['data']['draftOrders']['edges']
-    daft_orders = make_json(res)
-    has_next = response.json()['data']['draftOrders']['pageInfo']['hasNextPage']
-    while has_next:
-        response = shopify.request_graphql(GET_DRAFT_ORDERS.format( cursor= f",after:\"{response.json()['data']['draftOrders']['pageInfo']['endCursor']}\""))
+    response = shopify.request_graphql(GET_DRAFT_ORDERS.format( cursor= f",after:\"{end_cursor}\""))
+    print(response.json())
+    if response.json()['data']['draftOrders']['pageInfo']['endCursor'] != None:
         res  = response.json()['data']['draftOrders']['edges']
-        daft_orders.extend(make_json(res))
-        has_next = response.json()['data']['draftOrders']['pageInfo']['hasNextPage']
-    data = {"table" :daft_orders, 'url_base':settings.BASE_URL}
+        cursor_new = response.json()['data']['draftOrders']['pageInfo']['endCursor']
+        daft_orders = make_json(res)
+        data_list =[]
+        for i in daft_orders:
+            if str(i['node']['name']) != last_element.name:
+                dic = {}
+                dic['id'] = i['node']['id'].replace('gid://shopify/DraftOrder/',"")
+                dic['name'] = i['node']['name']
+                dic['created_at'] = i['node']['createdAt']
+                nombre =  i['node']['customer']['firstName'].title() if (i['node']['customer']) and (i['node']['customer']['firstName']) else "" 
+                apellido = i['node']['customer']['lastName'].title() if (i['node']['customer']) and (i['node']['customer']['lastName']) else ""     
+                dic['customer'] = f"{nombre} {apellido}" 
+                data_list.append(dic)
+        dic['cursor'] = cursor_new
+        data_to_save = [Quote(**elemento) for elemento in data_list]
+        Quote.objects.bulk_create(data_to_save)
+    data_table = Quote.objects.all()
+    data = {"table" :data_table, 'url_base':settings.BASE_URL}
     return render(request, 'table_draft_orders.html', data)
 
 def print_drafr(request,id):

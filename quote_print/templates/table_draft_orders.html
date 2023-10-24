@@ -11,17 +11,15 @@
             <th scope="col" class = 'h4 text-center'># Cotizacíon</th>
             <th scope="col" class = 'h4 text-center'>Cliente</th>
             <th scope="col" class = 'h4 text-center'>Fecha Creacion</th>
-            <th scope="col" class = 'h4 text-center'>Fecha actualización</th>
             <th scope="col" class = 'h4 text-center'>Detalle</th>
           </tr>
         </thead>
           {% for i in table %}
           <tr>
-            <td class="h5 name" id = 'name'>{{i.node.name}}</td>
-            <td class="h5">{% if i %} {{i.node.customer.firstName|title}} {% endif %}  {% if i.node.customer.lastName %} {{i.node.customer.lastName|title}} {% endif %}</td>
-            <td class="h5">{{i.node.createdAt}}</td>
-            <td class="h5">{{i.node.updatedAt}}</td>
-            <td><button class="imprimir-btn btn btn-primary" id_draft ="{{i.node.id}}" data-cotizacion="cotizacion1">Ver</button></td> 
+            <td class="h5 name" id = 'name'>{{i.name}}</td>
+            <td class="h5">{{i.customer}}</td>
+            <td class="h5">{{i.created_at}}</td>
+            <td><button class="imprimir-btn btn btn-primary" id_draft ="{{i.id}}" data-cotizacion="cotizacion1">Ver</button></td> 
           </tr>
           {% endfor %}
         </table>
@@ -38,7 +36,7 @@
     pageLength:25,
     destroy:true,
     order: [[0, 'desc']],
-    columnDefs:[{className:'text-center', targets:[0,1,2,3,4]}],
+    columnDefs:[{className:'text-center', targets:[0,1,2,3]}],
     language: {
       "sProcessing": "Procesando...",
       "sLengthMenu": "Mostrar _MENU_ registros por página",
@@ -74,7 +72,7 @@
   botonesImprimir.forEach((boton) => {
     boton.addEventListener('click', function() {
       console.log("{{url_base}}")
-      const popup = window.open('https://pamoweb-production.up.railway.app'+'/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
+      const popup = window.open('{{url_base}}'+'quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
     })
   })
 
