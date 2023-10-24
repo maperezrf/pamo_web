@@ -74,7 +74,6 @@ tzlocal==5.1
 uritools==4.0.2
 urllib3==2.0.6
 wcwidth @ file:///home/conda/feedstock_root/build_artifacts/wcwidth_1696255154857/work
-weasyprint==60.1
 webencodings==0.5.1
 whitenoise==6.5.0
 zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1695255097490/work
