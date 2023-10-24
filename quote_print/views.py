@@ -7,7 +7,7 @@ from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
 
-@login_required
+# @login_required
 def list(request):
     last_element = Quote.objects.latest('id')
     end_cursor = last_element.cursor
@@ -37,7 +37,7 @@ def list(request):
     data = {"table" :data_table, 'url_base':settings.BASE_URL}
     return render(request, 'table_draft_orders.html', data)
 
-@login_required
+# @login_required
 def print_drafr(request,id):
     ConnectionsShopify()
     shopify = ConnectionsShopify()
