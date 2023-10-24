@@ -15,3 +15,4 @@ whitenoise==6.5.0
 python-decouple==3.8
 requests==2.31.0
 python-decouple @ file:///home/conda/feedstock_root/build_artifacts/python-decouple_1677787101602/work
+django-cors-headers==4.1.0
