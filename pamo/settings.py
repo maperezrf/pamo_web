@@ -29,7 +29,7 @@ SECRET_KEY = SECRET_KEY_DJANGO
 DEBUG = DEBUG_VAR
 
 ALLOWED_HOSTS = ['https://pamoweb-production.up.railway.app/','*','http://127.0.0.1:8000/']
-
+CSRF_TRUSTED_ORIGINS = ['https://*.mydomain.com','https://*.127.0.0.1']
 
 # Application definition
 
