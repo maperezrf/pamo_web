@@ -6,10 +6,8 @@ from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
-from corsheaders.decorators import corsheaders
 
 @login_required
-@corsheaders(allow_methods=['GET', 'POST'], allow_headers=['Authorization'])
 def list(request):
     last_element = Quote.objects.latest('id')
     end_cursor = last_element.cursor
@@ -40,7 +38,6 @@ def list(request):
     return render(request, 'table_draft_orders.html', data)
 
 @login_required
-@corsheaders(allow_methods=['GET', 'POST'], allow_headers=['Authorization'])
 def print_drafr(request,id):
     ConnectionsShopify()
     shopify = ConnectionsShopify()
