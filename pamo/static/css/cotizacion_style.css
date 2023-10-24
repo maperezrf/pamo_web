@@ -1,0 +1,181 @@
+@page {
+    size: A4;
+    margin: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fff; /* Color de fondo */
+} 
+
+.page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.page:nth-child(odd) {
+    background-color: withe;
+}
+
+.header{
+    display:block;
+}
+
+.logo{
+    width:50px;
+}
+
+.texto-derecha {
+    text-align: right;
+}
+
+.container {
+    position: relative;
+}
+
+.overlay-text {
+    position: relative;
+    width: 1080px;
+    margin-top: 100px;
+    margin-left: -85px;
+}
+
+.info-customer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0px 81px;
+    padding-bottom: 13px;
+}
+
+.product-table  {
+    border-collapse: collapse;
+    width: 990px;
+    margin: auto;
+}
+
+.product-table td{
+    vertical-align: top;
+}
+
+.product-table tr{
+    height: 40px;
+    border-bottom: 1px solid #d1d1d1;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+} 
+
+th {
+    background-color: #d1d1d1; 
+    color: black; 
+}
+
+th:not(:first-child) {
+    border-left: 1px solid withe;
+}
+
+.column {
+    flex: 1;
+    padding: 8px;
+    border-right: 1px solid white ; 
+}
+
+.linea-vertical {
+    position: absolute;
+    top:544px;
+    bottom: 455px;   
+    width: 1px;
+    background-color: #d1d1d1; 
+}
+
+.btns{
+    font-size: 13px;
+    width: 100%;
+    padding-left: 51px;
+}
+
+.btns img{
+    height: 30px;
+    width: auto;
+}
+
+.politics{
+    left: 80px;
+    font-size: 13px;
+    width: 974px;
+    margin: auto;
+}
+
+.linea-horizontal {
+    border-top: 1px solid;
+    width: 990px;
+    color: #d1d1d1;
+    margin: 10px auto;
+}
+
+.totales{
+    display: flex;
+    margin-right: 81px;
+}
+
+.totales p{
+    margin: 2px;
+}
+
+.img-product{
+    width:100%;
+    height:auto
+}
+
+.back {
+    width: 1080px;
+    height: 1528px;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.pg1{ 
+background-image: url('{% static "images/cotizacion/Pg1.png" %}')
+}
+
+.pg2{ 
+background-image: url('{% static "images/cotizacion/Pg2.png" %}')   
+}
+
+.pg3{ 
+background-image: url('{% static "images/cotizacion/Pg3.png" %}')
+}
+
+.cont_ends {
+    display: flex;
+    justify-content: space-between; /* Distribuye los elementos a los extremos del contenedor */
+}
+
+.boton-imagen {
+    display: block;
+    text-align: center;
+    text-decoration: none; /* Evita el subrayado de enlaces */
+  }
+
+  .boton-imagen img {
+    display: block;
+    margin: 0 auto; /* Centra la imagen horizontalmente */
+  }
+
+  .boton-imagen span {
+    display: block;
+    text-align: center;
+  }
+
+  @media print {
+    .boton-imagen {
+      display: none;
+    }
+  }
