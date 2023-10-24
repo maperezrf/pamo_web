@@ -13,3 +13,4 @@ tzdata==2023.3
 urllib3==2.0.6
 whitenoise==6.5.0
 python-decouple==3.8
+requests==2.31.0
