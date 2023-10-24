@@ -72,7 +72,7 @@
   botonesImprimir.forEach((boton) => {
     boton.addEventListener('click', function() {
       console.log("{{url_base}}")
-      const popup = window.open('{{url_base}}'+'quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
+      const popup = window.open('{{url_base}}'+'/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
     })
   })
 
