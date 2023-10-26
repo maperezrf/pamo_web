@@ -6,6 +6,7 @@ from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
+import re
 
 @login_required
 def list(request):
@@ -14,7 +15,6 @@ def list(request):
     ConnectionsShopify()
     shopify = ConnectionsShopify()
     response = shopify.request_graphql(GET_DRAFT_ORDERS.format( cursor= f",after:\"{end_cursor}\""))
-    print(response.json())
     if response.json()['data']['draftOrders']['pageInfo']['endCursor'] != None:
         res  = response.json()['data']['draftOrders']['edges']
         cursor_new = response.json()['data']['draftOrders']['pageInfo']['endCursor']
@@ -55,11 +55,10 @@ def print_drafr(request,id):
         try:
             i['sku'] = i['node']['product']['variants']['edges'][0]['node']['sku']
             i['scr'] = i['node']['product']['images']['edges'][0]['node']['originalSrc']
-            if '"' in i['node']['title']: 
-                i['node']['title'] = i['node']['title'].replace('"','~')
-                print(i['node']['title'])
         except:
             pass
+        if str(i['node']['title']).__contains__('"'): 
+            i['node']['title'] = i['node']['title'].replace('"','~')
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
     return render(request, 'print.html', data)
 
