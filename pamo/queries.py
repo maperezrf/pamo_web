@@ -11,6 +11,7 @@ query {{
         name
         createdAt
         updatedAt
+        totalPrice
         customer {{
           firstName
           lastName

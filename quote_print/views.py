@@ -6,7 +6,8 @@ from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
-from ..pamo.functions import make_json
+from pamo.functions import make_json
+import re
 
 
 @login_required
@@ -23,11 +24,13 @@ def list(request):
         daft_orders = make_json(res)
         data_list =[]
         for i in daft_orders:
+            print(i)
             if str(i['node']['name']) != last_element.name:
                 dic = {}
                 dic['id'] = i['node']['id'].replace('gid://shopify/DraftOrder/',"")
                 dic['name'] = i['node']['name']
                 dic['created_at'] = i['node']['createdAt']
+                dic['total'] = int(float(i['node']['totalPrice']))
                 nombre =  i['node']['customer']['firstName'].title() if (i['node']['customer']) and (i['node']['customer']['firstName']) else "" 
                 apellido = i['node']['customer']['lastName'].title() if (i['node']['customer']) and (i['node']['customer']['lastName']) else ""     
                 dic['customer'] = f"{nombre} {apellido}" 
