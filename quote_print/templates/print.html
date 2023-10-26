@@ -282,7 +282,9 @@
 </div>
 
 </html>
+<script src="{% static 'js/functions.js' %}"></script>
 <script>
+
     window.onload = function() {
   
     document.getElementById('botonImprimir').addEventListener('click', function() {
@@ -341,14 +343,7 @@
           cell6.innerHTML = item.node.originalUnitPrice == undefined ? "" : formatNumber(totalItem);
         });
       }
-  
-      function formatNumber(number) {
-        return (number).toLocaleString('es-CO', {
-          style: 'currency',
-          currency: 'COP'
-        }).replace(/,\d{2}/g, '');
-      }
-  
+
       var limit = 10;
       const rowGroups = [];
       let currentGroup = [];

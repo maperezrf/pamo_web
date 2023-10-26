@@ -11,6 +11,7 @@ query {{
         name
         createdAt
         updatedAt
+        totalPrice
         customer {{
           firstName
           lastName
@@ -81,3 +82,32 @@ GET_DRAFT_ORDER = """
   }}
 }}
 """
+
+GET_PRODUCTS = """
+query {{
+   products(first:1 {cursor}) {{
+      pageInfo {{
+      hasNextPage
+      endCursor
+    }}
+      edges {{
+        node {{
+          id
+        	tags
+          title
+          vendor
+          variants(first: 1) {{
+            edges {{
+              node {{
+                price
+                compareAtPrice
+                sku
+                barcode
+                inventoryQuantity
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}} """

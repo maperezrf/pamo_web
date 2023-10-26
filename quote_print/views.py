@@ -6,6 +6,7 @@ from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
+from pamo.functions import make_json
 import re
 
 @login_required
@@ -21,11 +22,13 @@ def list(request):
         daft_orders = make_json(res)
         data_list =[]
         for i in daft_orders:
+            print(i)
             if str(i['node']['name']) != last_element.name:
                 dic = {}
                 dic['id'] = i['node']['id'].replace('gid://shopify/DraftOrder/',"")
                 dic['name'] = i['node']['name']
                 dic['created_at'] = i['node']['createdAt']
+                dic['total'] = int(float(i['node']['totalPrice']))
                 nombre =  i['node']['customer']['firstName'].title() if (i['node']['customer']) and (i['node']['customer']['firstName']) else "" 
                 apellido = i['node']['customer']['lastName'].title() if (i['node']['customer']) and (i['node']['customer']['lastName']) else ""     
                 dic['customer'] = f"{nombre} {apellido}" 
@@ -61,10 +64,3 @@ def print_drafr(request,id):
             i['node']['title'] = i['node']['title'].replace('"','~')
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
     return render(request, 'print.html', data)
-
-def make_json(res):
-    for i in range(len(res)):
-        res[i]['node']['createdAt'] = datetime.strptime((res[i]['node']['createdAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-        res[i]['node']['updatedAt'] = datetime.strptime((res[i]['node']['updatedAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-        res[i]['node']['name'] = int(res[i]['node']['name'][2:])
-    return(res)
