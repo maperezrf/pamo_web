@@ -6,6 +6,8 @@ from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
+from ..pamo.functions import make_json
+
 
 @login_required
 def list(request):
@@ -62,10 +64,3 @@ def print_drafr(request,id):
             pass
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
     return render(request, 'print.html', data)
-
-def make_json(res):
-    for i in range(len(res)):
-        res[i]['node']['createdAt'] = datetime.strptime((res[i]['node']['createdAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-        res[i]['node']['updatedAt'] = datetime.strptime((res[i]['node']['updatedAt']), '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d')
-        res[i]['node']['name'] = int(res[i]['node']['name'][2:])
-    return(res)
