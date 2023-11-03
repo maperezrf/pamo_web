@@ -62,5 +62,7 @@ def print_drafr(request,id):
             pass
         if str(i['node']['title']).__contains__('"'): 
             i['node']['title'] = i['node']['title'].replace('"','~')
+        if str(i['node']['title']).__contains__("'"): 
+            i['node']['title'] = i['node']['title'].replace("'",'~')    
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
     return render(request, 'print.html', data)
