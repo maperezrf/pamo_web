@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}">
+<div class = 'container card'>
+{% if form %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.file }}
+          </div>
+        <button type="submit" class='btn btn-primary'>Cargar</button>
+    </form>
+{% endif %}
+{% if columns_shopi %}
+<h4 class= 'text-center' > Seleccion de columnas </h4>
+    <div class = 'select_columns'>
+        <form method="post" action="review_updates">
+            {% csrf_token %}
+            {% for colum in columns_file %}
+            <h5>{{colum}}</h5>
+            <select name="columns_shopi" class="form-control" id="id_columns_shopi">
+                <option value="N/A" selected="">N/A</option>
+                <option value="Tags">Tags</option>
+                <option value="Titulo">Titulo</option>
+                <option value="Proveedor">Proveedor</option>
+                <option value="Precio">Precio</option>
+                <option value="Precio comparación">Precio comparación</option>
+                <option value="SKU">SKU</option>
+                <option value="Codigo barras">Codigo barras</option>
+                <option value="Stock">Stock</option>  
+            </select>
+            {% endfor %}
+            <button type="submit" class='btn btn-primary'>Enviar</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+<script src="{% static 'js/upload_file.js' %}"></script>
+{% endblock %}

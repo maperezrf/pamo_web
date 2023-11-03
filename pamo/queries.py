@@ -111,3 +111,52 @@ query {{
     }}
   }}
 }} """
+
+GET_DRAFT_ORDER_UPDATE = """
+{{
+  draftOrders(first: 1 query:"id:{}") {{
+    edges {{
+      node {{
+        id
+        name
+        createdAt
+        updatedAt
+        totalPrice
+        customer {{
+          firstName
+          lastName
+        }}
+      }}
+    }}
+  }}
+}}
+"""
+
+GET_PRODUCTS ="""
+{{
+   products(first: 249 {cursor})  {{
+      pageInfo {{
+      hasNextPage
+      endCursor
+      }}
+      edges {{
+        node {{
+          id
+        	tags
+          title
+          vendor
+          variants(first: 1) {{
+            edges {{
+              node {{
+                price
+                compareAtPrice
+                sku
+                barcode
+                inventoryQuantity
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}}"""
