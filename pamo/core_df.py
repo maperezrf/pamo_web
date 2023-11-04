@@ -1,4 +1,5 @@
 import pandas as pd
+from pamo.constants import COLUMNS_SHOPI
 
 class CoreDf():
 
@@ -15,3 +16,15 @@ class CoreDf():
     
     def get_df_columns(self):
         return self.df.columns.values
+
+    def rename_columns(self, dic_columns):
+        del(dic_columns['csrfmiddlewaretoken'])
+        Change_colums={}
+        for key, value in dic_columns.items():
+            if value != 'N/A':
+                key = key.replace('~',' ')
+                Change_colums[key] = value
+        self.df.rename(columns=Change_colums, inplace=True)
+        return self.df[[i for i in self.df.columns if i in COLUMNS_SHOPI]]
+
+        

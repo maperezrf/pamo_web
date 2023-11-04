@@ -7,6 +7,7 @@ import time
 from products.forms import fileForm, comparationForm
 import pandas as pd
 from pamo.core_df import CoreDf
+from pamo.conecctions_shopify import ConnectionsShopify
 
 cdf = CoreDf()
 
@@ -46,17 +47,41 @@ def set_update(request):
         if form_1.is_valid():
             file = request.FILES['file']
             cdf.set_df(file)
-            columns = cdf.get_df_columns
+            columns = cdf.get_df_columns()
             context = {'columns_file':columns, 'columns_shopi': COLUMNS_SHOPI}
         else: 
             print(form_1.errors)
     else:
         form = fileForm()
-        print("via")  
+        
         context = {'form':form}
     return render(request, 'upload_file.html',context)
 
 def review_updates(request):
     if request.method == 'POST':
-        form_2 = request.POST
-    return render(request, 'upload_file.html',context={})
+        data = request.POST.dict()
+        data_file = cdf.rename_columns(data)
+        shopi = ConnectionsShopify()
+        responses=[]
+        for i in data_file['SKU'].values:
+            query = GET_PRODUCT.format(skus=i)
+            response = shopi.request_graphql(query)
+            try:
+                responses.append(response.json()['data']['products']['edges'][0])    
+            except Exception as error:
+                print(error)
+        data_shopi ={'id_shopi': [i['node']['id'].replace('gid://shopify/Product/', '') for i in responses],
+                    'title_shopi': [i['node']['title'] for i in responses],
+                    'tags_shopi': [i['node']['tags'] for i in responses],
+                    'vendor_shopi': [i['node']['vendor'] for i in responses],
+                    'price_shopi': [i['node']['variants']['edges'][0]['node']['price'] for i in responses],
+                    'sku_shopi': [i['node']['variants']['edges'][0]['node']['sku'] for i in responses],
+                    'barcode_shopi': [i['node']['variants']['edges'][0]['node']['barcode'] for i in responses],
+                    'compareAtPrice_shopi': [i['node']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
+                    'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses]}
+        df_shopi = pd.DataFrame.from_dict(data_shopi)
+        df_rev = data_file.merge(df_shopi, how='left', left_on = 'SKU', right_on = 'sku_shopi')
+        print(df_rev)
+        table = df_rev.to_dict(orient = 'records')
+        data = {'table' : table }
+    return render(request, 'upload_file.html',context=data)

@@ -83,13 +83,9 @@ GET_DRAFT_ORDER = """
 }}
 """
 
-GET_PRODUCTS = """
+GET_PRODUCT= """
 query {{
-   products(first:1 {cursor}) {{
-      pageInfo {{
-      hasNextPage
-      endCursor
-    }}
+   products(first: 1, query: "{skus}") {{
       edges {{
         node {{
           id
