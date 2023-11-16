@@ -9,23 +9,29 @@
       <table class="table table-striped container space"  id="cotizaciones">
         <thead >
           <tr >  
-            <th scope="col" class = 'h4 text-center'># Cotizacíon</th>
-            <th scope="col" class = 'h4 text-center'>Cliente</th>
-            <th scope="col" class = 'h4 text-center'>Valor</th>
-            <th scope="col" class = 'h4 text-center'>Fecha Creacion</th>
-            <th scope="col" class = 'h4 text-center'>Detalle</th>
+            <th scope="col" class = 'h4 text-center'>ID</th>
+            <th scope="col" class = 'h4 text-center'>Titulo</th>
+            <th scope="col" class = 'h4 text-center'>Tags</th>
+            <th scope="col" class = 'h4 text-center'>Proveedor</th>
+            <th scope="col" class = 'h4 text-center'>Precio</th>
+            <th scope="col" class = 'h4 text-center'>Precio comparación</th>
+            <th scope="col" class = 'h4 text-center'>SKU</th>
+            <th scope="col" class = 'h4 text-center'>Codigo barras</th>
+            <th scope="col" class = 'h4 text-center'>Stock</th>
           </tr>
         </thead>
           {% for i in table %}
           <tr>
-     
-            <td class="h5 name" id = 'name'>{{i.name}}</td>
-            <td class="h5">{{i.customer}}</td>
-            <td class="h5"><script> document.write(formatNumber({{i.total}})) </script></td>
-            <td class="h5">{{i.created_at}}</td>
-            <td><button class="imprimir-btn btn btn-primary" id_draft ="{{i.id}}" data-cotizacion="cotizacion1">Ver</button>
-            <a href="#" class = 'update-btn' id_draft ="{{i.id}}" ><img src='https://cdn-icons-png.flaticon.com/512/2748/2748606.png' width="40" alt="Actualizar"></td>
-          </a></td> 
+            <td class="h5 name" id = 'name'>{{i.id}}</td>
+            <td class="h5">{{i.title}}</td>
+            <td class="h5">{{i.tags}}</td>
+            <td class="h5">{{i.vendor}}</td>
+            <td class="h5"><script> document.write(formatNumber({{i.price}})) </script></td>
+            <td class="h5"><script> document.write(formatNumber({{i.compareAtPrice}})) </script></td>
+            <td class="h5">{{i.sku}}</td>
+            <td class="h5">{{i.barcode}}</td>
+            <td class="h5">{{i.inventoryQuantity}}</td>
+          </td> 
           </tr>
           {% endfor %}
         </table>
@@ -33,7 +39,7 @@
   </div>
 </div>
 
-<script>
+{% comment %} <script>
 
   let dataTable;
   let dataTableIsInitialized = false;
@@ -42,7 +48,7 @@
     pageLength:25,
     destroy:true,
     order: [[0, 'desc']],
-    columnDefs:[{className:'text-center', targets:[0,1,2,3,4]}],
+    columnDefs:[{className:'text-center', targets:[0,1,2,3,4,5,6,7,8]}],
     language: {
       "sProcessing": "Procesando...",
       "sLengthMenu": "Mostrar _MENU_ registros por página",
@@ -96,5 +102,5 @@
     await initDataTable();
   })
 
-</script>
+</script> {% endcomment %}
 {% endblock %}

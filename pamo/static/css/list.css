@@ -1,0 +1,35 @@
+.celda{
+    width: 150px;
+}
+
+.column-1{
+    background-color: #f7f7f7!important;
+}
+.card-body{
+    padding: 0px;
+}
+
+.card{
+    margin: 20px;
+}
+h1{
+    margin: 25px;
+}
+
+
+tbody, td, tfoot, th, thead, tr {
+    border-color: inherit;
+    border-style: outset;
+    border-width: 1px;
+}
+
+.table-responsive{
+    max-height: 650px;
+
+}
+
+.btn {
+    width: 150px;
+    margin: 20px;
+}
+

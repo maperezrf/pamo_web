@@ -11,3 +11,5 @@ USER_VAR=  config("USER")
 PASSWORD_VAR = config("PASSWORD")
 HOST_VAR = config("HOST")
 PORT_VAR = config("PORT")
+
+COLUMNS_SHOPI = ['N/A','Codigo barras','Costo','Precio','Precio comparación','Proveedor','SKU','Stock','Tags','Titulo']

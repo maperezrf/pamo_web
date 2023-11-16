@@ -83,13 +83,9 @@ GET_DRAFT_ORDER = """
 }}
 """
 
-GET_PRODUCTS = """
+GET_PRODUCT= """
 query {{
-   products(first:1 {cursor}) {{
-      pageInfo {{
-      hasNextPage
-      endCursor
-    }}
+   products(first: 1, query: "{skus}") {{
       edges {{
         node {{
           id
@@ -111,3 +107,63 @@ query {{
     }}
   }}
 }} """
+
+GET_DRAFT_ORDER_UPDATE = """
+{{
+  draftOrders(first: 1 query:"id:{}") {{
+    edges {{
+      node {{
+        id
+        name
+        createdAt
+        updatedAt
+        totalPrice
+        customer {{
+          firstName
+          lastName
+        }}
+      }}
+    }}
+  }}
+}}
+"""
+
+GET_PRODUCTS ="""
+{{
+   products(first: 249 {cursor})  {{
+      pageInfo {{
+      hasNextPage
+      endCursor
+      }}
+      edges {{
+        node {{
+          id
+        	tags
+          title
+          vendor
+          variants(first: 1) {{
+            edges {{
+              node {{
+                price
+                compareAtPrice
+                sku
+                barcode
+                inventoryQuantity
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}}"""
+
+UPTADE_PRODUCT = """
+   mutation UpdateProduct($input: ProductInput!) {
+    productUpdate(input: $input) {
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+"""

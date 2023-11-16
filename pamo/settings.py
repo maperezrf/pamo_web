@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'quote_print',
+    'products',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +62,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, "pamo" ,"templates"),
-                os.path.join(BASE_DIR, "quote_print", "templates")],
+                os.path.join(BASE_DIR, "quote_print", "templates"),
+                os.path.join(BASE_DIR, "products", "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,6 +72,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+        'libraries':{
+            'utils': 'pamo.templatetags.utils',
+            }
         },
     },
 ]
@@ -137,7 +142,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'pamo', 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'pamo', 'static'), os.path.join(BASE_DIR, 'products', 'static')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

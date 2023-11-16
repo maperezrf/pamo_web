@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.conf import settings
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.constants import *
@@ -7,6 +7,7 @@ from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
 from pamo.functions import make_json
+import random
 import re
 
 @login_required
@@ -22,7 +23,6 @@ def list(request):
         daft_orders = make_json(res)
         data_list =[]
         for i in daft_orders:
-            print(i)
             if str(i['node']['name']) != last_element.name:
                 dic = {}
                 dic['id'] = i['node']['id'].replace('gid://shopify/DraftOrder/',"")
@@ -66,3 +66,22 @@ def print_drafr(request,id):
             i['node']['title'] = i['node']['title'].replace("'",'~')    
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
     return render(request, 'print.html', data)
+
+def update_draft (request,id_sho):
+    print('esta entrando')
+    ConnectionsShopify()
+    shopify = ConnectionsShopify()
+    query = GET_DRAFT_ORDER_UPDATE.format(id_sho)
+    print(query)
+    response = shopify.request_graphql(query)
+    print(response.json())
+    res = response.json()['data']['draftOrders']['edges'][0]
+    total = int(float(res['node']['totalPrice']))
+    nombre =  res['node']['customer']['firstName'].title() if (res['node']['customer']) and (res['node']['customer']['firstName']) else "" 
+    apellido = res['node']['customer']['lastName'].title() if (res['node']['customer']) and (res['node']['customer']['lastName']) else ""     
+    customer = f"{nombre} {apellido}" 
+    quote = Quote.objects.get(id=id_sho)
+    quote.customer = customer
+    quote.total = total
+    quote.save()
+    return redirect(list)
