@@ -1,6 +1,5 @@
-console.log('si ser')
-function deleteElement(id){
-    select = document.getElementById(id)
-    var opcionSeleccionada = select.options[select.selectedIndex];
-    console.log(opcionSeleccionada)
-}
+var button = document.getElementById('btn-start')
+button.addEventListener('click', function(){
+    console.log('como seria')
+    show_loading()
+})

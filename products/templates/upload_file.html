@@ -39,7 +39,7 @@
                     {% endfor %}
                     <div class = 'text-center'>
                         <a class='btn btn-warning btn-menu' href = '/products'> Volver</a>
-                        <input type="submit" class='btn btn-primary btn-menu' value= "Continuar"></input>
+                        <input type="submit" class='btn btn-primary btn-menu' id = 'btn-start' value= "Continuar"></input>
                     </div>
                 </form>
             </div>
@@ -47,4 +47,5 @@
         <!-- SELECCIONAR COLUMNAS -->
 </div>
 <script src="{% static 'js\upload_file.js' %}"></script>
+<script src="{% static 'js/functions.js' %}"></script>
 {% endblock %}

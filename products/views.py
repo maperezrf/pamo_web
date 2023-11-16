@@ -44,7 +44,7 @@ def update(request):
     dic['cursor'] = cursor_new
     data_to_save = [Products(**elemento) for elemento in data_list]
     Products.objects.bulk_create(data_to_save)
-    return  redirect(list)
+    return  redirect(set_update)
 
 @login_required
 def set_update(request):
