@@ -21,3 +21,8 @@
 .select_columns  select{ 
     margin: 10px 0;
 }
+
+.btn-menu{
+    width: 150px!important;
+    margin: 20px!important;
+} 

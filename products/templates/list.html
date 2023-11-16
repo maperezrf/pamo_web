@@ -1,1 +1,86 @@
-<p>si señor</p>
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% load utils %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/list.css' %}">
+<h1 class = 'text-center'> Comparación de datos </h1>
+<div class = 'card'>
+  <div class = 'card-body'>
+    {% if table %}
+    <div class ='table-responsive'>
+        <table class="table"  id="cotizaciones">
+            <thead>
+              <tr >  
+                <th scope="col" class = 'h4 text-center'>SKU</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Titulo</th>
+                <th colspan="2" scope="col" class = 'h5 text-center'>Tags</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Proveedor</th>
+                <th colspan="2" scope="col" class = 'h5 text-center'>Precio</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Precio Comparación</th>
+                <th colspan="2" scope="col" class = 'h5 text-center'>Codigo de barras</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Stock</th>
+              </tr>
+            </thead>
+              <thead>
+              <tr >  
+                <th scope="col" class = 'text-center'></th>
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Shopify</th>
+                <th scope="col" class = 'text-center'>Archivo</th>
+                <th scope="col" class = 'text-center'>Shopify</th>
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Shopify</th>
+                <th scope="col" class = 'text-center'>Archivo</th>
+                <th scope="col" class = 'text-center'>Shopify</th>
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Shopify</th>
+                <th scope="col" class = 'text-center'>Archivo</th>
+                <th scope="col" class = 'text-center'>Shopify</th> 
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Shopify</th>
+              </tr>
+            </thead>
+              {% for i in table %}
+                  <td id = '{{i.SKU}}'><div class = 'celda text-center'>{{i.sku}}</div></td>
+                    {% if i.id_shopi != 'nan' %}
+                    <td class= 'column-1' id = '{{i.titulo}}'><div class = 'celda text-center'>{% if i.titulo %}{{i.titulo}} {% else %} Sin información {% endif %}</div></td>
+                    <td class= 'column-1' id = '{{i.title_shopi}}'><div class = 'celda text-center'>{{i.title_shopi}}</div></td>
+                    <td id = '{{i.tags}}'><div class = 'celda text-center'>{% if i.tags %}{{i.tags}}{% else %} Sin información {% endif %}</div></td>
+                    <td id = '{{i.tags_shopi}}'><div class = 'celda text-center'>{{i.tags_shopi}}</div></td>
+                    <td class= 'column-1' id = '{{i.proveedor}}'><div class = 'celda text-center'>{% if i.proveedor %}{{i.proveedor}}{% else %} Sin información {% endif %}</div></td>
+                    <td class= 'column-1' id = '{{i.vendor_shopi}}'><div class = 'celda text-center'>{{i.vendor_shopi}}</div></td>
+                    <td id = '{{i.precio}}'><div class = 'celda text-center'>{% if i.precio %}{{i.precio|format_number}}{% else %} Sin información {% endif %}</div></td>
+                    <td id = '{{i.price_shopi}}'><div class = 'celda text-center'>{{i.price_shopi|format_number}}</div></td>
+
+                    <td class= 'column-1' id = '{{i.precio_comparacion}}'><div class = 'celda text-center'>{% if i.precio_comparacion %}{{i.precio_comparacion|format_number}}{% else %} Sin información {% endif %}</div></td>
+                    <td class= 'column-1'><div class = 'celda text-center'>{{i.compareAtPrice_shopi|format_number}}</div></td>
+
+                    <td id = '{{i.codigo_barras}}'><div class = 'celda text-center'>{% if i.codigo_barras %}{{i.codigo_barras}}{% else %} Sin información {% endif %}</div></td>
+                    <td id = '{{i.barcode_shopi}}'><div class = 'celda text-center'>{{i.barcode_shopi}}</div></td>
+                    
+                    <td class= 'column-1' id = '{{i.stock}}'><div class = 'celda text-center'>{% if i.stock %}{{i.stock}}{% else %} Sin información {% endif %}</div></td>
+                    <td class= 'column-1' id = '{{i.inventoryquantity_shopi}}'><div class = 'celda text-center'>{{i.inventoryquantity_shopi}}</div></td>
+                  </tr>
+                  {% else %}
+                  <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
+                </tr>
+                  {% endif %}
+              {% endfor %}
+        </table>
+        {% endif %}
+    </div>
+  </div>
+</div>
+<div class = 'text-center'>
+  <a class='btn btn-warning' href = '/products'> Volver</a>
+  <a class='btn btn-primary' id = 'update'> Actualizar</a>
+</div>
+<script src="{% static 'js/functions.js' %}"></script>
+<script  src="{% static 'js/list.js' %}"></script>
+{% endblock %}

@@ -156,3 +156,14 @@ GET_PRODUCTS ="""
     }}
   }}
 }}"""
+
+UPTADE_PRODUCT = """
+   mutation UpdateProduct($input: ProductInput!) {
+    productUpdate(input: $input) {
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+"""

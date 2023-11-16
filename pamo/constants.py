@@ -12,4 +12,4 @@ PASSWORD_VAR = config("PASSWORD")
 HOST_VAR = config("HOST")
 PORT_VAR = config("PORT")
 
-COLUMNS_SHOPI = ['N/A','Tags','Titulo','Proveedor','Precio', 'Precio comparación','SKU','Codigo barras','Stock']
+COLUMNS_SHOPI = ['N/A','Codigo barras','Costo','Precio','Precio comparación','Proveedor','SKU','Stock','Tags','Titulo']

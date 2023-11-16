@@ -24,31 +24,27 @@
                     {% csrf_token %}
                     {% for colum in columns_file %}
                     <h5>{{colum}}</h5>
-                    <select class="form-control" id="id_columns_shopi" name={{colum|replace_spaces}} >
+                    <select class="form-control" id="file_{{colum}}" name={{colum|replace_spaces}} >
                         <option value="N/A" selected="">N/A</option>
-                        <option value="Tags">Tags</option>
-                        <option value="Titulo">Titulo</option>
-                        <option value="Proveedor">Proveedor</option>
+                        <option value="Codigo barras">Codigo barras</option>
+                        <option value="Costo">Costo</option>
                         <option value="Precio">Precio</option>
                         <option value="Precio comparación">Precio comparación</option>
+                        <option value="Proveedor">Proveedor</option>
                         <option value="SKU">SKU</option>
-                        <option value="Codigo barras">Codigo barras</option>
-                        <option value="Stock">Stock</option>  
+                        <option value="Stock">Stock</option>
+                        <option value="Tags">Tags</option>
+                        <option value="Titulo">Titulo</option>
                     </select>
                     {% endfor %}
-                    <button type="submit" class='btn btn-primary'>Enviar</button>
+                    <div class = 'text-center'>
+                        <a class='btn btn-warning btn-menu' href = '/products'> Volver</a>
+                        <input type="submit" class='btn btn-primary btn-menu' value= "Continuar"></input>
+                    </div>
                 </form>
             </div>
         {% endif %}
         <!-- SELECCIONAR COLUMNAS -->
-        <!-- PRODUCTOS ENCONTRADOS -->
-        {% if table %}
-            {% for element in table %}
-                <p>{{element.id_shopi}}</p>
-                <p>{{element.SKU}}</p>
-            {% endfor %}
-        {% endif %}
-        <!-- PRODUCTOS ENCONTRADOS -->
 </div>
-<script src="{% static 'js/upload_file.js' %}"></script>
+<script src="{% static 'js\upload_file.js' %}"></script>
 {% endblock %}

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from products.models import Products
 from pamo.queries import *
 from pamo.constants import COLUMNS_SHOPI
@@ -8,9 +9,13 @@ from products.forms import fileForm, comparationForm
 import pandas as pd
 from pamo.core_df import CoreDf
 from pamo.conecctions_shopify import ConnectionsShopify
+import numpy as np
+from unidecode import unidecode
+from django.contrib.auth.decorators import login_required
 
 cdf = CoreDf()
 
+@login_required
 def update(request):
     shopi = ConnectionsShopify()
     list_products = []
@@ -41,26 +46,35 @@ def update(request):
     Products.objects.bulk_create(data_to_save)
     return  redirect(list)
 
+@login_required
 def set_update(request):
-    if request.method == 'POST':
-        form_1 = fileForm(request.POST, request.FILES)
-        if form_1.is_valid():
-            file = request.FILES['file']
-            cdf.set_df(file)
-            columns = cdf.get_df_columns()
-            context = {'columns_file':columns, 'columns_shopi': COLUMNS_SHOPI}
-        else: 
-            print(form_1.errors)
+    # if request.user.groups.all() == 'seller':
+    grupos = request.user.groups.all()
+    ids_grupos = [grupo.id for grupo in grupos]
+    if 1 in ids_grupos:
+        if request.method == 'POST':
+            form_1 = fileForm(request.POST, request.FILES)
+            if form_1.is_valid():
+                file = request.FILES['file']
+                cdf.set_df(file)
+                columns = cdf.get_df_columns()
+                context = {'columns_file':columns, 'columns_shopi': COLUMNS_SHOPI}
+            else: 
+                print(form_1.errors)
+        else:
+            form = fileForm()
+            
+            context = {'form':form}
+        return render(request, 'upload_file.html',context)
     else:
-        form = fileForm()
-        
-        context = {'form':form}
-    return render(request, 'upload_file.html',context)
+         return render(request, 'acceso_denegado.html', context={})
 
+@login_required
 def review_updates(request):
     if request.method == 'POST':
         data = request.POST.dict()
-        data_file = cdf.rename_columns(data)
+        cdf.rename_columns(data)
+        data_file = cdf.get_df()
         shopi = ConnectionsShopify()
         responses=[]
         for i in data_file['SKU'].values:
@@ -70,18 +84,24 @@ def review_updates(request):
                 responses.append(response.json()['data']['products']['edges'][0])    
             except Exception as error:
                 print(error)
-        data_shopi ={'id_shopi': [i['node']['id'].replace('gid://shopify/Product/', '') for i in responses],
-                    'title_shopi': [i['node']['title'] for i in responses],
-                    'tags_shopi': [i['node']['tags'] for i in responses],
-                    'vendor_shopi': [i['node']['vendor'] for i in responses],
-                    'price_shopi': [i['node']['variants']['edges'][0]['node']['price'] for i in responses],
-                    'sku_shopi': [i['node']['variants']['edges'][0]['node']['sku'] for i in responses],
-                    'barcode_shopi': [i['node']['variants']['edges'][0]['node']['barcode'] for i in responses],
-                    'compareAtPrice_shopi': [i['node']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
-                    'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses]}
-        df_shopi = pd.DataFrame.from_dict(data_shopi)
-        df_rev = data_file.merge(df_shopi, how='left', left_on = 'SKU', right_on = 'sku_shopi')
-        print(df_rev)
+        cdf.set_df_shopi(responses)
+        cdf.merge()
+        df_rev = cdf.get_df_mer()
         table = df_rev.to_dict(orient = 'records')
         data = {'table' : table }
-    return render(request, 'upload_file.html',context=data)
+    return render(request, 'list.html',context=data)
+
+@login_required
+def update_products(request):
+    shopi = ConnectionsShopify()
+    variables = cdf.set_variables()
+    cont = 0
+    not_update = []
+    for variable in variables:
+        try:
+            res = shopi.request_graphql(UPTADE_PRODUCT, variable)
+            cont +=1
+        except:
+            not_update.append(variable['input']['variants'][0]['sku'])
+        data = {'success': cont,'not_successful':not_update}
+    return JsonResponse(data)
