@@ -82,6 +82,7 @@ def review_updates(request):
             response = shopi.request_graphql(query)
             try:
                 responses.append(response.json()['data']['products']['edges'][0])    
+                print(responses)
             except Exception as error:
                 print(error)
         cdf.set_df_shopi(responses)
