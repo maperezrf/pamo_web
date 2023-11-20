@@ -78,11 +78,12 @@ def review_updates(request):
         shopi = ConnectionsShopify()
         responses=[]
         for i in data_file['SKU'].values:
+            print(f'sku{i}')
             query = GET_PRODUCT.format(skus=i)
             response = shopi.request_graphql(query)
             try:
                 responses.append(response.json()['data']['products']['edges'][0])    
-                print(responses)
+                print(len(responses))
             except Exception as error:
                 print(error)
         cdf.set_df_shopi(responses)
