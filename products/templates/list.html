@@ -19,6 +19,8 @@
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Precio Comparación</th>
                 <th colspan="2" scope="col" class = 'h5 text-center'>Codigo de barras</th>
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Stock</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Margen</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Costo</th>
               </tr>
             </thead>
               <thead>
@@ -38,6 +40,9 @@
                 <th scope="col" class = 'text-center'>Shopify</th> 
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Shopify</th>
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Base</th>
+                <th scope="col" class = 'text-center column-1'>Costo Archivo</th>
               </tr>
             </thead>
               {% for i in table %}
@@ -60,6 +65,10 @@
                     
                     <td class= 'column-1' id = '{{i.stock}}'><div class = 'celda text-center'>{% if i.stock %}{{i.stock}}{% else %} Sin información {% endif %}</div></td>
                     <td class= 'column-1' id = '{{i.inventoryquantity_shopi}}'><div class = 'celda text-center'>{{i.inventoryquantity_shopi}}</div></td>
+                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>{% if i.margen %} {{i.margen|format_percent}} {% else %} Sin información{% endif %}  </div></td>
+                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>{{i.margen_db|format_percent}}</div></td>
+                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{{i.costo|format_number}}</div></td>
+
                   </tr>
                   {% else %}
                   <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>

@@ -40,7 +40,6 @@ def list(request):
     data = {"table" :data_table, 'url_base':settings.BASE_URL}
     return render(request, 'table_draft_orders.html', data)
 
-@login_required
 def print_drafr(request,id):
     ConnectionsShopify()
     shopify = ConnectionsShopify()

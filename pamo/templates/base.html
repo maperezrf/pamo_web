@@ -17,7 +17,10 @@
                     <a class="nav-link" href="{% url 'quote_print:list' %}">Cotizaciones</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'products:set_update' %}">Actualización de productos</a>
+                    <a class="nav-link" href="{% url 'products:upload' %}">Actualización de productos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'products:list_products' %}">Productos</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Administración de usuarios</a>
@@ -25,10 +28,6 @@
             </ul>
         </div>
     </nav>
-
-
-
-
     {% block content %}
     {% endblock %}
 </body>

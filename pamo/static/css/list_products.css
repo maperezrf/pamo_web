@@ -1,0 +1,16 @@
+.dataTables_paginate {
+    padding-right: 50px;
+  }
+.card{
+  width: 1700px;
+    margin: 0 auto;
+}
+.dataTables_length{
+  margin-left: 150px;
+}
+.cotizaciones_filter{
+  margin-right: 150px;
+}
+.dataTables_info{
+  margin-left: 150px ;
+}

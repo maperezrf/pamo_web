@@ -12,11 +12,19 @@ from pamo.conecctions_shopify import ConnectionsShopify
 import numpy as np
 from unidecode import unidecode
 from django.contrib.auth.decorators import login_required
+from pamo.functions import update_products_db
 
 cdf = CoreDf()
 
 @login_required
+def list_products(request):
+    products =  Products.objects.all()
+    context = {'products':products}
+    return render(request, 'list_products.html', context)
+
+@login_required
 def update(request):
+    Products.objects.all().delete()
     shopi = ConnectionsShopify()
     list_products = []
     response =shopi.request_graphql(GET_PRODUCTS.format(cursor=''))
@@ -32,9 +40,10 @@ def update(request):
         for k in i:
             dic = {}    
             dic['id'] = k['node']['id'].replace('gid://shopify/Product/',"")
-            dic['tags'] = k['node']['tags']
+            dic['tags'] = ', '.join(k['node']['tags']) if len(k['node']['tags']) > 0 else None
             dic['title'] = k['node']['title']
             dic['vendor'] = k['node']['vendor']
+            dic['status'] = k['node']['status']
             dic['price'] = int(float(k['node']['variants']['edges'][0]['node']['price'])) if k['node']['variants']['edges'][0]['node']['price'] !=None else 0 
             dic['compareAtPrice'] = int(float(k['node']['variants']['edges'][0]['node']['compareAtPrice'])) if k['node']['variants']['edges'][0]['node']['compareAtPrice'] !=None else 0 
             dic['sku'] = k['node']['variants']['edges'][0]['node']['sku']
@@ -44,7 +53,9 @@ def update(request):
     dic['cursor'] = cursor_new
     data_to_save = [Products(**elemento) for elemento in data_list]
     Products.objects.bulk_create(data_to_save)
-    return  redirect(set_update)
+    data ={}
+    return  JsonResponse(data)
+    # return  redirect('/products')
 
 @login_required
 def set_update(request):
@@ -63,7 +74,6 @@ def set_update(request):
                 print(form_1.errors)
         else:
             form = fileForm()
-            
             context = {'form':form}
         return render(request, 'upload_file.html',context)
     else:
@@ -75,19 +85,23 @@ def review_updates(request):
         data = request.POST.dict()
         cdf.rename_columns(data)
         data_file = cdf.get_df()
+        skus = data_file['SKU'].values
+        products = Products.objects.filter(sku__in=skus) 
+        data = { 'sku' : products.values_list('sku', flat=True),
+                'margen_db' : products.values_list('margen', flat=True),
+                }
+        df = pd.DataFrame(data)
         shopi = ConnectionsShopify()
         responses=[]
         for i in data_file['SKU'].values:
-            print(f'sku{i}')
-            query = GET_PRODUCT.format(skus=i)
+            query = GET_PRODUCT.format(skus=f'sku:{i}')
             response = shopi.request_graphql(query)
             try:
-                responses.append(response.json()['data']['products']['edges'][0])    
-                print(len(responses))
+                responses.append(response.json()['data']['products']['edges'][0])
             except Exception as error:
                 print(error)
         cdf.set_df_shopi(responses)
-        cdf.merge()
+        cdf.merge(df)
         df_rev = cdf.get_df_mer()
         table = df_rev.to_dict(orient = 'records')
         data = {'table' : table }
@@ -95,15 +109,25 @@ def review_updates(request):
 
 @login_required
 def update_products(request):
+    df_rev = cdf.get_df_mer()
+    update_products_db(df_rev)
+    if 'costo' in df_rev.columns:   
+        cdf.set_costo()
     shopi = ConnectionsShopify()
-    variables = cdf.set_variables()
-    cont = 0
-    not_update = []
-    for variable in variables:
-        try:
-            res = shopi.request_graphql(UPTADE_PRODUCT, variable)
-            cont +=1
-        except:
-            not_update.append(variable['input']['variants'][0]['sku'])
-        data = {'success': cont,'not_successful':not_update}
+    variables, flag = cdf.set_variables()
+    if flag:
+        cont = 0
+        not_update = []
+        for variable in variables:
+            try:
+                res = shopi.request_graphql(UPTADE_PRODUCT, variable)
+                if len(res.json()['data']['productUpdate']['userErrors']) == 0 :
+                    cont +=1
+                else:
+                    not_update.append(variable['input']['variants'][0]['sku'])
+            except:
+                not_update.append(variable['input']['variants'][0]['sku'])
+            data = {'success': cont,'not_successful':not_update}
+    else:
+        data = {'success': df_rev.shape[0], 'not_successful':0}
     return JsonResponse(data)

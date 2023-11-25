@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% load utils %}
+<script src="{% static 'js/functions.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'css/list_products.css' %}">
+<h1 class="container text-center space">Productos</h1>
+<div class = "card table-responsive"> 
+      <table class="table table-striped" id="cotizaciones">
+        <thead >
+          <tr >  
+            <th scope="col" class = 'h4 text-center'>ID</th>
+            <th scope="col" class = 'h4 text-center'>Titulo</th>
+            <th scope="col" class = 'h4 text-center'>Tags</th>
+            <th scope="col" class = 'h4 text-center'>Proveedor</th>
+            <th scope="col" class = 'h4 text-center'>Precio</th>
+            <th scope="col" class = 'h4 text-center'>Precio comparación</th>
+            <th scope="col" class = 'h4 text-center'>SKU</th>
+            <th scope="col" class = 'h4 text-center'>EAN</th>
+            <th scope="col" class = 'h4 text-center'>Estado publicación</th>
+            <th scope="col" class = 'h4 text-center'>Margen</th>
+          </tr>
+        </thead>
+          {% for i in products %}
+          <tr>
+            <td><a href = 'https://admin.shopify.com/store/prueba-1615/products/{{i.id}}'>{{i.id}}</td>
+
+            <td>{% if i.title %}
+                    {{ i.title }}
+                {% else %}
+                    Sin información
+                {% endif %}
+            </td>
+            <td>{% if i.tags %}
+                    {{ i.tags }}
+                {% else %}
+                    Sin información
+                {% endif %}
+            </td>
+            <td>{% if i.vendor %}
+                    {{ i.vendor }}
+                {% else %}
+                    Sin información
+                {% endif %}
+            </td>
+            <td>{% if i.price %}
+                    {{ i.price|format_number }}
+                {% else %}
+                    {{ 0 |format_number}}
+                {% endif %}
+            </td>
+            <td>{% if  i.compareAtPrice %}
+                    {{i.compareAtPrice|format_number}}
+                {% else %}
+                    {{ 0 |format_number}}
+                {% endif %} 
+            </td>
+            <td>{% if  i.sku %}
+                {{i.sku}}
+                {% else %}
+                Sin información
+                {% endif %} 
+            </td>
+            <td>{% if  i.barcode %}
+                {{i.barcode}}
+                {% else %}
+                Sin información
+                {% endif %} 
+            </td>
+            <td>{% if  i.status %}
+                {{i.status}}
+                {% else %}
+                Sin información
+                {% endif %} 
+            </td>
+            <td>{% if  i.margen %}
+                {{i.margen|format_percent}}
+                {% else %}
+                Sin información
+                {% endif %} 
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+  <div class="text-center" style="margin-top: 30px;">
+    <button type="button" id='update_products' class="btn btn-secondary">Actualizar productos</button>
+  </div>
+</div>
+
+<script>
+
+  let dataTable;
+  let dataTableIsInitialized = false;
+  
+  const dataTableOptions = {
+    pageLength:25,
+    destroy:true,
+    order: [[0, 'desc']],
+    columnDefs:[{className:'text-center', targets:[0,1,2,3,4,5,6,7,8,9]}],
+    language: {
+      "sProcessing": "Procesando...",
+      "sLengthMenu": "Mostrar _MENU_ registros por página",
+      "sZeroRecords": "No se encontraron resultados",
+      "sEmptyTable": "Ningún dato disponible en esta tabla",
+      "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+      "sInfoEmpty": "Mostrando 0 a 0 de 0 registros",
+      "sInfoFiltered": "(filtrado de _MAX_ registros en total)",
+      "sInfoPostFix": "",
+      "sSearch": "Buscar:",
+      "sUrl": "",
+      "sInfoThousands": ",",
+      "sLoadingRecords": "Cargando...",
+      "oPaginate": {
+        "sFirst": "Primero",
+        "sLast": "Último",
+        "sNext": "Siguiente",
+        "sPrevious": "Anterior"
+      },
+    },
+  }
+
+  const initDataTable = async() => {
+    if(dataTableIsInitialized){
+      dataTable.destroy();
+    }
+    dataTable=$("#cotizaciones").DataTable(dataTableOptions);
+    dataTableIsInitialized = true;
+  }
+  
+  const botonesImprimir = document.querySelectorAll('.imprimir-btn');
+  botonesImprimir.forEach((boton) => {
+    boton.addEventListener('click', function() {
+      const popup = window.open('/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
+    })
+  })
+
+  const botonesActualizar = document.querySelectorAll('.update-btn');
+  botonesActualizar.forEach((boton) => {
+    boton.addEventListener('click', function() {
+    $.ajax('/quoteprint/'+this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','')+'/update',{
+      success: function(data, status, xhr){
+        location.reload();
+      }
+    })
+    })
+  })
+
+  window.addEventListener("load", async () =>{
+    await initDataTable();
+  })
+
+var button = document.getElementById('update_products')
+button.addEventListener("click", function() {
+    confirmation();
+});
+
+
+function confirmation (){
+    Swal.fire({
+    title: "¿Estás seguro de querer actualizar la base de productos?",
+    text: "Ten en cuenta que este proceso puede llevar entre 5 y 10 minutos",
+    showDenyButton: true,
+    showCancelButton: false,
+    confirmButtonText: "Aceptar",
+    denyButtonText: "Cancelar"
+  }).then((result) => {
+    if (result.isConfirmed) {
+        show_loading();
+        $.ajax({
+            url: "update",
+        success: function() {
+            console.log('siseñor')
+            Swal.close()
+            Swal.fire({
+                icon: "success",
+                title: "Se actualizo la base de productos",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            setTimeout(function() {
+                Swal.fire({
+                    icon: "success",
+                    title: "Se actualizo la base de productos",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                location.reload();
+            }, 1500);
+        },
+        error: function() {
+            Swal.close();
+            Swal.fire({
+                icon: "error",
+                title: "Error al actualizar la base de productos",
+                text: "Por favor, inténtalo de nuevo más tarde.",
+                showConfirmButton: true
+            });
+        }
+
+        })
+    } else if (result.isDenied) {
+      Swal.fire("No se realizaron cambios");
+    }
+  })}
+
+
+
+</script>
+{% endblock %}

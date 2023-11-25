@@ -12,7 +12,7 @@ class CoreDf():
         pass
 
     def set_df(self, file):
-        self.df = pd.read_excel(file)
+        self.df = pd.read_excel(file, dtype = str)
 
     def get_df(self):
         return self.df
@@ -47,60 +47,66 @@ class CoreDf():
                     'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses]}
         self.df_shopi = pd.DataFrame.from_dict(data_shopi)
 
-    def merge(self):
+    def merge(self, df = None):
         self.df_rev = self.df.merge(self.df_shopi, how='left', left_on = 'SKU', right_on = 'sku_shopi')
         self.df_rev['tags_shopi'] = self.df_rev['tags_shopi'].apply(lambda x : ','.join(x) if type(x)==list else "")
         self.df_rev.fillna('nan', inplace=True)
         self.df_rev.columns = [unidecode(i).replace(' ','_').lower() for i in self.df_rev]
+        if ~df.empty:
+            self.df_rev = self.df_rev.merge(df, how = 'left', on='sku')
+
 
     def get_df_mer(self):
         return self.df_rev
     
+    def set_costo(self):
+        self.df_rev['precio'] = pd.to_numeric(self.df_rev['costo'])/ (1- pd.to_numeric(self.df_rev['margen_db']))
+    
     def set_variables(self):
+        columns_test = [i for i in  self.df_rev.columns if i in ['titulo','proveedor','tags','codigo_barras','precio_comparacion','precio','costo']]
         variables = []
-        self.df_rev = self.df_rev.loc[self.df_rev['id_shopi'] != 'nan'].reset_index(drop=True)
-        for i in range(self.df_rev.shape[0]):
-            variants = {'sku':self.df_rev.loc[i]['sku']}
-            inventoryItem = {}
-            var = {'input':{'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}}
-            try:
-                var['input']['title'] = self.df_rev.loc[i]['titulo']
-            except:
-                pass
-            try:
-                var['input']['vendor'] = self.df_rev.loc[i]['proveedor']
-            except:
-                pass
-            try:
-                tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
-                tags_shopi = self.df_rev.loc[i]['tags_shopi']
-                tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
-                tags_archive.extend(tags_new)
-                var['input']['tags'] = tags_archive
-            except:
-                pass
-            try:
-                variants['barcode'] = self.df_rev.loc[i]['codigo_barras']
-            except:
-                pass
-            try:
-                variants['compareAtPrice'] = str(self.df_rev.loc[i]['precio_comparacion'])
-            except:
-                pass
-            try:
-                variants['price'] = str(self.df_rev.loc[i]['precio'])
-            except:
-                pass
-            try:
-                inventoryItem["inventoryItem"]={'cost' :str(self.df_rev.loc[i]['costo'])}
-            except:
-                pass
+        if len(columns_test) > 0:
+            flag = True
+            self.df_rev = self.df_rev.loc[self.df_rev['id_shopi'] != 'nan'].reset_index(drop=True)
+            for i in range(self.df_rev.shape[0]):
+                data_off = 0
+                variants = {'sku':self.df_rev.loc[i]['sku']}
+                var = {'input':{'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}}
+                try:
+                    var['input']['title'] = self.df_rev.loc[i]['titulo']
+                except:
+                    data_off += 1
+                try:
+                    var['input']['vendor'] = self.df_rev.loc[i]['proveedor']
+                except:
+                    data_off += 1
+                try:
+                    tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
+                    tags_shopi = self.df_rev.loc[i]['tags_shopi']
+                    tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
+                    tags_archive.extend(tags_new)
+                    var['input']['tags'] = tags_archive
+                except:
+                    data_off += 1
+                try:
+                    variants['barcode'] = self.df_rev.loc[i]['codigo_barras']
+                except:
+                    data_off += 1
+                try:
+                    variants['compareAtPrice'] = str(self.df_rev.loc[i]['precio_comparacion'])
+                except:
+                    data_off += 1
+                try:
+                    variants['price'] = str(self.df_rev.loc[i]['precio'])
+                except:
+                    data_off += 1
+                try:
+                    variants["inventoryItem"]={'cost' :str(self.df_rev.loc[i]['costo'])}
+                except:
+                    data_off += 1
 
-            var['input']['variants']=[variants]
-            if inventoryItem:
-                var['input']['variants'].append(inventoryItem)
-
-            variables.append(var)
-
-        return variables
-                    
+                var['input']['variants']=[variants]
+                variables.append(var)
+        else:
+            flag = False
+        return variables, flag

@@ -1,10 +1,10 @@
 btnUpdate = document.getElementById('update')
 btnUpdate.addEventListener("click", function(){
-    confirmation('2')
+    confirmation()
 }) 
 
 
-function confirmation (changes){
+function confirmation (){
     Swal.fire({
     title: "Estás seguro de actualizar estos datos?",
     // text: 'Se realizaran '+ changes + ' cambios',

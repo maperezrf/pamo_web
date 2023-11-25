@@ -12,4 +12,8 @@ def format_number(value):
     if (value == 'nan') | (value == ''):
         return '$0'
     else: 
-        return '${:,}'.format(float(value))
+        return "${:,.0f}".format(float(value))
+
+@register.filter
+def format_percent(value):
+    return "{:,.0f}%".format(int(float(value)*100))    
