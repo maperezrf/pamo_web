@@ -110,9 +110,9 @@ def review_updates(request):
 @login_required
 def update_products(request):
     df_rev = cdf.get_df_mer()
-    update_products_db(df_rev)
+    df =  update_products_db(df_rev)
     if 'costo' in df_rev.columns:   
-        cdf.set_costo()
+        cdf.set_costo(df)
     shopi = ConnectionsShopify()
     variables, flag = cdf.set_variables()
     if flag:

@@ -52,15 +52,19 @@ class CoreDf():
         self.df_rev['tags_shopi'] = self.df_rev['tags_shopi'].apply(lambda x : ','.join(x) if type(x)==list else "")
         self.df_rev.fillna('nan', inplace=True)
         self.df_rev.columns = [unidecode(i).replace(' ','_').lower() for i in self.df_rev]
-        if ~df.empty:
+        if not df.empty:
             self.df_rev = self.df_rev.merge(df, how = 'left', on='sku')
-
+            # if 'margen' in self.df_rev.columns:                                              
+            #     self.df_rev['margen_db'] = self.df_rev['margen']
 
     def get_df_mer(self):
         return self.df_rev
     
-    def set_costo(self):
-        self.df_rev['precio'] = pd.to_numeric(self.df_rev['costo'])/ (1- pd.to_numeric(self.df_rev['margen_db']))
+    def set_costo(self, df):
+        if df.empty:
+           self.df_rev['precio'] = pd.to_numeric(self.df_rev['costo'])/ (1- pd.to_numeric(self.df_rev['margen_db']))
+        else:
+           self.df_rev['precio'] = pd.to_numeric(df['costo'])/ (1- pd.to_numeric(df['margen_db']))
     
     def set_variables(self):
         columns_test = [i for i in  self.df_rev.columns if i in ['titulo','proveedor','tags','codigo_barras','precio_comparacion','precio','costo']]
