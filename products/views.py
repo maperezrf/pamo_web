@@ -103,6 +103,7 @@ def review_updates(request):
         cdf.set_df_shopi(responses)
         cdf.merge(df)
         df_rev = cdf.get_df_mer()
+        df_rev['margen_db'] = df_rev['margen_db'].fillna('No entontrado')
         table = df_rev.to_dict(orient = 'records')
         data = {'table' : table }
     return render(request, 'list.html',context=data)
