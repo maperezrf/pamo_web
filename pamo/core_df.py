@@ -48,6 +48,8 @@ class CoreDf():
         self.df_shopi = pd.DataFrame.from_dict(data_shopi)
 
     def merge(self, df = None):
+        if 'Margen' in self.df.columns:
+            self.df['Margen'] = pd.to_numeric(self.df['Margen'])/100
         self.df_rev = self.df.merge(self.df_shopi, how='left', left_on = 'SKU', right_on = 'sku_shopi')
         self.df_rev['tags_shopi'] = self.df_rev['tags_shopi'].apply(lambda x : ','.join(x) if type(x)==list else "")
         self.df_rev.fillna('nan', inplace=True)
