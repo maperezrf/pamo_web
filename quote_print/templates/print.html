@@ -3,12 +3,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{info.name|slice:"1:"}}{% if info.customer.displayName %}-{{ info.customer.displayName }}{% endif %}</title>
     <style>
         @page {
-            size: A4;
-            margin: 0;
+            size:A4;
+            margin:0;
+            padding:0;
         }
 
         body {
@@ -48,7 +48,7 @@
 
         .overlay-text {
             position: relative;
-            width: 1080px;
+            width: 930px;
             margin-top: 100px;
             margin-left: -85px;
         }
@@ -62,7 +62,7 @@
 
         .product-table  {
             border-collapse: collapse;
-            width: 990px;
+            width: 800px;
             margin: auto;
         }
 
@@ -83,6 +83,7 @@
         th {
             background-color: #d1d1d1; 
             color: black; 
+            font-size: 11px;
         }
 
         .column {
@@ -113,13 +114,13 @@
         .politics{
             left: 80px;
             font-size: 13px;
-            width: 974px;
+            width:930px;
             margin: auto;
         }
 
         .linea-horizontal {
             border-top: 1px solid;
-            width: 990px;
+            width: 800px;
             color: #d1d1d1;
             margin: 10px auto;
         }
@@ -139,8 +140,10 @@
         }
 
         .back {
-            width: 1080px;
-            height: 1528px;
+            {% comment %} width: 930px;
+            height: 1310px; {% endcomment %}
+            width: 880px;
+            height: 1255px;
             background-size: cover;
             background-repeat: no-repeat;
         }
@@ -170,7 +173,9 @@
         
           .boton-imagen img {
             display: block;
-            margin: 0 auto; /* Centra la imagen horizontalmente */
+            margin: 0 auto;
+            margin-top: 30px;
+            
           }
         
           .boton-imagen span {
@@ -181,16 +186,9 @@
           @media print {
             .boton-imagen {
               display: none;
+
             }
           }
-
-          @media (max-width: 768px) {
-            .page {
-                flex-direction: column;
-            }
-        
-            /* Agregar más estilos responsivos aquí según sea necesario */
-        }
     </style>
 </head>
 <div>
@@ -228,10 +226,10 @@
                 <table class="product-table" id="product-table">
                     <thead>
                         <tr>
-                            <th class="column" style="width: 74px;">FOTO</th>
-                            <th class="column" style="padding: 8px 60px;">SKU</th>
-                            <th class="column" style="padding: 8px 120px;">DESCRIPCIÓN</th>
-                            <th class="column" style="width: 104.4px;" >CANTIDAD</th>
+                            <th class="column H5" style="width: 70px;">FOTO</th>
+                            <th class="column" style="padding: 8px 40px;">SKU</th>
+                            <th class="column" style="padding: 8px 90px;">DESCRIPCIÓN</th>
+                            <th class="column" style="width: 104.4px;">CANTIDAD</th>
                             <th class="column" style="width: 114.9px;">P. UNITARIO</th>
                             <th class="column" style="width: 90.65px;">TOTAL</th>
                         </tr>
@@ -267,7 +265,7 @@
                 </div>
                 <div class="linea-horizontal"></div>
                 <div class= 'politics'>
-                <p>
+                <p style="width: 800px;margin: 0 auto;">
                     POLITICAS DE REEMBOLSO DE FEPRIN SAS<br>
                     Consulta nuestra politica de reembolso https://www.pamo.co/policies/refund-policy<br>
                     <span style='text-align: justify;' >
@@ -288,7 +286,6 @@
     </div>
     </div> 
 </div>
-
 </html>
 <script src="{% static 'js/functions.js' %}"></script>
 <script>
