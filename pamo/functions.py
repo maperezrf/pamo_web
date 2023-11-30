@@ -10,14 +10,16 @@ def make_json(res):
     return(res)
 
 def update_products_db(df):
-    if 'margen' in df.columns:
+    if ('margen' in df.columns) | ('costo' in df.columns):
         for i in range(df.shape[0]):
-            print('guardando')
-            element = Products.objects.get(sku = df.loc[i,'sku'])
-            element.margen = df.loc[i,'margen']
-            element.save()
-            df.loc[i,'margen_db'] = df.loc[i,'margen']
+            sku_to_search = df.loc[i,'id_shopi']
+            if  sku_to_search != 'nan':
+                element = Products.objects.get(sku = df.loc[i,'sku'])
+                element.margen = df.loc[i,'margen'] if 'margen' in df.columns else element.margen
+                element.costo = df.loc[i,'costo'] if 'costo' in df.columns else element.costo
+                element.save()
+                df.loc[i,'margen_db'] = float(element.margen)
+                df.loc[i,'costo_db'] = float(element.costo)
         return df
     else:
         return pd.DataFrame()
-

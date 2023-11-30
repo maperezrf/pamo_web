@@ -42,7 +42,8 @@
                 <th scope="col" class = 'text-center column-1'>Shopify</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Base</th>
-                <th scope="col" class = 'text-center column-1'>Costo Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Base</th>
               </tr>
             </thead>
               {% for i in table %}
@@ -68,6 +69,7 @@
                     <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>{% if i.margen %} {{i.margen|format_percent}} {% else %} Sin información{% endif %}  </div></td>
                     <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>  {% if i.margen_db == 'No entontrado' %} <label class = 'h5 text-center' >SKU no encontrado en BD </label>{% else %} {{i.margen_db|format_percent}} {% endif %}      </div></td>
                     <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{{i.costo|format_number}}</div></td>
+                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.costo_db %} {{i.costo_db|format_number}} {% else %} Sin información{% endif %}  </div></td>
 
                   </tr>
                   {% else %}
@@ -79,7 +81,7 @@
                   <th colspan="2" scope="col" class = 'h5 text-center'>Elemento no encontrado</th>
                   <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
                   <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
-                  <th colspan="1" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
+                  <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
                 </tr>
                   {% endif %}
               {% endfor %}

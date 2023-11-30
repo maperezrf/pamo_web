@@ -2,9 +2,11 @@
 {% block content %}
 {% load static %}
 {% load utils %}
-<script src="{% static 'js/functions.js' %}"></script>
+
 <link rel="stylesheet" type="text/css" href="{% static 'css/list_products.css' %}">
 <h1 class="container text-center space">Productos</h1>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/functions.js' %}"></script>
 <div class = "card table-responsive"> 
       <table class="table table-striped" id="cotizaciones">
         <thead >
@@ -86,12 +88,10 @@
     <button type="button" id='update_products' class="btn btn-secondary">Actualizar productos</button>
   </div>
 </div>
-
 <script>
-
   let dataTable;
   let dataTableIsInitialized = false;
-  
+
   const dataTableOptions = {
     pageLength:25,
     destroy:true,
@@ -126,13 +126,6 @@
     dataTable=$("#cotizaciones").DataTable(dataTableOptions);
     dataTableIsInitialized = true;
   }
-  
-  const botonesImprimir = document.querySelectorAll('.imprimir-btn');
-  botonesImprimir.forEach((boton) => {
-    boton.addEventListener('click', function() {
-      const popup = window.open('/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
-    })
-  })
 
   const botonesActualizar = document.querySelectorAll('.update-btn');
   botonesActualizar.forEach((boton) => {
@@ -202,8 +195,5 @@ function confirmation (){
       Swal.fire("No se realizaron cambios");
     }
   })}
-
-
-
 </script>
 {% endblock %}

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from products.models import Products
+from products.models import Products, SaveMargins
 from pamo.queries import *
 from pamo.constants import COLUMNS_SHOPI
 from pamo.conecctions_shopify import ConnectionsShopify
@@ -24,6 +24,15 @@ def list_products(request):
 
 @login_required
 def update(request):
+    obj_to_save = Products.objects.filter(margen__gt = 0)
+    data_list = []
+    for i in obj_to_save:
+        dic = {}
+        dic['id'] = i.id
+        dic['margen'] = float(i.margen)
+        data_list.append(dic)
+    data_to_save = [SaveMargins(**elemento) for elemento in data_list]
+    SaveMargins.objects.bulk_create(data_to_save)
     Products.objects.all().delete()
     shopi = ConnectionsShopify()
     list_products = []
@@ -35,7 +44,9 @@ def update(request):
         response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
         cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
         list_products.append(response.json()['data']['products']['edges'])
-        data_list = []
+    data_list = []
+    ids_saved_list = [i.id  for i in  SaveMargins.objects.all()]
+    ids_saved = {i.id: float(i.margen) for i in  SaveMargins.objects.all()}
     for i in list_products:
         for k in i:
             dic = {}    
@@ -49,10 +60,13 @@ def update(request):
             dic['sku'] = k['node']['variants']['edges'][0]['node']['sku']
             dic['barcode'] = k['node']['variants']['edges'][0]['node']['barcode']
             dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][0]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0
+            if int(dic['id']) in ids_saved_list:
+                dic['margen'] = ids_saved[int(dic['id'])]
             data_list.append(dic)
     dic['cursor'] = cursor_new
     data_to_save = [Products(**elemento) for elemento in data_list]
     Products.objects.bulk_create(data_to_save)
+    SaveMargins.objects.all().delete()
     data ={}
     return  JsonResponse(data)
     # return  redirect('/products')
@@ -87,10 +101,14 @@ def review_updates(request):
         data_file = cdf.get_df()
         skus = data_file['SKU'].values
         products = Products.objects.filter(sku__in=skus) 
-        data = { 'sku' : products.values_list('sku', flat=True),
+        if ('Margen' in data_file.columns) | ('Costo' in data_file.columns):
+            data = { 'sku' : products.values_list('sku', flat=True),
                 'margen_db' : products.values_list('margen', flat=True),
+                'costo_db' : products.values_list('costo', flat=True),
                 }
-        df = pd.DataFrame(data)
+            df = pd.DataFrame(data)
+        else:
+            df = pd.DataFrame()
         shopi = ConnectionsShopify()
         responses=[]
         for i in data_file['SKU'].values:
@@ -104,6 +122,7 @@ def review_updates(request):
         cdf.merge(df)
         df_rev = cdf.get_df_mer()
         df_rev['margen_db'] = df_rev['margen_db'].fillna('No entontrado')
+        df_rev['costo_db'] = df_rev['costo_db'].fillna('No entontrado')
         table = df_rev.to_dict(orient = 'records')
         data = {'table' : table }
     return render(request, 'list.html',context=data)
@@ -112,23 +131,20 @@ def review_updates(request):
 def update_products(request):
     df_rev = cdf.get_df_mer()
     df =  update_products_db(df_rev)
-    if 'costo' in df_rev.columns:   
+    if ('costo' in df_rev.columns) | ('margen' in df_rev.columns):   
         cdf.set_costo(df)
     shopi = ConnectionsShopify()
-    variables, flag = cdf.set_variables()
-    if flag:
-        cont = 0
-        not_update = []
-        for variable in variables:
-            try:
-                res = shopi.request_graphql(UPTADE_PRODUCT, variable)
-                if len(res.json()['data']['productUpdate']['userErrors']) == 0 :
-                    cont +=1
-                else:
-                    not_update.append(variable['input']['variants'][0]['sku'])
-            except:
+    variables = cdf.set_variables()
+    cont = 0
+    not_update = []
+    for variable in variables:
+        try:
+            res = shopi.request_graphql(UPTADE_PRODUCT, variable)
+            if len(res.json()['data']['productUpdate']['userErrors']) == 0 :
+                cont +=1
+            else:
                 not_update.append(variable['input']['variants'][0]['sku'])
-            data = {'success': cont,'not_successful':not_update}
-    else:
-        data = {'success': df_rev.shape[0], 'not_successful':0}
+        except:
+            not_update.append(variable['input']['variants'][0]['sku'])
+        data = {'success': cont,'not_successful':not_update}
     return JsonResponse(data)
