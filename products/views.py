@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from products.models import Products, SaveMargins
+from django.db.models import Q
 from pamo.queries import *
 from pamo.constants import COLUMNS_SHOPI
 from pamo.conecctions_shopify import ConnectionsShopify
@@ -24,12 +25,13 @@ def list_products(request):
 
 @login_required
 def update(request):
-    obj_to_save = Products.objects.filter(margen__gt = 0)
+    obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0))
     data_list = []
     for i in obj_to_save:
         dic = {}
         dic['id'] = i.id
         dic['margen'] = float(i.margen)
+        dic['costo'] = float(i.costo)
         data_list.append(dic)
     data_to_save = [SaveMargins(**elemento) for elemento in data_list]
     SaveMargins.objects.bulk_create(data_to_save)
@@ -37,16 +39,21 @@ def update(request):
     shopi = ConnectionsShopify()
     list_products = []
     response =shopi.request_graphql(GET_PRODUCTS.format(cursor=''))
+    print("primero")
+    print(response.json())
     list_products.append(response.json()['data']['products']['edges'])
     cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
     while response.json()['data']['products']['pageInfo']['hasNextPage']:
         time.sleep(20)
         response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
+        print("while")
+        print(response.json())
         cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
         list_products.append(response.json()['data']['products']['edges'])
     data_list = []
     ids_saved_list = [i.id  for i in  SaveMargins.objects.all()]
-    ids_saved = {i.id: float(i.margen) for i in  SaveMargins.objects.all()}
+    margen_saved = {i.id: float(i.margen) for i in  SaveMargins.objects.all()}
+    costo_saved = {i.id: float(i.costo) for i in  SaveMargins.objects.all()}
     for i in list_products:
         for k in i:
             dic = {}    
@@ -61,7 +68,8 @@ def update(request):
             dic['barcode'] = k['node']['variants']['edges'][0]['node']['barcode']
             dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][0]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0
             if int(dic['id']) in ids_saved_list:
-                dic['margen'] = ids_saved[int(dic['id'])]
+                dic['margen'] = margen_saved[int(dic['id'])]
+                dic['costo'] = costo_saved[int(dic['id'])]
             data_list.append(dic)
     dic['cursor'] = cursor_new
     data_to_save = [Products(**elemento) for elemento in data_list]
@@ -69,7 +77,6 @@ def update(request):
     SaveMargins.objects.all().delete()
     data ={}
     return  JsonResponse(data)
-    # return  redirect('/products')
 
 @login_required
 def set_update(request):

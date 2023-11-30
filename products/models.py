@@ -20,3 +20,4 @@ class Products(models.Model):
     
 class SaveMargins(models.Model):
     margen = models.DecimalField(decimal_places=2, null=False, blank=False ,default= 0, max_digits = 3 )
+    costo = models.IntegerField(False, null=False, blank=False ,default= 0)
