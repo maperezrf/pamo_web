@@ -39,21 +39,18 @@ def update(request):
     shopi = ConnectionsShopify()
     list_products = []
     response =shopi.request_graphql(GET_PRODUCTS.format(cursor=''))
-    print("primero")
-    print(response.json())
     list_products.append(response.json()['data']['products']['edges'])
     cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
     while response.json()['data']['products']['pageInfo']['hasNextPage']:
         time.sleep(20)
         response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
-        print("while")
-        print(response.json())
         cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
         list_products.append(response.json()['data']['products']['edges'])
     data_list = []
-    ids_saved_list = [i.id  for i in  SaveMargins.objects.all()]
-    margen_saved = {i.id: float(i.margen) for i in  SaveMargins.objects.all()}
-    costo_saved = {i.id: float(i.costo) for i in  SaveMargins.objects.all()}
+    items_saved = SaveMargins.objects.all()
+    ids_saved_list = [i.id  for i in  items_saved]
+    margen_saved = {i.id: float(i.margen) for i in  items_saved}
+    costo_saved = {i.id: float(i.costo) for i in  items_saved}
     for i in list_products:
         for k in i:
             dic = {}    
@@ -72,10 +69,10 @@ def update(request):
                 dic['costo'] = costo_saved[int(dic['id'])]
             data_list.append(dic)
     dic['cursor'] = cursor_new
+    items_saved.delete()
     data_to_save = [Products(**elemento) for elemento in data_list]
     Products.objects.bulk_create(data_to_save)
-    SaveMargins.objects.all().delete()
-    data ={}
+    data ={'data':'data'}
     return  JsonResponse(data)
 
 @login_required
