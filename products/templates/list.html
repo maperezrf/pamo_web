@@ -21,6 +21,7 @@
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Stock</th>
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Margen</th>
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Costo</th>
+                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Maren comparación</th>
               </tr>
             </thead>
               <thead>
@@ -40,6 +41,8 @@
                 <th scope="col" class = 'text-center'>Shopify</th> 
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Shopify</th>
+                <th scope="col" class = 'text-center column-1'>Archivo</th>
+                <th scope="col" class = 'text-center column-1'>Base</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Base</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
@@ -66,11 +69,15 @@
                     
                     <td class= 'column-1' id = '{{i.stock}}'><div class = 'celda text-center'>{% if i.stock %}{{i.stock}}{% else %} Sin información {% endif %}</div></td>
                     <td class= 'column-1' id = '{{i.inventoryquantity_shopi}}'><div class = 'celda text-center'>{{i.inventoryquantity_shopi}}</div></td>
+
                     <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>{% if i.margen %} {{i.margen|format_percent}} {% else %} Sin información{% endif %}  </div></td>
-                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>  {% if i.margen_db == 'No entontrado' %} <label class = 'h5 text-center' >SKU no encontrado en BD </label>{% else %} {{i.margen_db|format_percent}} {% endif %}      </div></td>
+                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'> {% if margen_db %}  {{i.margen_db|format_percent}}  {% elif i.margen_db == 'No entontrado' %} <label class = 'h5 text-center' >SKU no encontrado en BD </label>{% else %} {{i.margen_db|format_percent}} {% endif %}      </div></td>
+                    
                     <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{{i.costo|format_number}}</div></td>
                     <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.costo_db %} {{i.costo_db|format_number}} {% else %} Sin información{% endif %}  </div></td>
 
+                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.margen_comparacion %} {{i.margen_comparacion|format_percent}} {% else %} Sin información{% endif %}</div></td>
+                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.margen_comparacion_db %} {{i.margen_comparacion_db|format_percent}} {% else %} Sin información{% endif %}  </div></td>
                   </tr>
                   {% else %}
                   <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>

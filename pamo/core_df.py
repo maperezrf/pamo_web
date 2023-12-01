@@ -50,6 +50,8 @@ class CoreDf():
     def merge(self, df = None):
         if 'Margen' in self.df.columns:
             self.df['Margen'] = pd.to_numeric(self.df['Margen'])/100
+        if 'Margen comparación' in self.df.columns:
+            self.df['Margen comparación'] = pd.to_numeric(self.df['Margen comparación'])/100
         self.df_rev = self.df.merge(self.df_shopi, how='left', left_on = 'SKU', right_on = 'sku_shopi')
         self.df_rev['tags_shopi'] = self.df_rev['tags_shopi'].apply(lambda x : ','.join(x) if type(x)==list else "")
         self.df_rev.fillna('nan', inplace=True)
@@ -61,10 +63,8 @@ class CoreDf():
         return self.df_rev
     
     def set_costo(self, df):
-        # if df.empty:
         self.df_rev['precio'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_db']))
-        # else:
-        #    self.df_rev['precio'] = pd.to_numeric(df['costo'])/ (1- pd.to_numeric(df['margen_db']))
+        self.df_rev['precio_comparacion'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_comparacion_db']))
     
     def set_variables(self):
         variables = []
@@ -83,10 +83,10 @@ class CoreDf():
                 data_off += 1
             try:
                 tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
-                tags_shopi = self.df_rev.loc[i]['tags_shopi']
+                tags_shopi = self.df_rev.loc[i]['tags_shopi'].strip(',').split(',')
                 tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
-                tags_archive.extend(tags_new)
-                var['input']['tags'] = tags_archive
+                tags_shopi.extend(tags_new)
+                var['input']['tags'] = tags_shopi
             except:
                 data_off += 1
             try:

@@ -14,6 +14,7 @@ class Products(models.Model):
     cursor = models.CharField(max_length=80, null=True, blank=True)
     margen = models.DecimalField(decimal_places=2, null=False, blank=False ,default= 0, max_digits = 3 )
     costo = models.IntegerField(False, null=False, blank=False ,default= 0)
+    margen_comparacion_db = models.DecimalField(decimal_places=2, null=False, blank=False ,default= 0, max_digits = 3 )
 
     def __str__(self) -> str:
         return self.title
@@ -21,3 +22,4 @@ class Products(models.Model):
 class SaveMargins(models.Model):
     margen = models.DecimalField(decimal_places=2, null=False, blank=False ,default= 0, max_digits = 3 )
     costo = models.IntegerField(False, null=False, blank=False ,default= 0)
+    margen_comparacion_db = models.DecimalField(decimal_places=2, null=False, blank=False ,default= 0, max_digits = 3 )

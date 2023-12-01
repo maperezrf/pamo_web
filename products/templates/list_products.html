@@ -22,6 +22,7 @@
             <th scope="col" class = 'h4 text-center'>Estado publicación</th>
             <th scope="col" class = 'h4 text-center'>Margen</th>
             <th scope="col" class = 'h4 text-center'>Costo</th>
+            <th scope="col" class = 'h4 text-center'>Margen comparación</th>
           </tr>
         </thead>
           {% for i in products %}
@@ -84,6 +85,12 @@
             </td>
             <td>{% if  i.costo %}
                 {{i.costo|format_number}}
+                {% else %}
+                Sin información
+                {% endif %} 
+            </td>
+            <td>{% if  i.margen_comparacion %}
+                {{i.margen_comparacion|format_number}}
                 {% else %}
                 Sin información
                 {% endif %} 

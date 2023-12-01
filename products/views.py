@@ -35,7 +35,6 @@ def update(request):
         data_list.append(dic)
     data_to_save = [SaveMargins(**elemento) for elemento in data_list]
     SaveMargins.objects.bulk_create(data_to_save)
-    Products.objects.all().delete()
     shopi = ConnectionsShopify()
     list_products = []
     response =shopi.request_graphql(GET_PRODUCTS.format(cursor=''))
@@ -70,14 +69,14 @@ def update(request):
             data_list.append(dic)
     dic['cursor'] = cursor_new
     items_saved.delete()
+    Products.objects.all().delete()
     data_to_save = [Products(**elemento) for elemento in data_list]
     Products.objects.bulk_create(data_to_save)
     data ={'data':'data'}
-    return  JsonResponse(data)
+    return JsonResponse(data)
 
 @login_required
 def set_update(request):
-    # if request.user.groups.all() == 'seller':
     grupos = request.user.groups.all()
     ids_grupos = [grupo.id for grupo in grupos]
     if 1 in ids_grupos:
@@ -105,14 +104,15 @@ def review_updates(request):
         data_file = cdf.get_df()
         skus = data_file['SKU'].values
         products = Products.objects.filter(sku__in=skus) 
-        if ('Margen' in data_file.columns) | ('Costo' in data_file.columns):
-            data = { 'sku' : products.values_list('sku', flat=True),
-                'margen_db' : products.values_list('margen', flat=True),
-                'costo_db' : products.values_list('costo', flat=True),
-                }
-            df = pd.DataFrame(data)
-        else:
-            df = pd.DataFrame()
+        # if ('Margen' in data_file.columns) | ('Costo' in data_file.columns) | ('Margen comparación' in data_file.columns):
+        data = { 'sku' : products.values_list('sku', flat=True),
+            'margen_db' : products.values_list('margen', flat=True),
+            'costo_db' : products.values_list('costo', flat=True),
+            'margen_comparacion_db' : products.values_list('margen_comparacion_db', flat=True),
+            }
+        df = pd.DataFrame(data)
+        # else:
+        #     df = pd.DataFrame()
         shopi = ConnectionsShopify()
         responses=[]
         for i in data_file['SKU'].values:
@@ -125,8 +125,10 @@ def review_updates(request):
         cdf.set_df_shopi(responses)
         cdf.merge(df)
         df_rev = cdf.get_df_mer()
-        df_rev['margen_db'] = df_rev['margen_db'].fillna('No entontrado')
+        # if len([i for i in df_rev.columns if '_db' in i]) == 3:
+        df_rev['margen_db'] = df_rev['margen_db'].fillna('No entontrado') 
         df_rev['costo_db'] = df_rev['costo_db'].fillna('No entontrado')
+        df_rev['margen_comparacion_db'] = df_rev['margen_comparacion_db'].fillna('No entontrado')
         table = df_rev.to_dict(orient = 'records')
         data = {'table' : table }
     return render(request, 'list.html',context=data)
@@ -135,8 +137,7 @@ def review_updates(request):
 def update_products(request):
     df_rev = cdf.get_df_mer()
     df =  update_products_db(df_rev)
-    if ('costo' in df_rev.columns) | ('margen' in df_rev.columns):   
-        cdf.set_costo(df)
+    cdf.set_costo(df)
     shopi = ConnectionsShopify()
     variables = cdf.set_variables()
     cont = 0

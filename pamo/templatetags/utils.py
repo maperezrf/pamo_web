@@ -9,7 +9,7 @@ def replace_spaces(value):
 
 @register.filter
 def format_number(value):
-    if (value == 'nan') | (value == ''):
+    if (value == 'nan') | (value == '') :
         return '$0'
     else: 
         return "${:,.0f}".format(float(value))
