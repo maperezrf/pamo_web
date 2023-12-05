@@ -58,14 +58,14 @@ def update(request):
             dic['title'] = k['node']['title']
             dic['vendor'] = k['node']['vendor']
             dic['status'] = k['node']['status']
-            dic['price'] = int(float(k['node']['variants']['edges'][0]['node']['price'])) if k['node']['variants']['edges'][0]['node']['price'] !=None else 0 
-            dic['compareAtPrice'] = int(float(k['node']['variants']['edges'][0]['node']['compareAtPrice'])) if k['node']['variants']['edges'][0]['node']['compareAtPrice'] !=None else 0 
+            dic['price'] =float(k['node']['variants']['edges'][0]['node']['price']) if k['node']['variants']['edges'][0]['node']['price'] !=None else 0.0 
+            dic['compareAtPrice'] =float(k['node']['variants']['edges'][0]['node']['compareAtPrice']) if k['node']['variants']['edges'][0]['node']['compareAtPrice'] !=None else 0.0 
             dic['sku'] = k['node']['variants']['edges'][0]['node']['sku']
             dic['barcode'] = k['node']['variants']['edges'][0]['node']['barcode']
-            dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][0]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0
+            dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][0]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0.0
             if int(dic['id']) in ids_saved_list:
-                dic['margen'] = margen_saved[int(dic['id'])]
-                dic['costo'] = costo_saved[int(dic['id'])]
+                dic['margen'] = margen_saved[float(dic['id'])]
+                dic['costo'] = costo_saved[float(dic['id'])]
             data_list.append(dic)
     dic['cursor'] = cursor_new
     items_saved.delete()
