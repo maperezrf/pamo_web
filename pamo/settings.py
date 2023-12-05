@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'quote_print',
     'products',
+    'pamo_bots'
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,8 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, "pamo" ,"templates"),
                 os.path.join(BASE_DIR, "quote_print", "templates"),
-                os.path.join(BASE_DIR, "products", "templates")],
+                os.path.join(BASE_DIR, "products", "templates"),
+                os.path.join(BASE_DIR, "products", "pamo_bots")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

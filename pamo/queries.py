@@ -168,3 +168,22 @@ UPTADE_PRODUCT = """
     }
   }
 """
+
+GET_VARIANT_ID = """{{
+products(first: 1, query: "sku:{skus}") {{
+    edges {{
+    node {{
+        id
+        variants(first: 1) {{
+        edges {{
+            node {{
+            id
+            sku
+            }}
+        }}
+        }}
+    }}
+    }}
+}}
+}}
+"""
