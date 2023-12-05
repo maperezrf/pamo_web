@@ -70,17 +70,16 @@ class CoreDf():
         variables = []
         self.df_rev = self.df_rev.loc[self.df_rev['id_shopi'] != 'nan'].reset_index(drop=True)
         for i in range(self.df_rev.shape[0]):
-            data_off = 0
             variants = {'sku':self.df_rev.loc[i]['sku']}
             var = {'input':{'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}}
             try:
                 var['input']['title'] = self.df_rev.loc[i]['titulo']
             except:
-                data_off += 1
+                pass
             try:
                 var['input']['vendor'] = self.df_rev.loc[i]['proveedor']
             except:
-                data_off += 1
+                pass
             try:
                 tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
                 tags_shopi = self.df_rev.loc[i]['tags_shopi'].strip(',').split(',')
@@ -88,24 +87,28 @@ class CoreDf():
                 tags_shopi.extend(tags_new)
                 var['input']['tags'] = tags_shopi
             except:
-                data_off += 1
+                pass
             try:
                 variants['barcode'] = self.df_rev.loc[i]['codigo_barras']
             except:
-                data_off += 1
+                pass
             try:
                 variants['compareAtPrice'] = str(self.df_rev.loc[i]['precio_comparacion'])
             except:
-                data_off += 1
+                pass
             try:
                 variants['price'] = str(self.df_rev.loc[i]['precio'])
             except:
-                data_off += 1
+                pass
             try:
-                variants["inventoryItem"]={'cost' :str(self.df_rev.loc[i]['costo_db'])}
+                variants["inventoryItem"]={'cost':str(self.df_rev.loc[i]['costo_db'])}
             except:
-                data_off += 1
-
+                pass
+            try:
+                variants["inventoryQuantities"]={"availableQuantity": int(self.df_rev.loc[i]['stock']),"locationId": "gid://shopify/Location/67083862182"}
+            except:
+                pass
+            
             var['input']['variants']=[variants]
             variables.append(var)
         return variables
