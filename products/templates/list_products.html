@@ -18,6 +18,7 @@
             <th scope="col" class = 'h4 text-center'>Precio</th>
             <th scope="col" class = 'h4 text-center'>Precio comparación</th>
             <th scope="col" class = 'h4 text-center'>SKU</th>
+            <th scope="col" class = 'h4 text-center'>Sodimac</th>
             <th scope="col" class = 'h4 text-center'>EAN</th>
             <th scope="col" class = 'h4 text-center'>Estado publicación</th>
             <th scope="col" class = 'h4 text-center'>Margen</th>
@@ -65,6 +66,12 @@
                 Sin información
                 {% endif %} 
             </td>
+            <td>{% if  i.SKU %}
+              <a href = 'https://www.homecenter.com.co/homecenter-co/product/{{i.SKU}}' target="_blank">{{i.SKU}}
+              {% else %}
+                Sin informacion
+              {% endif %} 
+            </td>
             <td>{% if  i.barcode %}
                 {{i.barcode}}
                 {% else %}
@@ -99,7 +106,8 @@
           {% endfor %}
         </table>
   <div class="text-center" style="margin-top: 30px;">
-    <button type="button" id='update_products' class="btn btn-secondary">Actualizar productos</button>
+    <button type="button" style="margin-right: 100px" id='update_products' class="btn btn-secondary">Actualizar productos</button>
+    <a href= 'export_products' id='export' class="btn btn-primary">Exportar</a>
   </div>
 </div>
 <script>
@@ -110,7 +118,7 @@
     pageLength:25,
     destroy:true,
     order: [[0, 'desc']],
-    columnDefs:[{className:'text-center', targets:[0,1,2,3,4,5,6,7,8,9]}],
+    columnDefs:[{className:'text-center', targets:[0,1,2,3,4,5,6,7,8,9,10]}],
     language: {
       "sProcessing": "Procesando...",
       "sLengthMenu": "Mostrar _MENU_ registros por página",
@@ -161,6 +169,10 @@ button.addEventListener("click", function() {
     confirmation();
 });
 
+window.addEventListener('beforeunload', function (event) {
+  
+  console.log('Se ha iniciado una descarga.');
+});
 
 function confirmation (){
     Swal.fire({

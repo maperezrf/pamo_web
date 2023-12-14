@@ -22,12 +22,12 @@ def create_orders(request):
             print(orders)
             print('creando ordenes')
             orders_created = shopi.create_orders()
-            title = 'Se ejecuto shopy satisfactoriamente',
-            message=f'ordenes generadas: {orders_created}'
+            print('Se ejecuto shopy satisfactoriamente')
+            print(f'ordenes generadas: {orders_created}')
             print(f'se generaron {orders_created} ordenes satisfactoria mente')
         else:
-            title = 'Se ejecuto shopy satisfactoriamente',
-            message='No se encontraron ordenes.'
+            print('Se ejecuto shopy satisfactoriamente')
+            print('No se encontraron ordenes.')
     # except Exception as e:
     #     print(e)
     #     title = 'ocurrio un error'

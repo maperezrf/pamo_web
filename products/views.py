@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from products.models import Products, SaveMargins
+from pamo_bots.models import ProductsSodimac
 from django.db.models import Q
 from pamo.queries import *
 from pamo.constants import COLUMNS_SHOPI
@@ -13,14 +14,20 @@ from pamo.conecctions_shopify import ConnectionsShopify
 import numpy as np
 from unidecode import unidecode
 from django.contrib.auth.decorators import login_required
-from pamo.functions import update_products_db
+from pamo.functions import update_products_db, create_file_products
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Font
+from datetime import datetime
+from pamo import settings
+import os
 
 cdf = CoreDf()
 
 @login_required
 def list_products(request):
-    products =  Products.objects.all()
-    context = {'products':products}
+    products_mg = create_file_products()
+    context = {'products':products_mg.to_dict( orient ='records')}
     return render(request, 'list_products.html', context)
 
 @login_required
@@ -104,15 +111,12 @@ def review_updates(request):
         data_file = cdf.get_df()
         skus = data_file['SKU'].values
         products = Products.objects.filter(sku__in=skus) 
-        # if ('Margen' in data_file.columns) | ('Costo' in data_file.columns) | ('Margen comparación' in data_file.columns):
         data = { 'sku' : products.values_list('sku', flat=True),
             'margen_db' : products.values_list('margen', flat=True),
             'costo_db' : products.values_list('costo', flat=True),
             'margen_comparacion_db' : products.values_list('margen_comparacion_db', flat=True),
             }
         df = pd.DataFrame(data)
-        # else:
-        #     df = pd.DataFrame()
         shopi = ConnectionsShopify()
         responses=[]
         for i in data_file['SKU'].values:
@@ -125,7 +129,6 @@ def review_updates(request):
         cdf.set_df_shopi(responses)
         cdf.merge(df)
         df_rev = cdf.get_df_mer()
-        # if len([i for i in df_rev.columns if '_db' in i]) == 3:
         df_rev['margen_db'] = df_rev['margen_db'].fillna('No entontrado') 
         df_rev['costo_db'] = df_rev['costo_db'].fillna('No entontrado')
         df_rev['margen_comparacion_db'] = df_rev['margen_comparacion_db'].fillna('No entontrado')
@@ -153,3 +156,36 @@ def update_products(request):
             not_update.append(variable['input']['variants'][0]['sku'])
         data = {'success': cont,'not_successful':not_update}
     return JsonResponse(data)
+
+def export_products(request):
+    current_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    df = create_file_products()
+    df.replace(0,"Sin información", inplace = True)
+    df.fillna("Sin información", inplace = True)
+    df = df[['id', 'title', 'tags', 'vendor', 'status', 'price', 'compareAtPrice', 'sku', 'barcode', 'inventoryQuantity', 'margen', 'costo', 'margen_comparacion_db', 'SKU']]
+    df.rename(columns = {'title':'titulo', 'vendor':'proveedor', 'status':'estado publicacion', 'price':'precio', 'compareAtPrice': 'precio comparación', 'barcode':'Codigo de barras', 'inventoryQuantity':'stock','SKU':'sodimac'}, inplace=True)
+    folder = settings.MEDIA_ROOT
+    file = f'products_{current_time}.xlsx'
+
+    file_path = os.path.join(folder, file)
+
+    column_names = list(df.columns)
+    wb =Workbook()
+    ws = wb.active
+    for index, col_name in enumerate(column_names, start=1):
+        cell = ws.cell(row=1, column=index)
+        cell.value = col_name
+        cell.font = Font(name='Calibri', size=12, color='000000')
+
+    for row in dataframe_to_rows(df, index=False, header=False):
+        ws.append(row)
+    
+    wb.save(file_path)
+
+
+    with open(file_path, 'rb') as excel_file:
+                response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = f'attachment; filename="{file}"'
+    os.remove(file_path)
+
+    return response

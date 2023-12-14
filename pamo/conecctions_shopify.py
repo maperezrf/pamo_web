@@ -35,12 +35,6 @@ class ConnectionsShopify():
                 self.orders.loc[self.orders['SKU']==i, 'variant_id'] = variant_id
             except:
                 print(f'No se encontro el SKU en shopify: {i}')
-                fecha_hora_actual = datetime.now()
-                error_log = fecha_hora_actual.strftime("%Y-%m-%d_%H-%M-%S_error.txt")
-                path_error_log = os.path.join('error_log', error_log)
-                with open(path_error_log, 'w') as archivo:
-                    archivo.write(str(f'No se encontro el SKU en shopify: {i}'))
-                    archivo.write('\n')
         return self.orders.loc[self.orders['variant_id'].notna()]
 
     def bucle_request(self, query, datatype):
