@@ -52,6 +52,7 @@ def update(request):
         response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
         cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
         list_products.append(response.json()['data']['products']['edges'])
+        print(response.json())
     data_list = []
     items_saved = SaveMargins.objects.all()
     ids_saved_list = [i.id  for i in  items_saved]
@@ -79,7 +80,7 @@ def update(request):
     Products.objects.all().delete()
     data_to_save = [Products(**elemento) for elemento in data_list]
     Products.objects.bulk_create(data_to_save)
-    data ={'data':'data'}
+    data = {'status': 'success', 'data':'data'}
     return JsonResponse(data)
 
 @login_required
@@ -189,3 +190,6 @@ def export_products(request):
     os.remove(file_path)
 
     return response
+
+def test_view(request):
+    return render(request, 'index.html', context={})

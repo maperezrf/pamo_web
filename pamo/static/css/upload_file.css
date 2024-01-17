@@ -1,9 +1,11 @@
 
 .card{
     margin-top: 50px;
-    background-color: #f8f9fa;
-    padding: 30px;
-}
+    background-color: white;
+    width: 98%;
+    margin: 0 auto;
+    padding: 50px;
+} 
 .card button{
     margin: 20px auto;
     display: block;
@@ -26,3 +28,11 @@
     width: 150px!important;
     margin: 20px!important;
 } 
+
+.file_upload{
+    border: solid;
+    border-width: 2px;
+    border-radius: 13px;
+    width: 50%;
+    height: auto;
+}

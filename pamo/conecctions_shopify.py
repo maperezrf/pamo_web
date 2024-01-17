@@ -5,7 +5,7 @@ import json
 from pamo.functions import make_json
 import os
 from datetime import datetime
-from pamo.queries import GET_VARIANT_ID
+from pamo.queries import GET_VARIANT_ID, GET_INVENTORY
 
 
 class ConnectionsShopify():
@@ -88,3 +88,16 @@ class ConnectionsShopify():
     
     def get_orders(self):
         return self.orders
+    
+    def get_inventory(self, df):
+        for i in range(10):#udf.shape[0]):
+            print(df.iloc[i].sku)
+            response =  self.request_graphql(GET_INVENTORY.format(sku = df.iloc[i].sku))
+            try:
+                inventory = response.json()['data']['products']['edges'][0]['node']['variants']['edges'][0]['node']['inventoryQuantity']
+                df.loc[i,'stock_shopyfi']= inventory
+                print(response.json())
+            except Exception as e:
+                print(f'No se encontro el SKU: {df.iloc[i].sku}')
+                df.loc[i,'stock_shopyfi']= 'El SKU no se encontró'
+        return df.loc[df['existencia'] != df['stock_shopyfi']]

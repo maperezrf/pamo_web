@@ -9,7 +9,7 @@ def sodimac_view(request):
 
 def create_orders(request):
     # try:
-        print('inciando...')
+        print('Buscando ordenes...')
         sodi = ConnectionsSodimac()
         if sodi.get_orders_api():
             print('Haciendo cruces de SKUS')
@@ -28,13 +28,17 @@ def create_orders(request):
         else:
             print('Se ejecuto shopy satisfactoriamente')
             print('No se encontraron ordenes.')
-    # except Exception as e:
-    #     print(e)
-    #     title = 'ocurrio un error'
-    #     fecha_hora_actual = datetime.now()
-    #     error_log = fecha_hora_actual.strftime("%Y-%m-%d_%H-%M-%S_error.txt")
-    #     path_error_log = os.path.join('error_log', error_log)
-    #     with open(path_error_log, 'w') as archivo:
-    #         archivo.write(str(e))
-    #         archivo.write('\n')
         return render(request, 'sodimac_view.html', context={})
+
+def set_inventario(request):
+    print('Comparando inventario....')
+    sodi = ConnectionsSodimac()
+    stock_sodimac = sodi.get_inventory()
+    shopi = ConnectionsShopify()
+    df = shopi.get_inventory(stock_sodimac)
+    request = sodi.set_inventory(df)
+    print(request)
+    
+
+
+     

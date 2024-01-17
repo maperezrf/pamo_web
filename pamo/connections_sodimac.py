@@ -41,3 +41,42 @@ class ConnectionsSodimac():
     
     def get_orders(self):
         return self.orders
+    
+    def get_inventory(self):
+        products = ProductsSodimac.objects.exclude(cod_barras='')
+        df_products = pd.DataFrame.from_records(products.values())
+        df_products.loc[df_products['Indicador'] == 'KIT', 'RF_pamo'] = df_products.loc[df_products['Indicador'] == 'KIT', 'SKU'] 
+        stock_list = []
+        for i in range(df_products.shape[0]):
+            if df_products.iloc[i].cod_barras != '':    
+                data = {
+                "proveedor" : REFERENCIA_FPRN,
+                "ean" : df_products.iloc[i].cod_barras[:12]
+                }
+                response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
+                try:
+                    dic = {}
+                    dic['codigo_barras'] = df_products.iloc[i].cod_barras
+                    dic['stock_sodimac'] = response[0]['EXISTENCIA']
+                    dic['sku'] = df_products.iloc[i].RF_pamo
+                    stock_list.append(dic)
+                except:
+                    pass    
+        return pd.DataFrame(stock_list)
+
+    def set_inventory(self, df):
+        data = self.get_data_set_inventory
+        return requests.post(URL_SODIMAC, headers = self.headers, json=data).json()
+
+    def get_data_set_inventory(self, df):
+        data_list = []
+        for i in range(df.shape[0]):
+            dic = {}
+            dic['proveedor'] = '63F3PR1N54527'
+            dic['ean'] = df.iloc[i].codigo_barras
+            dic['inventarioDispo'] = df.iloc[i].stock_sodimac
+            dic['stockMinimo'] = 0
+            dic['canal'] = "Bogota"
+            dic['usuario'] = "Bot"
+            data_list.append(dic)
+        return data_list
