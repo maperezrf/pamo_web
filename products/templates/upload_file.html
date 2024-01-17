@@ -1,9 +1,27 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
+
+{% block title %}
+Actualización de productos
+{% endblock %}
+
+{% block page_name %} 
+Productos
+{% endblock %}
+
+{% block subpage_name %} 
+Actualización de productos
+{% endblock %}
+
+{% block name_now %} 
+Actualización de productos
+{% endblock %}
+
 {% block content %}
 {% load static %}
 {% load utils %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}">
-<div class = 'container card'>
+<h1 class="container text-center space">Cargar un archivo</h1>
+<div class = 'card'>
     <!-- CARGAR ARCHIVO -->
     {% if form %}
         <form method="post" enctype="multipart/form-data">
@@ -11,7 +29,7 @@
             <div class="mb-3">
                 {{ form.file }}
             </div>
-            <button type="submit" class='btn btn-primary'>Cargar</button>
+            <button type="submit" class='btn btn-success'style="width: 10%">Cargar</button>
         </form>
     {% endif %}
     <!-- CARGAR ARCHIVO -->
@@ -39,6 +57,7 @@
                         <option value="Titulo">Titulo</option>
                     </select>
                     {% endfor %}
+
                     <div class = 'text-center'>
                         <a class='btn btn-warning btn-menu' href = '/products/upload'> Volver</a>
                         <input type="submit" class='btn btn-primary btn-menu' id = 'btn-start' value= "Continuar"></input>

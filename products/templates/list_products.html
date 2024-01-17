@@ -1,13 +1,30 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
+
+{% block title %}
+Productos
+{% endblock %}
+
+{% block page_name %} 
+Productos
+{% endblock %}
+
+{% block subpage_name %} 
+Listado
+{% endblock %}
+
+{% block name_now %} 
+Listado de productos
+{% endblock %}
+
 {% block content %}
 {% load static %}
 {% load utils %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'css/list_products.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}">
 <h1 class="container text-center space">Productos</h1>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/functions.js' %}"></script>
-<div class = "card table-responsive"> 
+<div class = "card"> 
       <table class="table table-striped" id="cotizaciones">
         <thead >
           <tr >  
@@ -135,10 +152,12 @@
       "oPaginate": {
         "sFirst": "Primero",
         "sLast": "Último",
-        "sNext": "Siguiente",
-        "sPrevious": "Anterior"
+        "sNext": ">>",
+        "sPrevious": "<<"
       },
     },
+    scrollX: true,  // Activa el desplazamiento horizontal
+    fixedHeader: true,  // Fija los encabezados mientras se desplaza
   }
 
   const initDataTable = async() => {

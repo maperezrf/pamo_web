@@ -1,12 +1,30 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
+
+{% block title %}
+Automatizaciones
+{% endblock %}
+
+{% block page_name %} 
+Automatizaciones
+{% endblock %}
+
+{% block subpage_name %} 
+Sodimac
+{% endblock %}
+
+{% block name_now %} 
+Automatizacion Sodimac
+{% endblock %}
+
+
 {% block content %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/bots.css' %}">
 <script src="{% static 'js/bots.js' %}"></script>
 <div class= 'card'>
     <div class = 'card-body text-center'>
-        <h3> Obtener ordenes SODIMAC </h3>
-        <a href = 'sodimac'  > <button class = 'btn btn-primary text-center'> Importar ordenes </button></a>
+        <h3> Automatización Sodimac </h3>
+        <a href = 'sodimac'  > <button class = 'btn btn-success text-center'> Importar ordenes </button></a>
     </div>
 </div>
 

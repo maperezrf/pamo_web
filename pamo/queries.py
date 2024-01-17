@@ -187,3 +187,25 @@ products(first: 1, query: "sku:{skus}") {{
 }}
 }}
 """
+
+GET_INVENTORY = """
+{{
+products(first: 1, query: "sku:{sku}") {{
+    edges {{
+    node {{
+        id
+        variants(first: 1) {{
+        edges {{
+            node {{
+            sku
+            inventoryQuantity
+            }}
+        }}
+        }}
+    }}
+    }}
+}}
+}}
+
+
+"""
