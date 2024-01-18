@@ -120,9 +120,12 @@ def review_updates(request):
         df = pd.DataFrame(data)
         shopi = ConnectionsShopify()
         responses=[]
+        cont = 0
         for i in data_file['SKU'].values:
             query = GET_PRODUCT.format(skus=f'sku:{i}')
             response = shopi.request_graphql(query)
+            cont += 1
+            print(cont)
             try:
                 responses.append(response.json()['data']['products']['edges'][0])
             except Exception as error:
@@ -139,23 +142,27 @@ def review_updates(request):
 
 @login_required
 def update_products(request):
-    df_rev = cdf.get_df_mer()
-    df =  update_products_db(df_rev)
-    cdf.set_costo(df)
-    shopi = ConnectionsShopify()
-    variables = cdf.set_variables()
-    cont = 0
-    not_update = []
-    for variable in variables:
-        try:
-            res = shopi.request_graphql(UPTADE_PRODUCT, variable)
-            if len(res.json()['data']['productUpdate']['userErrors']) == 0 :
-                cont +=1
-            else:
+    try:
+        df_rev = cdf.get_df_mer()
+        df =  update_products_db(df_rev)
+        cdf.set_costo(df)
+        shopi = ConnectionsShopify()
+        variables = cdf.set_variables()
+        cont = 0
+        not_update = []
+        for variable in variables:
+            try:
+                res = shopi.request_graphql(UPTADE_PRODUCT, variable)
+                if len(res.json()['data']['productUpdate']['userErrors']) == 0 :
+                    cont +=1
+                else:
+                    not_update.append(variable['input']['variants'][0]['sku'])
+            except:
                 not_update.append(variable['input']['variants'][0]['sku'])
-        except:
-            not_update.append(variable['input']['variants'][0]['sku'])
-        data = {'success': cont,'not_successful':not_update}
+            data = {'success': True, 'element_success': cont,'not_successful':not_update}
+    except Exception as e:
+        data =  {'success': False}
+        print(e)
     return JsonResponse(data)
 
 def export_products(request):
