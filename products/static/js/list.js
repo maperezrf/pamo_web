@@ -20,11 +20,21 @@ function confirmation (){
         success: function(response) {
             console.log(response['not_successful'])
             Swal.close()
-            Swal.fire({
+            if (response.success){
+              text_success = "<div> <label>Registros Modificados satisfactoriamente: " + response['element_success']
+              text_successfull = (response['not_successful'].length === 0 ) ? "" : "</label> <label>SKUS no modificados: " +  response['not_successful'].join(', ') + " </label> </div>"
+              Swal.fire({
                 title: "Informe proceso",
-                html: "<div> <label>Registros Modificados satisfactoriamente: " + response['success'] + " </label> <label>SKUS no modificados: " +  response['not_successful'] + " </label> </div>",
+                html: text_success + text_successfull,
                 icon: "success"
               });
+            }
+            else{
+              Swal.fire({
+                icon: "error",
+                title: "¡Ocurrio un error al tratar de actualizar los datos!",
+              });
+            }
         }
         })
     } else if (result.isDenied) {
