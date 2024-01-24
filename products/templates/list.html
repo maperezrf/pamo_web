@@ -36,8 +36,9 @@ Comprobación de datos
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Precio Comparación</th>
                 <th colspan="2" scope="col" class = 'h5 text-center'>Codigo de barras</th>
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Stock</th>
+                <th colspan="2" scope="col" class = 'h5 text-center '>Estado Publicación</th>
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Margen</th>
-                <th colspan="2" scope="col" class = 'h5 text-center column-1'>Costo</th>
+                <th colspan="2" scope="col" class = 'h5 text-center '>Costo</th>
                 <th colspan="2" scope="col" class = 'h5 text-center column-1'>Maren comparación</th>
               </tr>
             </thead>
@@ -50,18 +51,20 @@ Comprobación de datos
                 <th scope="col" class = 'text-center'>Shopify</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Shopify</th>
-                <th scope="col" class = 'text-center'>Archivo</th>
-                <th scope="col" class = 'text-center'>Shopify</th>
+                <th scope="col" class = 'text-center '>Archivo</th>
+                <th scope="col" class = 'text-center '>Shopify</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Shopify</th>
-                <th scope="col" class = 'text-center'>Archivo</th>
-                <th scope="col" class = 'text-center'>Shopify</th> 
+                <th scope="col" class = 'text-center '>Archivo</th>
+                <th scope="col" class = 'text-center '>Shopify</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
-                <th scope="col" class = 'text-center column-1'>Shopify</th>
+                <th scope="col" class = 'text-center column-1'>Shopify</th> 
+                <th scope="col" class = 'text-center '>Archivo</th>
+                <th scope="col" class = 'text-center '>Shopify</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Base</th>
-                <th scope="col" class = 'text-center column-1'>Archivo</th>
-                <th scope="col" class = 'text-center column-1'>Base</th>
+                <th scope="col" class = 'text-center '>Archivo</th>
+                <th scope="col" class = 'text-center '>Base</th>
                 <th scope="col" class = 'text-center column-1'>Archivo</th>
                 <th scope="col" class = 'text-center column-1'>Base</th>
               </tr>
@@ -71,10 +74,13 @@ Comprobación de datos
                     {% if i.id_shopi != 'nan' %}
                     <td class= 'column-1' id = '{{i.titulo}}'><div class = 'celda text-center'>{% if i.titulo %}{{i.titulo}} {% else %} Sin información {% endif %}</div></td>
                     <td class= 'column-1' id = '{{i.title_shopi}}'><div class = 'celda text-center'>{{i.title_shopi}}</div></td>
+                   
                     <td id = '{{i.tags}}'><div class = 'celda text-center'>{% if i.tags %}{{i.tags}}{% else %} Sin información {% endif %}</div></td>
                     <td id = '{{i.tags_shopi}}'><div class = 'celda text-center'>{{i.tags_shopi}}</div></td>
+                   
                     <td class= 'column-1' id = '{{i.proveedor}}'><div class = 'celda text-center'>{% if i.proveedor %}{{i.proveedor}}{% else %} Sin información {% endif %}</div></td>
                     <td class= 'column-1' id = '{{i.vendor_shopi}}'><div class = 'celda text-center'>{{i.vendor_shopi}}</div></td>
+                   
                     <td id = '{{i.precio}}'><div class = 'celda text-center'>{% if i.precio %}{{i.precio|format_number}}{% else %} Sin información {% endif %}</div></td>
                     <td id = '{{i.price_shopi}}'><div class = 'celda text-center'>{{i.price_shopi|format_number}}</div></td>
 
@@ -87,14 +93,17 @@ Comprobación de datos
                     <td class= 'column-1' id = '{{i.stock}}'><div class = 'celda text-center'>{% if i.stock %}{{i.stock}}{% else %} Sin información {% endif %}</div></td>
                     <td class= 'column-1' id = '{{i.inventoryquantity_shopi}}'><div class = 'celda text-center'>{{i.inventoryquantity_shopi}}</div></td>
 
-                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>{% if i.margen %} {{i.margen|format_percent}} {% else %} Sin información{% endif %}  </div></td>
-                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'> {% if margen_db %}  {{i.margen_db|format_percent}}  {% elif i.margen_db == 'No entontrado' %} <label class = 'h5 text-center' >SKU no encontrado en BD </label>{% else %} {{i.margen_db|format_percent}} {% endif %}      </div></td>
-                    
-                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{{i.costo|format_number}}</div></td>
-                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.costo_db %} {{i.costo_db|format_number}} {% else %} Sin información{% endif %}  </div></td>
+                    <td id = '{{i.estado_publicacion}}'><div class = 'celda text-center'>{% if i.estado_publicacion %}  {% if i.estado_publicacion == "1"  %} ACTIVE {% else %} DRAFT {% endif %}  {% else %} Sin información {% endif %}</div></td>
+                    <td id = '{{i.status}}'><div class = 'celda text-center'>{% if i.status %}   {{i.status}} {% else %} Sin información {% endif %}</div></td>
 
-                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.margen_comparacion %} {{i.margen_comparacion|format_percent}} {% else %} Sin información{% endif %}</div></td>
-                    <td class= 'column-1' id = '{{i.costo}}'><div class = 'celda text-center'>{% if i.margen_comparacion_db %} {{i.margen_comparacion_db|format_percent}} {% else %} Sin información{% endif %}  </div></td>
+                    <td class= 'column-1' id = '{{i.margen}}'><div class = 'celda text-center'>{% if i.margen %}{{i.margen|format_percent}} {% else %} Sin información{% endif %}  </div></td>
+                    <td class= 'column-1' id = '{{i.margen_db}}'><div class = 'celda text-center'> {% if margen_db %}  {{i.margen_db|format_percent}}  {% elif i.margen_db == 'No entontrado' %} <label class = 'h5 text-center' >SKU no encontrado en BD </label>{% else %} {{i.margen_db|format_percent}} {% endif %}      </div></td>
+
+                    <td id = '{{i.costo}}'><div class = 'celda text-center'> {{i.costo|format_number}}</div></td>
+                    <td id = '{{i.costo_db}}'><div class = 'celda text-center'>{% if i.costo_db %} {{i.costo_db|format_number}} {% else %} Sin información{% endif %}  </div></td>
+
+                    <td class= 'column-1' id = '{{i.margen_comparacion}}'><div class = 'celda text-center'>{% if i.margen_comparacion %} {{i.margen_comparacion|format_percent}} {% else %} Sin información{% endif %}</div></td>
+                    <td class= 'column-1' id = '{{i.margen_comparacion_db}}'><div class = 'celda text-center'>{% if i.margen_comparacion_db %} {{i.margen_comparacion_db|format_percent}} {% else %} Sin información{% endif %}  </div></td>
                   </tr>
                   {% else %}
                   <th colspan="2" scope="col" class = 'h5 text-center column-1'>Elemento no encontrado</th>
