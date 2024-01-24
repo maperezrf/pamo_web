@@ -1,0 +1,38 @@
+
+.card{
+    margin-top: 50px;
+    background-color: white;
+    width: 98%;
+    margin: 0 auto;
+    padding: 50px;
+} 
+.card button{
+    margin: 20px auto;
+    display: block;
+    width: 85px;
+}
+.card input{
+    width: 500px;
+    margin: 0 auto;
+}
+
+.select_columns {
+    padding: 0 90px;
+}
+
+.select_columns  select{ 
+    margin: 10px 0;
+}
+
+.btn-menu{
+    width: 150px!important;
+    margin: 20px!important;
+} 
+
+.file_upload{
+    border: solid;
+    border-width: 2px;
+    border-radius: 13px;
+    width: 50%;
+    height: auto;
+}

@@ -92,6 +92,7 @@ query {{
         	tags
           title
           vendor
+          status
           variants(first: 1) {{
             edges {{
               node {{

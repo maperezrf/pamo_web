@@ -42,6 +42,7 @@ class CoreDf():
                     'vendor_shopi': [i['node']['vendor'] for i in responses],
                     'price_shopi': [i['node']['variants']['edges'][0]['node']['price'] for i in responses],
                     'sku_shopi': [i['node']['variants']['edges'][0]['node']['sku'] for i in responses],
+                    'status': [i['node']['status'] for i in responses],
                     'barcode_shopi': [i['node']['variants']['edges'][0]['node']['barcode'] for i in responses],
                     'compareAtPrice_shopi': [i['node']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
                     'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses]}
@@ -77,7 +78,11 @@ class CoreDf():
             except:
                 pass
             try:
-                var['input']['vendor'] = self.df_rev.loc[i]['proveedor']
+                var['input']['vendor'] = self.df_rev.loc[i]['proveedor'] 
+            except:
+                pass
+            try:
+                var['input']['status'] = 'ACTIVE' if self.df_rev.loc[i]['estado_publicacion'] == '1' else 'DRAFT'
             except:
                 pass
             try:
