@@ -96,11 +96,22 @@ query {{
           variants(first: 1) {{
             edges {{
               node {{
+                id
                 price
                 compareAtPrice
                 sku
                 barcode
                 inventoryQuantity
+                inventoryItem {{
+                  id
+                  inventoryLevels(first: 1) {{
+                    edges {{
+                      node {{
+                        id
+                      }}
+                    }}
+                  }}
+                }}
             }}
           }}
         }}
@@ -159,16 +170,43 @@ GET_PRODUCTS ="""
   }}
 }}"""
 
+UPDATE_QUERY = """mutation UpdateProductAndVariantAndAdjustInventory(
+  {productInput}
+  {variantInput}
+  {inventoryAdjustInput}
+  ){{
+  {productUpdateq}
+  {productVariantUpdateq}
+  {inventoryAdjustQuantity}
+}}"""
+
 UPTADE_PRODUCT = """
-   mutation UpdateProduct($input: ProductInput!) {
-    productUpdate(input: $input) {
-      userErrors {
-        field
-        message
-      }
+  productUpdate(input: $productInput) {
+    userErrors {
+      field
+      message
     }
   }
 """
+
+PRODUCT_VARIANT_UPDATE = """
+  productVariantUpdate(input: $variantInput) {
+    userErrors {
+      field
+      message
+    }
+  }
+"""
+
+INVENTORY_ADJUST ="""
+  inventoryAdjustQuantity(input: $inventoryAdjustInput) {
+  inventoryLevel {
+    available
+    }
+  }
+"""
+
+
 
 GET_VARIANT_ID = """{{
 products(first: 1, query: "sku:{skus}") {{

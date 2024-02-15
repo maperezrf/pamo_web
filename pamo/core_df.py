@@ -45,7 +45,11 @@ class CoreDf():
                     'status': [i['node']['status'] for i in responses],
                     'barcode_shopi': [i['node']['variants']['edges'][0]['node']['barcode'] for i in responses],
                     'compareAtPrice_shopi': [i['node']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
-                    'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses]}
+                    'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses],
+                    'id_product_variant': [i['node']['variants']['edges'][0]['node']['id'] for i in responses],
+                    'id_inventory_item': [i['node']['variants']['edges'][0]['node']['inventoryItem']['id'] for i in responses],
+                    'id_inventory_level':[i['node']['variants']['edges'][0]['node']['inventoryItem']['inventoryLevels']['edges'][0]['node']['id'] for i in responses]
+                    }
         self.df_shopi = pd.DataFrame.from_dict(data_shopi)
 
     def merge(self, df = None):
@@ -64,25 +68,28 @@ class CoreDf():
         return self.df_rev
     
     def set_costo(self, df):
-        self.df_rev['precio'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_db']))
-        self.df_rev['precio_comparacion'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_comparacion_db']))
+        if "precio" not in self.df_rev.columns:
+            self.df_rev['precio'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_db']))
+        if "precio_comparacion" not in self.df_rev.columns:
+            self.df_rev['precio_comparacion'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_comparacion_db']))
     
     def set_variables(self):
         variables = []
         self.df_rev = self.df_rev.loc[self.df_rev['id_shopi'] != 'nan'].reset_index(drop=True)
         for i in range(self.df_rev.shape[0]):
-            variants = {'sku':self.df_rev.loc[i]['sku']}
-            var = {'input':{'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}}
+            variants = {'id':self.df_rev.loc[i]['id_product_variant']}
+            product = {'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}
+            inventory = {'inventoryLevelId':self.df_rev.loc[i]['id_inventory_level']}
             try:
-                var['input']['title'] = self.df_rev.loc[i]['titulo']
+                product['title'] = self.df_rev.loc[i]['titulo']
             except:
                 pass
             try:
-                var['input']['vendor'] = self.df_rev.loc[i]['proveedor'] 
+                product['vendor'] = self.df_rev.loc[i]['proveedor'] 
             except:
                 pass
             try:
-                var['input']['status'] = 'ACTIVE' if self.df_rev.loc[i]['estado_publicacion'] == '1' else 'DRAFT'
+                product['status'] = 'ACTIVE' if self.df_rev.loc[i]['estado_publicacion'] == '1' else 'DRAFT'
             except:
                 pass
             try:
@@ -90,7 +97,7 @@ class CoreDf():
                 tags_shopi = self.df_rev.loc[i]['tags_shopi'].strip(',').split(',')
                 tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
                 tags_shopi.extend(tags_new)
-                var['input']['tags'] = tags_shopi
+                product['tags'] = tags_shopi
             except:
                 pass
             try:
@@ -110,10 +117,16 @@ class CoreDf():
             except:
                 pass
             try:
-                variants["inventoryQuantities"]={"availableQuantity": int(self.df_rev.loc[i]['stock']),"locationId": "gid://shopify/Location/67083862182"}
+                inventory["availableDelta"] = int(self.df_rev.loc[i]['stock']) - int(self.df_rev.loc[i]['inventoryquantity_shopi'])
             except:
                 pass
-            
-            var['input']['variants']=[variants]
+
+            var ={}
+            if any([True for i in ['title','vendor','status','tags'] if i in product]):
+                var['productInput'] = product
+            if any([True for i in ['barcode','compareAtPrice','price','inventoryItem'] if i in variants ]):
+                var['variantInput'] = variants
+            if 'availableDelta' in inventory:
+                var['inventoryAdjustInput'] = inventory
             variables.append(var)
         return variables

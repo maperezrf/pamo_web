@@ -152,8 +152,26 @@ def update_products(request):
         not_update = []
         for variable in variables:
             try:
-                res = shopi.request_graphql(UPTADE_PRODUCT, variable)
-                if len(res.json()['data']['productUpdate']['userErrors']) == 0 :
+                product_var = product_hql = variant_var = variant_hql = inventory_var = inventory_hql = ''
+                if "productInput" in variable :
+                    product_var = "$productInput: ProductInput!,"
+                    product_hql = UPTADE_PRODUCT
+                if "variantInput" in variable:
+                    variant_var = '$variantInput: ProductVariantInput!,'
+                    variant_hql = PRODUCT_VARIANT_UPDATE
+                if "inventoryAdjustInput" in variable:
+                    inventory_var = '$inventoryAdjustInput: InventoryAdjustQuantityInput!,'
+                    inventory_hql = INVENTORY_ADJUST
+                query = UPDATE_QUERY.format(productInput = product_var, variantInput = variant_var, inventoryAdjustInput = inventory_var, productUpdateq = product_hql, productVariantUpdateq = variant_hql, inventoryAdjustQuantity = inventory_hql)
+                res = shopi.request_graphql(query, variable)
+                check = []
+                for i in ['productUpdate', 'productVariantUpdate']:
+                    if (i in res.json()['data']):
+                        if len(res.json()['data'][i]['userErrors']) == 0:
+                           check.append(True)
+                        else:
+                            check.append(True)
+                if all(check):
                     cont +=1
                 else:
                     not_update.append(variable['input']['variants'][0]['sku'])
