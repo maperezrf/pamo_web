@@ -10,7 +10,7 @@ from pamo.functions import make_json
 import random
 import re
 
-@login_required
+
 def list(request):
     last_element = Quote.objects.latest('id')
     end_cursor = last_element.cursor

@@ -17,7 +17,6 @@ from pamo.constants import *
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_URL =  "https://pamoweb-production.up.railway.app" 
-print(f'link {BASE_URL}')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -26,7 +25,7 @@ print(f'link {BASE_URL}')
 SECRET_KEY = SECRET_KEY_DJANGO
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DEBUG_VAR
+DEBUG = False
 
 ALLOWED_HOSTS = ['https://pamoweb-production.up.railway.app/','127.0.0.1','localhost','pamoweb-production.up.railway.app']
 CSRF_TRUSTED_ORIGINS = ['https://*.pamoweb-production.up.railway.app/','https://*.127.0.0.1','http://*.pamoweb-production.up.railway.app/']
@@ -125,6 +124,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'pamo/log.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
@@ -141,14 +159,14 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'pamo', 'static'), os.path.join(BASE_DIR, 'products', 'static')]
 
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "pamo/media")
-MEDIA_URL = "/media/"
+MEDIA_URL = "media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
