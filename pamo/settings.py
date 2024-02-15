@@ -25,7 +25,7 @@ BASE_URL =  "https://pamoweb-production.up.railway.app"
 SECRET_KEY = SECRET_KEY_DJANGO
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = DEBUG_VAR
 
 ALLOWED_HOSTS = ['https://pamoweb-production.up.railway.app/','127.0.0.1','localhost','pamoweb-production.up.railway.app']
 CSRF_TRUSTED_ORIGINS = ['https://*.pamoweb-production.up.railway.app/','https://*.127.0.0.1','http://*.pamoweb-production.up.railway.app/']
