@@ -52,7 +52,7 @@ GET_DRAFT_ORDER = """
           }}
         }}
         invoiceUrl
-        lineItems(first: 20) {{
+        lineItems(first: 250) {{
           edges {{
             node {{
               title
@@ -82,43 +82,6 @@ GET_DRAFT_ORDER = """
   }}
 }}
 """
-
-GET_PRODUCT= """
-query {{
-   products(first: 1, query: "{skus}") {{
-      edges {{
-        node {{
-          id
-        	tags
-          title
-          vendor
-          status
-          variants(first: 1) {{
-            edges {{
-              node {{
-                id
-                price
-                compareAtPrice
-                sku
-                barcode
-                inventoryQuantity
-                inventoryItem {{
-                  id
-                  inventoryLevels(first: 1) {{
-                    edges {{
-                      node {{
-                        id
-                      }}
-                    }}
-                  }}
-                }}
-            }}
-          }}
-        }}
-      }}
-    }}
-  }}
-}} """
 
 GET_DRAFT_ORDER_UPDATE = """
 {{
@@ -154,7 +117,7 @@ GET_PRODUCTS ="""
           title
           vendor
           status
-          variants(first: 1) {{
+          variants(first: 250) {{
             edges {{
               node {{
                 price
@@ -206,8 +169,6 @@ INVENTORY_ADJUST ="""
   }
 """
 
-
-
 GET_VARIANT_ID = """{{
 products(first: 1, query: "sku:{skus}") {{
     edges {{
@@ -245,6 +206,46 @@ products(first: 1, query: "sku:{sku}") {{
     }}
 }}
 }}
-
-
 """
+
+
+
+GET_VARIANT = """
+{{
+  productVariants(first: 250, query: "{skus}") {{
+    edges {{
+      node {{
+        id
+        price
+        compareAtPrice
+        sku
+        barcode
+        inventoryQuantity
+        inventoryItem {{
+          id
+          inventoryLevels(first: 1) {{
+            edges {{
+              node {{
+                id
+              }}
+            }}
+          }}
+        }}
+        }} 
+      }}
+    }}
+}}
+"""
+
+GET_PRODUCT= """
+query {{
+   product(id : "gid://shopify/Product/{id}") {{
+          id
+        	tags
+          title
+          vendor
+          status
+          published: publishedInContext(context: {{country: CO}})
+  }}
+}}
+  """

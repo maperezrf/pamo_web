@@ -14,7 +14,7 @@ def update_products_db(df):
     for i in range(df.shape[0]):
         sku_to_search = df.loc[i,'id_shopi']
         if  sku_to_search != 'nan':
-            element = Products.objects.get(id = df.loc[i,'id_shopi'])
+            element = Products.objects.get(idShopi = df.loc[i,'id_shopi'], sku =  df.loc[i,'sku_shopi'])
             element.margen = df.loc[i,'margen'] if 'margen' in df.columns else float(element.margen)
             element.costo = df.loc[i,'costo'] if 'costo' in df.columns else float(element.costo)
             element.margen_comparacion_db = df.loc[i,'margen_comparacion'] if 'margen_comparacion' in df.columns else element.margen_comparacion_db

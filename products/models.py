@@ -1,7 +1,7 @@
 from django.db import models
 
 class Products(models.Model):
-
+    idShopi = models.CharField(max_length=20, null=False, blank=False, default = '') 
     title = models.CharField(max_length=300, null=True, blank=True)
     tags = models.CharField(max_length=500, null=True, blank=True)
     vendor = models.CharField(max_length=100, null=True, blank=True)

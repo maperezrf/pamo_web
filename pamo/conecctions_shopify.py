@@ -2,7 +2,7 @@ from pamo.constants import *
 import requests
 import pandas as pd
 import json
-from pamo.functions import make_json
+# from pamo.functions import make_json
 import os
 from datetime import datetime
 from pamo.queries import GET_VARIANT_ID, GET_INVENTORY

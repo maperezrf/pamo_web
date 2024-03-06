@@ -36,19 +36,19 @@ class CoreDf():
         return self.df
     
     def set_df_shopi(self, responses):
-        data_shopi ={'id_shopi': [i['node']['id'].replace('gid://shopify/Product/', '') for i in responses],
-                    'title_shopi': [i['node']['title'] for i in responses],
-                    'tags_shopi': [i['node']['tags'] for i in responses],
-                    'vendor_shopi': [i['node']['vendor'] for i in responses],
-                    'price_shopi': [i['node']['variants']['edges'][0]['node']['price'] for i in responses],
-                    'sku_shopi': [i['node']['variants']['edges'][0]['node']['sku'] for i in responses],
-                    'status': [i['node']['status'] for i in responses],
-                    'barcode_shopi': [i['node']['variants']['edges'][0]['node']['barcode'] for i in responses],
-                    'compareAtPrice_shopi': [i['node']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
-                    'inventoryQuantity_shopi': [i['node']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses],
-                    'id_product_variant': [i['node']['variants']['edges'][0]['node']['id'] for i in responses],
-                    'id_inventory_item': [i['node']['variants']['edges'][0]['node']['inventoryItem']['id'] for i in responses],
-                    'id_inventory_level':[i['node']['variants']['edges'][0]['node']['inventoryItem']['inventoryLevels']['edges'][0]['node']['id'] for i in responses]
+        data_shopi ={'id_shopi': [i['data']['product']['id'].replace('gid://shopify/Product/', '') for i in responses],
+                    'title_shopi': [i['data']['product']['title'] for i in responses],
+                    'tags_shopi': [i['data']['product']['tags'] for i in responses],
+                    'vendor_shopi': [i['data']['product']['vendor'] for i in responses],
+                    'price_shopi': [i['data']['product']['variants']['edges'][0]['node']['price'] for i in responses],
+                    'sku_shopi': [i['data']['product']['variants']['edges'][0]['node']['sku'] for i in responses],
+                    'status': [i['data']['product']['status'] for i in responses],
+                    'barcode_shopi': [i['data']['product']['variants']['edges'][0]['node']['barcode'] for i in responses],
+                    'compareAtPrice_shopi': [i['data']['product']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
+                    'inventoryQuantity_shopi': [i['data']['product']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses],
+                    'id_product_variant': [i['data']['product']['variants']['edges'][0]['node']['id'] for i in responses],
+                    'id_inventory_item': [i['data']['product']['variants']['edges'][0]['node']['inventoryItem']['id'] for i in responses],
+                    'id_inventory_level':[i['data']['product']['variants']['edges'][0]['node']['inventoryItem']['inventoryLevels']['edges'][0]['node']['id'] for i in responses]
                     }
         self.df_shopi = pd.DataFrame.from_dict(data_shopi)
 
@@ -63,6 +63,9 @@ class CoreDf():
         self.df_rev.columns = [unidecode(i).replace(' ','_').lower() for i in self.df_rev]
         if not df.empty:
             self.df_rev = self.df_rev.merge(df, how = 'left', on='sku')
+            self.df_rev.drop_duplicates(subset=['sku_shopi','id_product_variant','tags_shopi','title_shopi'], inplace=True)
+            self.df_rev.loc[self.df_rev.duplicated('sku_shopi', keep=False), 'duplicate'] = True 
+            self.df_rev.sort_values(['sku_shopi','duplicate']).reset_index(inplace = True, drop=True)
 
     def get_df_mer(self):
         return self.df_rev
@@ -78,6 +81,7 @@ class CoreDf():
         self.df_rev = self.df_rev.loc[self.df_rev['id_shopi'] != 'nan'].reset_index(drop=True)
         for i in range(self.df_rev.shape[0]):
             variants = {'id':self.df_rev.loc[i]['id_product_variant']}
+            variants['sku'] = self.df_rev.loc[i]['sku_shopi']
             product = {'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}
             inventory = {'inventoryLevelId':self.df_rev.loc[i]['id_inventory_level']}
             try:

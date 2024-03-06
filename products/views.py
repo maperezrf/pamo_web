@@ -20,7 +20,9 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font
 from datetime import datetime
 from pamo import settings
+from functools import reduce
 import os
+pd.options.display.max_columns= 500
 
 cdf = CoreDf()
 
@@ -32,55 +34,62 @@ def list_products(request):
 
 @login_required
 def update(request):
-    obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0))
-    data_list = []
-    for i in obj_to_save:
-        dic = {}
-        dic['id'] = i.id
-        dic['margen'] = float(i.margen)
-        dic['costo'] = float(i.costo)
-        data_list.append(dic)
-    data_to_save = [SaveMargins(**elemento) for elemento in data_list]
-    SaveMargins.objects.bulk_create(data_to_save)
-    shopi = ConnectionsShopify()
-    list_products = []
-    response =shopi.request_graphql(GET_PRODUCTS.format(cursor=''))
-    list_products.append(response.json()['data']['products']['edges'])
-    cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
-    while response.json()['data']['products']['pageInfo']['hasNextPage']:
-        time.sleep(20)
-        response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
-        cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
-        list_products.append(response.json()['data']['products']['edges'])
-        print(response.json())
-    data_list = []
-    items_saved = SaveMargins.objects.all()
-    ids_saved_list = [i.id  for i in  items_saved]
-    margen_saved = {i.id: float(i.margen) for i in  items_saved}
-    costo_saved = {i.id: float(i.costo) for i in  items_saved}
-    for i in list_products:
-        for k in i:
-            dic = {}    
-            dic['id'] = k['node']['id'].replace('gid://shopify/Product/',"")
-            dic['tags'] = ', '.join(k['node']['tags']) if len(k['node']['tags']) > 0 else None
-            dic['title'] = k['node']['title']
-            dic['vendor'] = k['node']['vendor']
-            dic['status'] = k['node']['status']
-            dic['price'] =float(k['node']['variants']['edges'][0]['node']['price']) if k['node']['variants']['edges'][0]['node']['price'] !=None else 0.0 
-            dic['compareAtPrice'] =float(k['node']['variants']['edges'][0]['node']['compareAtPrice']) if k['node']['variants']['edges'][0]['node']['compareAtPrice'] !=None else 0.0 
-            dic['sku'] = k['node']['variants']['edges'][0]['node']['sku']
-            dic['barcode'] = k['node']['variants']['edges'][0]['node']['barcode']
-            dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][0]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0.0
-            if int(dic['id']) in ids_saved_list:
-                dic['margen'] = margen_saved[float(dic['id'])]
-                dic['costo'] = costo_saved[float(dic['id'])]
+    try:
+        obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0))
+        data_list = []
+        for i in obj_to_save:
+            dic = {}
+            dic['id'] = i.id
+            dic['margen'] = float(i.margen)
+            dic['costo'] = float(i.costo)
             data_list.append(dic)
-    dic['cursor'] = cursor_new
-    items_saved.delete()
-    Products.objects.all().delete()
-    data_to_save = [Products(**elemento) for elemento in data_list]
-    Products.objects.bulk_create(data_to_save)
-    data = {'status': 'success', 'data':'data'}
+        data_to_save = [SaveMargins(**elemento) for elemento in data_list]
+        SaveMargins.objects.bulk_create(data_to_save)
+        shopi = ConnectionsShopify()
+        list_products = []
+        response =shopi.request_graphql(GET_PRODUCTS.format(cursor=''))
+        list_products.append(response.json()['data']['products']['edges'])
+        cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
+        while response.json()['data']['products']['pageInfo']['hasNextPage']:
+            time.sleep(20)
+            response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
+            cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
+            list_products.append(response.json()['data']['products']['edges'])
+            print(len(list_products))
+        data_list = []
+        items_saved = SaveMargins.objects.all()
+        ids_saved_list = [i.id  for i in  items_saved]
+        margen_saved = {i.id: float(i.margen) for i in  items_saved}
+        costo_saved = {i.id: float(i.costo) for i in  items_saved}
+        for i in list_products:
+            for k in i:
+                variants_cont = 1 
+                while len(k['node']['variants']['edges']) >= variants_cont:
+                    dic = {}
+                    dic['idShopi'] = k['node']['id'].replace('gid://shopify/Product/',"")
+                    dic['tags'] = ', '.join(k['node']['tags']) if len(k['node']['tags']) > 0 else None
+                    dic['title'] = k['node']['title']
+                    dic['vendor'] = k['node']['vendor']
+                    dic['status'] = k['node']['status']
+                    dic['price'] =float(k['node']['variants']['edges'][variants_cont - 1]['node']['price']) if k['node']['variants']['edges'][0]['node']['price'] !=None else 0.0 
+                    dic['compareAtPrice'] =float(k['node']['variants']['edges'][variants_cont - 1]['node']['compareAtPrice']) if k['node']['variants']['edges'][0]['node']['compareAtPrice'] !=None else 0.0 
+                    dic['sku'] = k['node']['variants']['edges'][variants_cont - 1]['node']['sku']
+                    dic['barcode'] = k['node']['variants']['edges'][variants_cont - 1]['node']['barcode']
+                    dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][variants_cont - 1]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0.0
+                    variants_cont += 1
+                    if int(dic['idShopi']) in ids_saved_list:
+                        dic['margen'] = margen_saved[float(dic['idShopi'])]
+                        dic['costo'] = costo_saved[float(dic['idShopi'])]
+                    data_list.append(dic)
+        dic['cursor'] = cursor_new
+        items_saved.delete()
+        Products.objects.all().delete()
+        data_to_save = [Products(**elemento) for elemento in data_list]
+        Products.objects.bulk_create(data_to_save)
+        data = {'status': 'success'}
+    except:
+        if items_saved:
+            items_saved.delete()
     return JsonResponse(data)
 
 @login_required
@@ -110,32 +119,40 @@ def review_updates(request):
         data = request.POST.dict()
         cdf.rename_columns(data)
         data_file = cdf.get_df()
-        skus = data_file['SKU'].values
-        products = Products.objects.filter(sku__in=skus) 
-        data = { 'sku' : products.values_list('sku', flat=True),
+        products = []
+        query_products = reduce(lambda q1, q2: q1 | q2,[Q(sku=sku_v) for sku_v in data_file['SKU'].values ])
+        products = Products.objects.filter(query_products) 
+        data = { 
+            'idShopi' : products.values_list('idShopi', flat=True),
+            'sku' : products.values_list('sku', flat=True),
             'margen_db' : products.values_list('margen', flat=True),
             'costo_db' : products.values_list('costo', flat=True),
             'margen_comparacion_db' : products.values_list('margen_comparacion_db', flat=True),
             }
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(data).reset_index(drop=True)
         shopi = ConnectionsShopify()
         responses=[]
         cont = 0
-        for i in data_file['SKU'].values:
-            query = GET_PRODUCT.format(skus=f'sku:{i}')
-            response = shopi.request_graphql(query)
+        for i in range(df.shape[0]):
+            query_product = GET_PRODUCT.format(id=df['idShopi'][i])
+            response_product = shopi.request_graphql(query_product).json()
+            query_variant = GET_VARIANT.format(skus=f"sku:{df['sku'][i]}")
+            response_variant = shopi.request_graphql(query_variant).json()
+            if len(response_variant['data']['productVariants']['edges']) != 1:
+                print(f"SE ENCONTRARON SKUS DUPLICADOS {response_variant['data']['productVariants']['edges'][0]['node']['sku']}")
             cont += 1
             print(cont)
             try:
-                responses.append(response.json()['data']['products']['edges'][0])
+               response_product['data']['product']['variants'] = response_variant['data']['productVariants']
+               responses.append(response_product)
             except Exception as error:
                 print(error)
         cdf.set_df_shopi(responses)
         cdf.merge(df)
         df_rev = cdf.get_df_mer()
-        df_rev['margen_db'] = df_rev['margen_db'].fillna('No entontrado') 
-        df_rev['costo_db'] = df_rev['costo_db'].fillna('No entontrado')
-        df_rev['margen_comparacion_db'] = df_rev['margen_comparacion_db'].fillna('No entontrado')
+        df_rev['margen_db'] = df_rev['margen_db'].fillna(0) 
+        df_rev['costo_db'] = df_rev['costo_db'].fillna(0)
+        df_rev['margen_comparacion_db'] = df_rev['margen_comparacion_db'].fillna(0)
         table = df_rev.to_dict(orient = 'records')
         data = {'table' : table }
     return render(request, 'list.html',context=data)
@@ -144,7 +161,7 @@ def review_updates(request):
 def update_products(request):
     try:
         df_rev = cdf.get_df_mer()
-        df =  update_products_db(df_rev)
+        df =  update_products_db(df_rev.reset_index(drop=True))
         cdf.set_costo(df)
         shopi = ConnectionsShopify()
         variables = cdf.set_variables()
@@ -166,17 +183,25 @@ def update_products(request):
                 res = shopi.request_graphql(query, variable)
                 check = []
                 for i in ['productUpdate', 'productVariantUpdate']:
-                    if (i in res.json()['data']):
-                        if len(res.json()['data'][i]['userErrors']) == 0:
-                           check.append(True)
-                        else:
-                            check.append(True)
+                    try:
+                        if (i in res.json()['data']):
+                            if len(res.json()['data'][i]['userErrors']) == 0:
+                                check.append(True)
+                            else:
+                                check.append(False) 
+                    except:
+                        pass
+                    try:
+                        if res.json()['errors']:
+                            check.append(False)
+                    except:
+                        pass
                 if all(check):
                     cont +=1
                 else:
-                    not_update.append(variable['input']['variants'][0]['sku'])
+                    not_update.append(variable['variantInput']['sku'])
             except:
-                not_update.append(variable['input']['variants'][0]['sku'])
+                not_update.append(variable['variantInput']['sku'])
             data = {'success': True, 'element_success': cont,'not_successful':not_update}
     except Exception as e:
         data =  {'success': False}
