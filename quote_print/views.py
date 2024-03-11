@@ -48,8 +48,9 @@ def print_drafr(request,id):
     date_update = datetime.strptime(response.json()['data']['draftOrders']['edges'][0]['node']['updatedAt'][0:10], '%Y-%m-%d')
     plazo = (date_update + timedelta(days=10)).strftime('%d/%m/%Y')
     draft = response.json()['data']['draftOrders']['edges'][0]['node']
+    draft['customer']['metafields']['edges'][0]['node']['value'] = ''
     try:
-        res = re.search(r'\[(\d+)\]' ,draft['customer']['metafields']['edges'][0]['node']['value'])
+        res = re.search(r'\[(\d+)\]' ,[i['node']['value'] for i in draft['customer']['metafields']['edges'] if i['node']['key'] == 'numero_documento_identificaci_n'][0])
         num = res.group(1)
     except:
         num = None

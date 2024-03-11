@@ -42,7 +42,7 @@ GET_DRAFT_ORDER = """
             company
             phone
           }}
-          metafields(first: 1, namespace: "custom") {{
+          metafields(first: 2, namespace: "custom") {{
             edges {{
               node {{
                 key
