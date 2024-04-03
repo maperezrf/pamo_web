@@ -212,28 +212,24 @@ products(first: 1, query: "sku:{sku}") {{
 
 GET_VARIANT = """
 {{
-  productVariants(first: 250, query: "{skus}") {{
-    edges {{
-      node {{
-        id
-        price
-        compareAtPrice
-        sku
-        barcode
-        inventoryQuantity
-        inventoryItem {{
-          id
-          inventoryLevels(first: 1) {{
-            edges {{
-              node {{
-                id
-              }}
-            }}
+  productVariant(id: "{id}") {{
+    id
+    price
+    compareAtPrice
+    sku
+    barcode
+    inventoryQuantity
+    inventoryItem {{
+      id
+      inventoryLevels(first: 1) {{
+        edges {{
+          node {{
+            id
           }}
         }}
-        }} 
       }}
     }}
+  }}
 }}
 """
 
@@ -246,6 +242,48 @@ query {{
           vendor
           status
           published: publishedInContext(context: {{country: CO}})
+          variants(first: 250) {{
+      edges {{
+        node {{
+          id
+        }}
+      }}
+    }}
   }}
 }}
   """
+
+GET_PRODUCTS_FULL = """{{
+  products(first: 250, query: "sku:{sku}") {{
+    edges {{
+      node {{
+        id
+        title
+        tags
+        vendor
+        status
+        published: publishedInContext(context: {{country: CO}})
+        variants(first: 250) {{
+          edges {{
+            node {{
+              id
+              sku
+              barcode
+              inventoryQuantity
+              inventoryItem {{
+                id
+                inventoryLevels(first: 1) {{
+                  edges {{
+                    node {{
+                      id
+                    }}
+                  }}
+                }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}}"""

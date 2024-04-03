@@ -21,12 +21,13 @@ class CoreDf():
         return self.df.columns.values
 
     def rename_columns(self, dic_columns):
+        self.df.columns = [i.strip() for i in self.df.columns ] 
         columns_end = []
         del(dic_columns['csrfmiddlewaretoken'])
         Change_colums={}
         for key, value in dic_columns.items():
             if value != 'N/A':
-                key = key.replace('~',' ')
+                key = key.replace('~',' ').strip()
                 Change_colums[key] = value
                 columns_end.append(value)
         self.df.rename(columns=Change_colums, inplace=True)
@@ -36,36 +37,86 @@ class CoreDf():
         return self.df
     
     def set_df_shopi(self, responses):
-        data_shopi ={'id_shopi': [i['data']['product']['id'].replace('gid://shopify/Product/', '') for i in responses],
-                    'title_shopi': [i['data']['product']['title'] for i in responses],
-                    'tags_shopi': [i['data']['product']['tags'] for i in responses],
-                    'vendor_shopi': [i['data']['product']['vendor'] for i in responses],
-                    'price_shopi': [i['data']['product']['variants']['edges'][0]['node']['price'] for i in responses],
-                    'sku_shopi': [i['data']['product']['variants']['edges'][0]['node']['sku'] for i in responses],
-                    'status': [i['data']['product']['status'] for i in responses],
-                    'barcode_shopi': [i['data']['product']['variants']['edges'][0]['node']['barcode'] for i in responses],
-                    'compareAtPrice_shopi': [i['data']['product']['variants']['edges'][0]['node']['compareAtPrice'] for i in responses],
-                    'inventoryQuantity_shopi': [i['data']['product']['variants']['edges'][0]['node']['inventoryQuantity'] for i in responses],
-                    'id_product_variant': [i['data']['product']['variants']['edges'][0]['node']['id'] for i in responses],
-                    'id_inventory_item': [i['data']['product']['variants']['edges'][0]['node']['inventoryItem']['id'] for i in responses],
-                    'id_inventory_level':[i['data']['product']['variants']['edges'][0]['node']['inventoryItem']['inventoryLevels']['edges'][0]['node']['id'] for i in responses]
-                    }
-        self.df_shopi = pd.DataFrame.from_dict(data_shopi)
+        id_products = [] 
+        titles=[]
+        tags = []
+        vendor = []
+        status = []
+        published = []
+        sku = []
 
-    def merge(self, df = None):
+        id_variant = []
+        sku_variant = []
+        barcode = []
+        inventoryQuantity = []
+        inventoryItemId = []
+        inventoryLevelsId = []
+        id_products_variant = []
+
+        data_products = {}
+        data_variants = {}
+
+        for i in  responses:
+            for j in i['data']['products']['edges']:
+                sku.append(i['data']['products']['sku'])
+                titles.append(j['node']['title'])
+                id_products.append(j['node']['id'].replace('gid://shopify/Product/',''))
+                tags.append(j['node']['tags'])
+                status.append(j['node']['status'])
+                vendor.append(j['node']['vendor'])
+                published.append(j['node']['status'])
+                for k in j['node']['variants']['edges']:
+                    id_products_variant.append(j['node']['id'].replace('gid://shopify/Product/',''))
+                    id_variant.append(k['node']['id'])
+                    sku_variant.append(k['node']['sku'])
+                    barcode.append(k['node']['barcode'])
+                    inventoryQuantity.append(k['node']['inventoryQuantity'])
+                    inventoryItemId.append(k['node']['inventoryItem']['id'])
+                    inventoryLevelsId.append(k['node']['inventoryItem']['inventoryLevels']['edges'][0]['node']['id'])
+
+        data_products = {
+            'id_products':id_products,
+            'title_shopi': titles,
+            'tags_shopi': tags,
+            'vendor_shopi': vendor,
+            'status_shopi': status,
+            'published_shopi': published,
+            'sku_shopi':sku
+            }
+        df_products = pd.DataFrame(data_products).reset_index(drop=True)
+
+        data_variants = {
+            'idShopi' : id_products_variant,
+            'id_variant': id_variant,
+            'sku_variant': sku_variant,
+            'barcode_shopi': barcode,
+            'inventoryQuantity_shopi': inventoryQuantity,
+            'inventoryItemId': inventoryItemId,
+            'inventoryLevelsId': inventoryLevelsId
+        }
+        df_variants = pd.DataFrame(data_variants).reset_index(drop=True)
+        df_variants.drop_duplicates(inplace=True)
+
+        df = df_variants.merge(df_products, how= 'left', right_on = ['sku_shopi', 'id_products'], left_on=  ['sku_variant', 'idShopi'])
+        df = df.loc[df['id_products'].notna()]
+        sku_duplicated = df.loc[df.duplicated('sku_variant', keep=False)]['sku_variant'].unique() #devolver informacion front
+        self.df_shopi = df
+        return self.df_shopi, sku_duplicated 
+
+    def merge(self, df_base = None,):
         if 'Margen' in self.df.columns:
             self.df['Margen'] = pd.to_numeric(self.df['Margen'])/100
         if 'Margen comparación' in self.df.columns:
             self.df['Margen comparación'] = pd.to_numeric(self.df['Margen comparación'])/100
-        self.df_rev = self.df.merge(self.df_shopi, how='left', left_on = 'SKU', right_on = 'sku_shopi')
-        self.df_rev['tags_shopi'] = self.df_rev['tags_shopi'].apply(lambda x : ','.join(x) if type(x)==list else "")
+        df_m1 = self.df_shopi.merge(self.df, how='left', left_on='sku_variant', right_on='SKU')
+        self.df_rev = df_m1.merge(df_base, how='left', left_on = ['sku_shopi', 'idShopi'], right_on=['sku', 'idShopi'])
         self.df_rev.fillna('nan', inplace=True)
         self.df_rev.columns = [unidecode(i).replace(' ','_').lower() for i in self.df_rev]
-        if not df.empty:
-            self.df_rev = self.df_rev.merge(df, how = 'left', on='sku')
-            self.df_rev.drop_duplicates(subset=['sku_shopi','id_product_variant','tags_shopi','title_shopi'], inplace=True)
-            self.df_rev.loc[self.df_rev.duplicated('sku_shopi', keep=False), 'duplicate'] = True 
-            self.df_rev.sort_values(['sku_shopi','duplicate']).reset_index(inplace = True, drop=True)
+        # if not df_shopi.empty:
+        # self.df_rev = self.df_rev.merge(df, how = 'left', on='sku')
+        self.df_rev.drop_duplicates(subset=['sku_shopi','idshopi'], inplace=True)
+        self.df_rev.loc[self.df_rev.duplicated('sku_shopi', keep=False), 'duplicate'] = True 
+        self.df_rev.sort_values(['sku_shopi','duplicate']).reset_index(inplace = True, drop=True)
 
     def get_df_mer(self):
         return self.df_rev
@@ -78,12 +129,12 @@ class CoreDf():
     
     def set_variables(self):
         variables = []
-        self.df_rev = self.df_rev.loc[self.df_rev['id_shopi'] != 'nan'].reset_index(drop=True)
+        self.df_rev = self.df_rev.loc[self.df_rev['id_products'] != 'nan'].reset_index(drop=True)
         for i in range(self.df_rev.shape[0]):
-            variants = {'id':self.df_rev.loc[i]['id_product_variant']}
+            variants = {'id':self.df_rev.loc[i]['id_variant']}
             variants['sku'] = self.df_rev.loc[i]['sku_shopi']
-            product = {'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_shopi']}"}
-            inventory = {'inventoryLevelId':self.df_rev.loc[i]['id_inventory_level']}
+            product = {'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_products']}"}
+            inventory = {'inventoryLevelId':self.df_rev.loc[i]['inventorylevelsid']}
             try:
                 product['title'] = self.df_rev.loc[i]['titulo']
             except:
@@ -98,10 +149,12 @@ class CoreDf():
                 pass
             try:
                 tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
-                tags_shopi = self.df_rev.loc[i]['tags_shopi'].strip(',').split(',')
+                tags_shopi = self.df_rev.loc[i]['tags_shopi']
                 tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
                 tags_shopi.extend(tags_new)
                 product['tags'] = tags_shopi
+                if 'PAUSADO' in product['tags']:
+                    variants['inventoryPolicy'] = 'DENY'
             except:
                 pass
             try:
@@ -117,7 +170,7 @@ class CoreDf():
             except:
                 pass
             try:
-                variants["inventoryItem"]={'cost':str(self.df_rev.loc[i]['costo_db'])}
+                variants["inventoryItem"]={'cost':str(self.df_rev.loc[i]['costo'])}
             except:
                 pass
             try:
@@ -128,7 +181,7 @@ class CoreDf():
             var ={}
             if any([True for i in ['title','vendor','status','tags'] if i in product]):
                 var['productInput'] = product
-            if any([True for i in ['barcode','compareAtPrice','price','inventoryItem'] if i in variants ]):
+            if any([True for i in ['sku','barcode','compareAtPrice','price','inventoryItem'] if i in variants ]):
                 var['variantInput'] = variants
             if 'availableDelta' in inventory:
                 var['inventoryAdjustInput'] = inventory

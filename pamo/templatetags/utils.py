@@ -16,4 +16,5 @@ def format_number(value):
 
 @register.filter
 def format_percent(value):
-    return "{:,.0f}%".format(int(float(value)*100))    
+    # return "{:,.0f}%".format(int(float(value)*100))    
+    return value

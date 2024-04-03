@@ -53,6 +53,7 @@ def update(request):
         while response.json()['data']['products']['pageInfo']['hasNextPage']:
             time.sleep(20)
             response =shopi.request_graphql(GET_PRODUCTS.format(cursor= f",after:\"{response.json()['data']['products']['pageInfo']['endCursor']}\""))
+            print(response.json()['extensions'])
             cursor_new = response.json()['data']['products']['pageInfo']['endCursor']
             list_products.append(response.json()['data']['products']['edges'])
             print(len(list_products))
@@ -61,26 +62,29 @@ def update(request):
         ids_saved_list = [i.id  for i in  items_saved]
         margen_saved = {i.id: float(i.margen) for i in  items_saved}
         costo_saved = {i.id: float(i.costo) for i in  items_saved}
-        for i in list_products:
-            for k in i:
-                variants_cont = 1 
-                while len(k['node']['variants']['edges']) >= variants_cont:
-                    dic = {}
-                    dic['idShopi'] = k['node']['id'].replace('gid://shopify/Product/',"")
-                    dic['tags'] = ', '.join(k['node']['tags']) if len(k['node']['tags']) > 0 else None
-                    dic['title'] = k['node']['title']
-                    dic['vendor'] = k['node']['vendor']
-                    dic['status'] = k['node']['status']
-                    dic['price'] =float(k['node']['variants']['edges'][variants_cont - 1]['node']['price']) if k['node']['variants']['edges'][0]['node']['price'] !=None else 0.0 
-                    dic['compareAtPrice'] =float(k['node']['variants']['edges'][variants_cont - 1]['node']['compareAtPrice']) if k['node']['variants']['edges'][0]['node']['compareAtPrice'] !=None else 0.0 
-                    dic['sku'] = k['node']['variants']['edges'][variants_cont - 1]['node']['sku']
-                    dic['barcode'] = k['node']['variants']['edges'][variants_cont - 1]['node']['barcode']
-                    dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][variants_cont - 1]['node']['inventoryQuantity'])) if k['node']['variants']['edges'][0]['node']['inventoryQuantity'] != None else 0.0
-                    variants_cont += 1
-                    if int(dic['idShopi']) in ids_saved_list:
-                        dic['margen'] = margen_saved[float(dic['idShopi'])]
-                        dic['costo'] = costo_saved[float(dic['idShopi'])]
-                    data_list.append(dic)
+        try:
+            for i in list_products:
+                for k in i:
+                    variants_cont = 1 
+                    while len(k['node']['variants']['edges']) >= variants_cont:
+                        dic = {}
+                        dic['idShopi'] = k['node']['id'].replace('gid://shopify/Product/',"")
+                        dic['tags'] = ', '.join(k['node']['tags']) if len(k['node']['tags']) > 0 else None
+                        dic['title'] = k['node']['title']
+                        dic['vendor'] = k['node']['vendor']
+                        dic['status'] = k['node']['status']
+                        dic['price'] =float(k['node']['variants']['edges'][variants_cont - 1]['node']['price']) if k['node']['variants']['edges'][variants_cont - 1]['node']['price'] !=None else 0.0 
+                        dic['compareAtPrice'] =float(k['node']['variants']['edges'][variants_cont - 1]['node']['compareAtPrice']) if k['node']['variants']['edges'][variants_cont - 1]['node']['compareAtPrice'] !=None else 0.0 
+                        dic['sku'] = k['node']['variants']['edges'][variants_cont - 1]['node']['sku']
+                        dic['barcode'] = k['node']['variants']['edges'][variants_cont - 1]['node']['barcode']
+                        dic['inventoryQuantity'] = int(float(k['node']['variants']['edges'][variants_cont - 1]['node']['inventoryQuantity'])) if float(k['node']['variants']['edges'][variants_cont - 1]['node']['inventoryQuantity']) != None else 0.0
+                        variants_cont += 1
+                        if int(dic['idShopi']) in ids_saved_list:
+                            dic['margen'] = margen_saved[float(dic['idShopi'])]
+                            dic['costo'] = costo_saved[float(dic['idShopi'])]
+                        data_list.append(dic)
+        except Exception as e:
+            print (e)
         dic['cursor'] = cursor_new
         items_saved.delete()
         Products.objects.all().delete()
@@ -119,9 +123,25 @@ def review_updates(request):
         data = request.POST.dict()
         cdf.rename_columns(data)
         data_file = cdf.get_df()
-        products = []
-        query_products = reduce(lambda q1, q2: q1 | q2,[Q(sku=sku_v) for sku_v in data_file['SKU'].values ])
-        products = Products.objects.filter(query_products) 
+        # inicio modificacion
+        conn = ConnectionsShopify()
+        responses = []
+        skus_no_found = []
+        for i in range(data_file.shape[0]):
+            query = GET_PRODUCTS_FULL.format(sku= data_file.iloc[i]['SKU'])
+            response = conn.request_graphql(query).json()
+            response['data']['products']['sku'] = data_file.iloc[i]['SKU']
+            products = response['data']['products']['edges']
+            responses.append(response)
+            if len([j[0]['node']['id'] for j in [i['node']['variants']['edges'] for i in response['data']['products']['edges']] if j[0]['node']['sku'] == data_file.iloc[i]['SKU']]) == 0:
+                skus_no_found.append(data_file.iloc[i]['SKU'])
+                
+        df_shopi, sku_duplicated = cdf.set_df_shopi(responses)
+        df_filter = df_shopi[['idShopi', 'sku_shopi']].rename(columns={'sku_shopi':'sku'}).to_dict('records')
+        consulta = Q()
+        for filtro in df_filter:
+            consulta |= Q(**filtro)
+        products = Products.objects.filter(consulta) 
         data = { 
             'idShopi' : products.values_list('idShopi', flat=True),
             'sku' : products.values_list('sku', flat=True),
@@ -129,26 +149,8 @@ def review_updates(request):
             'costo_db' : products.values_list('costo', flat=True),
             'margen_comparacion_db' : products.values_list('margen_comparacion_db', flat=True),
             }
-        df = pd.DataFrame(data).reset_index(drop=True)
-        shopi = ConnectionsShopify()
-        responses=[]
-        cont = 0
-        for i in range(df.shape[0]):
-            query_product = GET_PRODUCT.format(id=df['idShopi'][i])
-            response_product = shopi.request_graphql(query_product).json()
-            query_variant = GET_VARIANT.format(skus=f"sku:{df['sku'][i]}")
-            response_variant = shopi.request_graphql(query_variant).json()
-            if len(response_variant['data']['productVariants']['edges']) != 1:
-                print(f"SE ENCONTRARON SKUS DUPLICADOS {response_variant['data']['productVariants']['edges'][0]['node']['sku']}")
-            cont += 1
-            print(cont)
-            try:
-               response_product['data']['product']['variants'] = response_variant['data']['productVariants']
-               responses.append(response_product)
-            except Exception as error:
-                print(error)
-        cdf.set_df_shopi(responses)
-        cdf.merge(df)
+        df_base = pd.DataFrame(data).reset_index(drop=True)
+        cdf.merge(df_base)
         df_rev = cdf.get_df_mer()
         df_rev['margen_db'] = df_rev['margen_db'].fillna(0) 
         df_rev['costo_db'] = df_rev['costo_db'].fillna(0)
@@ -161,7 +163,9 @@ def review_updates(request):
 def update_products(request):
     try:
         df_rev = cdf.get_df_mer()
-        df =  update_products_db(df_rev.reset_index(drop=True))
+        # df_rev = pd.read_csv('df_rev.csv')
+        # cdf.df_rev = df_rev
+        df = update_products_db(df_rev.reset_index(drop=True))
         cdf.set_costo(df)
         shopi = ConnectionsShopify()
         variables = cdf.set_variables()
