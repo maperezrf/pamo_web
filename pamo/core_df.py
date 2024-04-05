@@ -32,6 +32,8 @@ class CoreDf():
                 columns_end.append(value)
         self.df.rename(columns=Change_colums, inplace=True)
         self.df = self.df[columns_end]
+        self.df['SKU'] = self.df['SKU'].str.replace('"','\\"' )
+
     
     def get_df(self):
         return self.df
@@ -84,7 +86,7 @@ class CoreDf():
             'sku_shopi':sku
             }
         df_products = pd.DataFrame(data_products).reset_index(drop=True)
-
+        df_products['sku_shopi'] = df_products['sku_shopi'].str.replace('\\"', '"')
         data_variants = {
             'idShopi' : id_products_variant,
             'id_variant': id_variant,
@@ -104,6 +106,7 @@ class CoreDf():
         return self.df_shopi, sku_duplicated 
 
     def merge(self, df_base = None,):
+        self.df['SKU'] = self.df['SKU'].str.replace('\\"', '"')
         if 'Margen' in self.df.columns:
             self.df['Margen'] = pd.to_numeric(self.df['Margen'])/100
         if 'Margen comparación' in self.df.columns:
