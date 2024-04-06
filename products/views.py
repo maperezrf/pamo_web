@@ -172,6 +172,7 @@ def update_products(request):
         cont = 0
         not_update = []
         for variable in variables:
+            print(variable)
             try:
                 product_var = product_hql = variant_var = variant_hql = inventory_var = inventory_hql = ''
                 if "productInput" in variable :

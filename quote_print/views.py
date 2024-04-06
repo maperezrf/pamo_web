@@ -50,6 +50,7 @@ def print_drafr(request,id):
     draft = response.json()['data']['draftOrders']['edges'][0]['node']
     try:
         draft['customer']['metafields']['edges'][0]['node']['value'] = ''
+        draft['customer']['metafields']['edges'][1]['node']['value'] = ''
     except:
         pass
     try:
