@@ -34,6 +34,7 @@ GET_DRAFT_ORDER = """
         updatedAt
           appliedDiscount {{
             amount
+            title
         }}
         customer {{
           displayName
