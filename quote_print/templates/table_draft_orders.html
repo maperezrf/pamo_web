@@ -1,11 +1,28 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'index.html' %}
 {% load static %}
+
+{% block title %}
+Cotizaciones
+{% endblock %}
+
+{% block page_name %} 
+Cotizaciones
+{% endblock %}
+
+{% block subpage_name %} 
+Listado
+{% endblock %}
+
+{% block name_now %} 
+Listado cotizaciones
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}">
 <script src="{% static 'js/functions.js' %}"></script>
 <h1 class="container text-center space">Cotizaciones</h1>
-<div class = "container my-4"> 
-  <div class = "row" >  
-    <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
+<div class = "card"> 
       <table class="table table-striped container space"  id="cotizaciones">
         <thead >
           <tr >  
@@ -23,15 +40,13 @@
             <td class="h5">{{i.customer}}</td>
             <td class="h5"><script> document.write(formatNumber({{i.total}})) </script></td>
             <td class="h5">{{i.created_at}}</td>
-            <td><button class="imprimir-btn btn btn-primary" id_draft ="{{i.id}}" data-cotizacion="cotizacion1">Ver</button>
+            <td style="display: flex;"><button class="imprimir-btn btn btn-success" style="margin-right: 20px;" id_draft ="{{i.id}}" data-cotizacion="cotizacion1">Ver</button>
             <a href="#" class = 'update-btn' id_draft ="{{i.id}}" ><img src='https://cdn-icons-png.flaticon.com/512/2748/2748606.png' width="40" alt="Actualizar"></td>
           </a></td> 
           </tr>
           {% endfor %}
         </table>
     </div>
-  </div>
-</div>
 
 <script>
 
@@ -59,8 +74,8 @@
       "oPaginate": {
         "sFirst": "Primero",
         "sLast": "Último",
-        "sNext": "Siguiente",
-        "sPrevious": "Anterior"
+        "sNext": ">>",
+        "sPrevious": "<<"
       },
     },
   }

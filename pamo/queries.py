@@ -34,6 +34,7 @@ GET_DRAFT_ORDER = """
         updatedAt
           appliedDiscount {{
             amount
+            title
         }}
         customer {{
           displayName
@@ -42,7 +43,7 @@ GET_DRAFT_ORDER = """
             company
             phone
           }}
-          metafields(first: 1, namespace: "custom") {{
+          metafields(first: 200, namespace: "custom") {{
             edges {{
               node {{
                 key
@@ -52,7 +53,7 @@ GET_DRAFT_ORDER = """
           }}
         }}
         invoiceUrl
-        lineItems(first: 20) {{
+        lineItems(first: 250) {{
           edges {{
             node {{
               title
@@ -82,31 +83,6 @@ GET_DRAFT_ORDER = """
   }}
 }}
 """
-
-GET_PRODUCT= """
-query {{
-   products(first: 1, query: "{skus}") {{
-      edges {{
-        node {{
-          id
-        	tags
-          title
-          vendor
-          variants(first: 1) {{
-            edges {{
-              node {{
-                price
-                compareAtPrice
-                sku
-                barcode
-                inventoryQuantity
-            }}
-          }}
-        }}
-      }}
-    }}
-  }}
-}} """
 
 GET_DRAFT_ORDER_UPDATE = """
 {{
@@ -142,7 +118,7 @@ GET_PRODUCTS ="""
           title
           vendor
           status
-          variants(first: 1) {{
+          variants(first: 250) {{
             edges {{
               node {{
                 price
@@ -158,13 +134,157 @@ GET_PRODUCTS ="""
   }}
 }}"""
 
+UPDATE_QUERY = """mutation UpdateProductAndVariantAndAdjustInventory(
+  {productInput}
+  {variantInput}
+  {inventoryAdjustInput}
+  ){{
+  {productUpdateq}
+  {productVariantUpdateq}
+  {inventoryAdjustQuantity}
+}}"""
+
 UPTADE_PRODUCT = """
-   mutation UpdateProduct($input: ProductInput!) {
-    productUpdate(input: $input) {
-      userErrors {
-        field
-        message
-      }
+  productUpdate(input: $productInput) {
+    userErrors {
+      field
+      message
     }
   }
 """
+
+PRODUCT_VARIANT_UPDATE = """
+  productVariantUpdate(input: $variantInput) {
+    userErrors {
+      field
+      message
+    }
+  }
+"""
+
+INVENTORY_ADJUST ="""
+  inventoryAdjustQuantity(input: $inventoryAdjustInput) {
+  inventoryLevel {
+    available
+    }
+  }
+"""
+
+GET_VARIANT_ID = """{{
+products(first: 1, query: "sku:{skus}") {{
+    edges {{
+    node {{
+        id
+        variants(first: 1) {{
+        edges {{
+            node {{
+            id
+            sku
+            }}
+        }}
+        }}
+    }}
+    }}
+}}
+}}
+"""
+
+GET_INVENTORY = """
+{{
+products(first: 1, query: "sku:{sku}") {{
+    edges {{
+    node {{
+        id
+        variants(first: 1) {{
+        edges {{
+            node {{
+            sku
+            inventoryQuantity
+            }}
+        }}
+        }}
+    }}
+    }}
+}}
+}}
+"""
+
+
+
+GET_VARIANT = """
+{{
+  productVariant(id: "{id}") {{
+    id
+    price
+    compareAtPrice
+    sku
+    barcode
+    inventoryQuantity
+    inventoryItem {{
+      id
+      inventoryLevels(first: 1) {{
+        edges {{
+          node {{
+            id
+          }}
+        }}
+      }}
+    }}
+  }}
+}}
+"""
+
+GET_PRODUCT= """
+query {{
+   product(id : "gid://shopify/Product/{id}") {{
+          id
+        	tags
+          title
+          vendor
+          status
+          published: publishedInContext(context: {{country: CO}})
+          variants(first: 250) {{
+      edges {{
+        node {{
+          id
+        }}
+      }}
+    }}
+  }}
+}}
+  """
+
+GET_PRODUCTS_FULL = """{{
+  products(first: 250, query: "sku:{sku}") {{
+    edges {{
+      node {{
+        id
+        title
+        tags
+        vendor
+        status
+        published: publishedInContext(context: {{country: CO}})
+        variants(first: 250) {{
+          edges {{
+            node {{
+              id
+              sku
+              barcode
+              inventoryQuantity
+              inventoryItem {{
+                id
+                inventoryLevels(first: 1) {{
+                  edges {{
+                    node {{
+                      id
+                    }}
+                  }}
+                }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}}"""

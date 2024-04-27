@@ -1,13 +1,30 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
+
+{% block title %}
+Productos
+{% endblock %}
+
+{% block page_name %} 
+Productos
+{% endblock %}
+
+{% block subpage_name %} 
+Listado
+{% endblock %}
+
+{% block name_now %} 
+Listado de productos
+{% endblock %}
+
 {% block content %}
 {% load static %}
 {% load utils %}
 
-<link rel="stylesheet" type="text/css" href="{% static 'css/list_products.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}">
 <h1 class="container text-center space">Productos</h1>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/functions.js' %}"></script>
-<div class = "card table-responsive"> 
+<div class = "card"> 
       <table class="table table-striped" id="cotizaciones">
         <thead >
           <tr >  
@@ -18,15 +35,17 @@
             <th scope="col" class = 'h4 text-center'>Precio</th>
             <th scope="col" class = 'h4 text-center'>Precio comparación</th>
             <th scope="col" class = 'h4 text-center'>SKU</th>
+            <th scope="col" class = 'h4 text-center'>Sodimac</th>
             <th scope="col" class = 'h4 text-center'>EAN</th>
             <th scope="col" class = 'h4 text-center'>Estado publicación</th>
             <th scope="col" class = 'h4 text-center'>Margen</th>
             <th scope="col" class = 'h4 text-center'>Costo</th>
+            <th scope="col" class = 'h4 text-center'>Margen comparación</th>
           </tr>
         </thead>
           {% for i in products %}
           <tr>
-            <td><a href = 'https://admin.shopify.com/store/prueba-1615/products/{{i.id}}' target="_blank">{{i.id}}</td>
+            <td><a href = 'https://admin.shopify.com/store/prueba-1615/products/{{i.idShopi}}' target="_blank">{{i.idShopi}}</td>
 
             <td>{% if i.title %}
                     {{ i.title }}
@@ -64,6 +83,12 @@
                 Sin información
                 {% endif %} 
             </td>
+            <td>{% if  i.SKU %}
+              <a href = 'https://www.homecenter.com.co/homecenter-co/product/{{i.SKU}}' target="_blank">{{i.SKU}}
+              {% else %}
+                Sin informacion
+              {% endif %} 
+            </td>
             <td>{% if  i.barcode %}
                 {{i.barcode}}
                 {% else %}
@@ -88,11 +113,18 @@
                 Sin información
                 {% endif %} 
             </td>
+            <td>{% if  i.margen_comparacion %}
+                {{i.margen_comparacion|format_number}}
+                {% else %}
+                Sin información
+                {% endif %} 
+            </td>
           </tr>
           {% endfor %}
         </table>
   <div class="text-center" style="margin-top: 30px;">
-    <button type="button" id='update_products' class="btn btn-secondary">Actualizar productos</button>
+    <button type="button" style="margin-right: 100px" id='update_products' class="btn btn-secondary">Actualizar productos</button>
+    <a href= 'export_products' id='export' class="btn btn-primary">Exportar</a>
   </div>
 </div>
 <script>
@@ -103,7 +135,7 @@
     pageLength:25,
     destroy:true,
     order: [[0, 'desc']],
-    columnDefs:[{className:'text-center', targets:[0,1,2,3,4,5,6,7,8,9]}],
+    columnDefs:[{className:'text-center', targets:[0,1,2,3,4,5,6,7,8,9,10]}],
     language: {
       "sProcessing": "Procesando...",
       "sLengthMenu": "Mostrar _MENU_ registros por página",
@@ -120,10 +152,12 @@
       "oPaginate": {
         "sFirst": "Primero",
         "sLast": "Último",
-        "sNext": "Siguiente",
-        "sPrevious": "Anterior"
+        "sNext": ">>",
+        "sPrevious": "<<"
       },
     },
+    scrollX: true,  // Activa el desplazamiento horizontal
+    fixedHeader: true,  // Fija los encabezados mientras se desplaza
   }
 
   const initDataTable = async() => {
@@ -154,6 +188,10 @@ button.addEventListener("click", function() {
     confirmation();
 });
 
+window.addEventListener('beforeunload', function (event) {
+  
+  console.log('Se ha iniciado una descarga.');
+});
 
 function confirmation (){
     Swal.fire({

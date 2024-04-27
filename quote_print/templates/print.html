@@ -2,152 +2,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
     <title>{{info.name|slice:"1:"}}{% if info.customer.displayName %}-{{ info.customer.displayName }}{% endif %}</title>
+    <link href="{% static 'css/cotizacion_style.css' %}" rel="stylesheet">
+    <meta charset="UTF-8">
     <style>
-        @page {
-            size:A4;
-            margin:0;
-            padding:0;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #fff; /* Color de fondo */
-        } 
-
-        .page {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .page:nth-child(odd) {
-            background-color: withe;
-        }
-        
-        .header{
-            display:block;
-        }
-
-        .logo{
-            width:50px;
-        }
-
-        .texto-derecha {
-            text-align: right;
-        }
-
-        .container {
-            position: relative;
-        }
-
-        .overlay-text {
-            position: relative;
-            width: 930px;
-            margin-top: 100px;
-            margin-left: -85px;
-        }
-
-        .info-customer {
-            display: flex;
-            justify-content: space-between;
-            padding: 0px 81px;
-            padding-bottom: 13px;
-        }
-
-        .product-table  {
-            border-collapse: collapse;
-            width: 800px;
-            margin: auto;
-        }
-
-        .product-table td{
-            vertical-align: top;
-        }
-
-        .product-table tr{
-            height: 40px;
-            border-bottom: 1px solid #d1d1d1;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 8px;
-        } 
-
-        th {
-            background-color: #d1d1d1; 
-            color: black; 
-            font-size: 11px;
-        }
-
-        .column {
-            flex: 1;
-            padding: 8px;
-            border-right: 1px solid white ; 
-        }
-
-        .linea-vertical {
-            position: absolute;
-            top:544px;
-            bottom: 455px;   
-            width: 1px;
-            background-color: #d1d1d1; 
-        }
-
-        .btns{
-            font-size: 13px;
-            width: 100%;
-            padding-left: 51px;
-        }
-
-        .btns img{
-            height: 30px;
-            width: auto;
-        }
-
-        .politics{
-            left: 80px;
-            font-size: 13px;
-            width:930px;
-            margin: auto;
-        }
-
-        .linea-horizontal {
-            border-top: 1px solid;
-            width: 800px;
-            color: #d1d1d1;
-            margin: 10px auto;
-        }
-
-        .totales{
-            display: flex;
-            margin-right: 81px;
-        }
-
-        .totales p{
-            margin: 2px;
-        }
-
-        .img-product{
-            width:100%;
-            height:auto
-        }
-
-        .back {
-            {% comment %} width: 930px;
-            height: 1310px; {% endcomment %}
-            width: 880px;
-            height: 1255px;
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
-        
         .pg1{ 
         background-image: url('{% static "images/cotizacion_img/Pg1.png" %}')
         }
@@ -159,37 +22,7 @@
         .pg3{ 
         background-image: url('{% static "images/cotizacion_img/Pg3.png" %}')
         }
-
-        .cont_ends {
-            display: flex;
-            justify-content: space-between; /* Distribuye los elementos a los extremos del contenedor */
-        }
-
-        .boton-imagen {
-            display: block;
-            text-align: center;
-            text-decoration: none; /* Evita el subrayado de enlaces */
-          }
-        
-          .boton-imagen img {
-            display: block;
-            margin: 0 auto;
-            margin-top: 30px;
-            
-          }
-        
-          .boton-imagen span {
-            display: block;
-            text-align: center;
-          }
-        
-          @media print {
-            .boton-imagen {
-              display: none;
-
-            }
-          }
-    </style>
+    </style> 
 </head>
 <div>
     <div class="page container">
@@ -240,16 +73,17 @@
             <div id = "footer">
                 <div class = 'cont_ends' >
                     <div class='btns'>
+                        {% if info.appliedDiscount.title %}<p>{{ info.appliedDiscount.title }}</p> {% endif %}
                         <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la<br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
                         <a href="{{info.invoiceUrl}}"><img src="{% static 'images/cotizacion_img/Bot-pago.png' %}" width='30px' alt="boton pago"></a>
                         <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
-                        <a href="https://api.whatsapp.com/send?phone=573124875756&text=Hola,%20tengo%20dudas%20con%20mi%20cotización%20{{info.name|slice:"1:" }}"><img src="{% static 'images/cotizacion_img/bton-W.png' %}" width= '30px' alt="boton w"></a>
+                        <a href="https://api.whatsapp.com/send?phone=576019142738&text=Hola,%20tengo%20dudas%20con%20mi%20cotización%20{{info.name|slice:"1:" }}"><img src="{% static 'images/cotizacion_img/bton-W.png' %}" width= '30px' alt="boton w"></a>
                     </div>
                     <div class= "totales">
                         <div class='texto-derecha' style = "margin-right: 10px;">
                             <p><strong>Subtotal</strong></p>
                             <p><strong>IVA</strong></p>
-                            {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong> {% endif %}
+                            {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong></p> {% endif %}
                                 <p><strong>Total</strong></p>
                         </div>
                         <div>
@@ -258,7 +92,7 @@
                             <p id ='iva' >
                             </p>
                             {% if info.appliedDiscount.amount %}<p id = 'descuento'>{% endif %}
-                                
+
                             <p  id = 'total'> 
                         </div>
                     </div>
@@ -320,7 +154,7 @@
         totales.total = totales.total - totales.descuento 
         document.getElementById('subtotal').textContent =  formatNumber(totales.totalSinIva)
         document.getElementById('iva').textContent =  formatNumber(totales.iva)
-        document.getElementById('descuento') == null ? '' : document.getElementById('descuento').textContent = formatNumber(totales.descuento)
+        document.getElementById('descuento') == null ? '' : document.getElementById('descuento').textContent = formatNumber(parseFloat(totales.descuento))
         document.getElementById('total').textContent =  formatNumber(totales.total)
 
       function setTable(table, data) {
@@ -394,7 +228,7 @@
             group.forEach((row) => {
             document.body.appendChild(divPageAdd);
             });
-            container = divPageAdd.getElementsByClassName('container')[0] 
+            container = divPageAdd.getElementsByClassName('container')[0]
 
                 if ((container.offsetHeight + 322) > 800  && (rowGroups.length == index+1)){
                     container.appendChild(footer.getElementsByClassName('cont_ends')[0]);
@@ -407,8 +241,8 @@
                     table = divPageAdd.getElementsByClassName('product-table')[0];
                     table.remove()
                     document.body.appendChild(divPageAdd);
-                    container = divPageAdd.getElementsByClassName('container')[0] ;
-                    politics = footer.getElementsByClassName('politics')[0]
+                    container = divPageAdd.getElementsByClassName('container')[0];
+                    politics = footer.getElementsByClassName('politics')[0];
                     politics.style.marginTop = "60px";
                     container.appendChild(politics);
                 }

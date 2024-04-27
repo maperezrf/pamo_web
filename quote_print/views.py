@@ -10,7 +10,7 @@ from pamo.functions import make_json
 import random
 import re
 
-@login_required
+
 def list(request):
     last_element = Quote.objects.latest('id')
     end_cursor = last_element.cursor
@@ -49,7 +49,12 @@ def print_drafr(request,id):
     plazo = (date_update + timedelta(days=10)).strftime('%d/%m/%Y')
     draft = response.json()['data']['draftOrders']['edges'][0]['node']
     try:
-        res = re.search(r'\[(\d+)\]' ,draft['customer']['metafields']['edges'][0]['node']['value'])
+        draft['customer']['metafields']['edges'][0]['node']['value'] = ''
+        draft['customer']['metafields']['edges'][1]['node']['value'] = ''
+    except:
+        pass
+    try:
+        res = re.search(r'\[(\d+)\]' ,[i['node']['value'] for i in draft['customer']['metafields']['edges'] if i['node']['key'] == 'numero_documento_identificaci_n'][0])
         num = res.group(1)
     except:
         num = None
