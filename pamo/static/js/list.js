@@ -28,6 +28,7 @@ function confirmation (){
                 html: text_success + text_successfull,
                 icon: "success"
               });
+              window.location.href = "/products/download/2";
             }
             else{
               Swal.fire({
@@ -41,3 +42,8 @@ function confirmation (){
       Swal.fire("No se realizaron cambios", "", "info");
     }
   })}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('El DOM ha sido completamente cargado.');
+    window.location.href = '/products/download/1'
+});

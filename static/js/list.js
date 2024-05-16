@@ -28,6 +28,7 @@ function confirmation (){
                 html: text_success + text_successfull,
                 icon: "success"
               });
+              window.location.href = "/products/download/2";
             }
             else{
               Swal.fire({

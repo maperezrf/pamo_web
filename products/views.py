@@ -21,6 +21,8 @@ from openpyxl.styles import Font
 from datetime import datetime
 from pamo import settings
 from functools import reduce
+from django.template import loader
+from django.http import FileResponse
 import os
 pd.options.display.max_columns= 500
 
@@ -35,13 +37,14 @@ def list_products(request):
 @login_required
 def update(request):
     try:
-        obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0))
+        obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0) | Q(margen_comparacion_db__gt=0))
         data_list = []
         for i in obj_to_save:
             dic = {}
             dic['id'] = i.id
             dic['margen'] = float(i.margen)
             dic['costo'] = float(i.costo)
+            dic['margen_comparacion_db'] = float(i.margen_comparacion_db)
             data_list.append(dic)
         data_to_save = [SaveMargins(**elemento) for elemento in data_list]
         SaveMargins.objects.bulk_create(data_to_save)
@@ -62,6 +65,7 @@ def update(request):
         ids_saved_list = [i.id  for i in  items_saved]
         margen_saved = {i.id: float(i.margen) for i in  items_saved}
         costo_saved = {i.id: float(i.costo) for i in  items_saved}
+        margen_comp_saved = {i.id: float(i.margen_comparacion_db) for i in  items_saved}
         try:
             for i in list_products:
                 for k in i:
@@ -82,6 +86,7 @@ def update(request):
                         if int(dic['idShopi']) in ids_saved_list:
                             dic['margen'] = margen_saved[float(dic['idShopi'])]
                             dic['costo'] = costo_saved[float(dic['idShopi'])]
+                            dic['margen_comparacion_db'] = margen_comp_saved[float(dic['idShopi'])]
                         data_list.append(dic)
         except Exception as e:
             print (e)
@@ -135,8 +140,9 @@ def review_updates(request):
             responses.append(response)
             if len([j[0]['node']['id'] for j in [i['node']['variants']['edges'] for i in response['data']['products']['edges']] if j[0]['node']['sku'] == data_file.iloc[i]['SKU']]) == 0:
                 skus_no_found.append(data_file.iloc[i]['SKU'])
-                
+                data_file.loc[data_file['SKU'].isin(skus_no_found), 'NOVEDAD'] = 'SKU no encontrado'
         df_shopi, sku_duplicated = cdf.set_df_shopi(responses)
+        data_file.loc[data_file['SKU'].isin(sku_duplicated), 'NOVEDAD'] = 'SKU duplicado en archivo'
         df_filter = df_shopi[['idShopi', 'sku_shopi']].rename(columns={'sku_shopi':'sku'}).to_dict('records')
         consulta = Q()
         for filtro in df_filter:
@@ -156,21 +162,25 @@ def review_updates(request):
         df_rev['costo_db'] = df_rev['costo_db'].fillna(0)
         df_rev['margen_comparacion_db'] = df_rev['margen_comparacion_db'].fillna(0)
         table = df_rev.to_dict(orient = 'records')
+        df_rev.to_excel(os.path.join(settings.MEDIA_ROOT, 'temp_upload.xlsx'), index=False)
         data = {'table' : table }
+        data_file['NOVEDAD'].fillna('Sin Novedad', inplace=True)
+        data_file.to_excel( os.path.join(settings.MEDIA_ROOT, 'review_report.xlsx'), index=False)
     return render(request, 'list.html',context=data)
 
 @login_required
 def update_products(request):
     try:
-        df_rev = cdf.get_df_mer()
-        # df_rev = pd.read_csv('df_rev.csv')
-        # cdf.df_rev = df_rev
+        # df_rev = cdf.get_df_mer()
+        df_rev = pd.read_excel(os.path.join(settings.MEDIA_ROOT, 'temp_upload.xlsx'))
+        cdf.df_rev = df_rev
         df = update_products_db(df_rev.reset_index(drop=True))
         cdf.set_costo(df)
-        shopi = ConnectionsShopify()
+        shopi = ConnectionsShopify() 
         variables = cdf.set_variables()
         cont = 0
         not_update = []
+        check = []
         for variable in variables:
             print(variable)
             try:
@@ -186,19 +196,19 @@ def update_products(request):
                     inventory_hql = INVENTORY_ADJUST
                 query = UPDATE_QUERY.format(productInput = product_var, variantInput = variant_var, inventoryAdjustInput = inventory_var, productUpdateq = product_hql, productVariantUpdateq = variant_hql, inventoryAdjustQuantity = inventory_hql)
                 res = shopi.request_graphql(query, variable)
-                check = []
                 for i in ['productUpdate', 'productVariantUpdate']:
                     try:
                         if (i in res.json()['data']):
                             if len(res.json()['data'][i]['userErrors']) == 0:
-                                check.append(True)
+                                check.append({'sku':variable['variantInput']['sku'], 'Resultado':'Proceso exitoso'})
                             else:
-                                check.append(False) 
+                                check.append({'sku':variable['variantInput']['sku'], 'Resultado':'Proceso no exitoso'}) 
+                        print(check)
                     except:
                         pass
                     try:
                         if res.json()['errors']:
-                            check.append(False)
+                            check.append({'sku':variable['variantInput']['sku'], 'Resultado':'Proceso no exitoso'})
                     except:
                         pass
                 if all(check):
@@ -211,6 +221,7 @@ def update_products(request):
     except Exception as e:
         data =  {'success': False}
         print(e)
+    pd.DataFrame(check).to_excel(os.path.join(settings.MEDIA_ROOT, 'final_review.xlsx'),index=False)
     return JsonResponse(data)
 
 def export_products(request):
@@ -246,5 +257,15 @@ def export_products(request):
 
     return response
 
-def test_view(request):
-    return render(request, 'index.html', context={})
+@login_required
+def download_report(request, process):
+    if process == 1:
+        name = 'review_report.xlsx'
+    elif process == 2:
+        name = 'final_review.xlsx'
+    file_path = os.path.join(settings.MEDIA_ROOT, name)
+    with open(file_path, 'rb') as excel_file:
+                response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = f'attachment; filename="{name}"'
+    os.remove(file_path)
+    return response
