@@ -221,6 +221,7 @@ def update_products(request):
     except Exception as e:
         data =  {'success': False}
         print(e)
+        print('guardando archivo')
     pd.DataFrame(check).to_excel(os.path.join(settings.MEDIA_ROOT, 'final_review.xlsx'),index=False)
     return JsonResponse(data)
 
@@ -259,6 +260,7 @@ def export_products(request):
 
 @login_required
 def download_report(request, process):
+    print('descargando archivo')
     if process == 1:
         name = 'review_report.xlsx'
     elif process == 2:

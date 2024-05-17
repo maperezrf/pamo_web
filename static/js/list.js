@@ -28,6 +28,7 @@ function confirmation (){
                 html: text_success + text_successfull,
                 icon: "success"
               });
+              console.log('descargando')
               window.location.href = "/products/download/2";
             }
             else{
