@@ -9,6 +9,7 @@ def sodimac_view(request):
 
 def create_orders(request):
     # try:
+        print(f'*** debug inicia bot sodimac {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} ***')
         print('Buscando ordenes...')
         sodi = ConnectionsSodimac()
         if sodi.get_orders_api():
@@ -25,9 +26,10 @@ def create_orders(request):
             print('Se ejecuto shopy satisfactoriamente')
             print(f'ordenes generadas: {orders_created}')
             print(f'se generaron {orders_created} ordenes satisfactoria mente')
+            print(f'*** debug termina bot sodimac {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
         else:
-            print('Se ejecuto shopy satisfactoriamente')
-            print('No se encontraron ordenes.')
+            print(f'*** debug Se ejecuto shopy satisfactoriamente {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+            print(f'*** debug No se encontraron ordenes. {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
         return render(request, 'sodimac_view.html', context={})
 
 def set_inventario(request):

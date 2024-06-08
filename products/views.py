@@ -30,12 +30,15 @@ cdf = CoreDf()
 
 @login_required
 def list_products(request):
+    print(f'*** inicia vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     products_mg = create_file_products()
     context = {'products':products_mg.to_dict( orient ='records')}
+    print(f'*** finaliza vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'list_products.html', context)
 
 @login_required
 def update(request):
+    print(f'*** inicia actualizacion base productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     try:
         obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0) | Q(margen_comparacion_db__gt=0))
         data_list = []
@@ -96,13 +99,16 @@ def update(request):
         data_to_save = [Products(**elemento) for elemento in data_list]
         Products.objects.bulk_create(data_to_save)
         data = {'status': 'success'}
+        print(f'*** inicia actualizacion base productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     except:
         if items_saved:
             items_saved.delete()
+        print(f'*** la actualizacion de productos fallo {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return JsonResponse(data)
 
 @login_required
 def set_update(request):
+    print(f'*** inicia seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     grupos = request.user.groups.all()
     ids_grupos = [grupo.id for grupo in grupos]
     if 1 in ids_grupos:
@@ -113,8 +119,10 @@ def set_update(request):
                 cdf.set_df(file)
                 columns = cdf.get_df_columns()
                 context = {'columns_file':columns, 'columns_shopi': COLUMNS_SHOPI}
+                print(f'*** finaliza seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
             else: 
                 print(form_1.errors)
+                print(f'*** error en seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
         else:
             form = fileForm()
             context = {'form':form}
@@ -124,6 +132,7 @@ def set_update(request):
 
 @login_required
 def review_updates(request):
+    print(f'*** inicia revision de actualizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     if request.method == 'POST':
         data = request.POST.dict()
         cdf.rename_columns(data)
@@ -166,10 +175,12 @@ def review_updates(request):
         data = {'table' : table }
         data_file['NOVEDAD'].fillna('Sin Novedad', inplace=True)
         data_file.to_excel( os.path.join(settings.MEDIA_ROOT, 'review_report.xlsx'), index=False)
+        print(f'*** finaliza revision de actualizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'list.html',context=data)
 
 @login_required
 def update_products(request):
+    print(f'*** inicia actualizacion de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     try:
         # df_rev = cdf.get_df_mer()
         df_rev = pd.read_excel(os.path.join(settings.MEDIA_ROOT, 'temp_upload.xlsx'))
@@ -218,6 +229,7 @@ def update_products(request):
             except:
                 not_update.append(variable['variantInput']['sku'])
             data = {'success': True, 'element_success': cont,'not_successful':not_update}
+        print(f'*** finaliza actualizacion de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     except Exception as e:
         data =  {'success': False}
         print(e)
@@ -226,6 +238,7 @@ def update_products(request):
     return JsonResponse(data)
 
 def export_products(request):
+    print(f'*** inicia vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     current_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     df = create_file_products()
     df.replace(0,"Sin información", inplace = True)
@@ -255,11 +268,12 @@ def export_products(request):
                 response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = f'attachment; filename="{file}"'
     os.remove(file_path)
-
+    print(f'*** finaliza vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return response
 
 @login_required
 def download_report(request, process):
+    print(f'*** inicia descarga de informes de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     print('descargando archivo')
     if process == 1:
         name = 'review_report.xlsx'
@@ -270,4 +284,5 @@ def download_report(request, process):
                 response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = f'attachment; filename="{name}"'
     os.remove(file_path)
+    print(f'*** finaliza descarga de informes de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return response

@@ -12,6 +12,7 @@ import re
 
 
 def list(request):
+    print(f'*** inicia lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     last_element = Quote.objects.latest('id')
     end_cursor = last_element.cursor
     ConnectionsShopify()
@@ -38,9 +39,11 @@ def list(request):
         Quote.objects.bulk_create(data_to_save)
     data_table = Quote.objects.all()
     data = {"table" :data_table, 'url_base':settings.BASE_URL}
+    print(f'*** finaliza lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'table_draft_orders.html', data)
 
 def print_drafr(request,id):
+    print(f'*** inicia impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     ConnectionsShopify()
     shopify = ConnectionsShopify()
     query = GET_DRAFT_ORDER.format(id)
@@ -69,9 +72,11 @@ def print_drafr(request,id):
         if str(i['node']['title']).__contains__("'"): 
             i['node']['title'] = i['node']['title'].replace("'",'~')    
     data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num}
+    print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'print.html', data)
 
 def update_draft (request,id_sho):
+    print(f'*** inicia actualizacion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     print('esta entrando')
     ConnectionsShopify()
     shopify = ConnectionsShopify()
@@ -88,4 +93,5 @@ def update_draft (request,id_sho):
     quote.customer = customer
     quote.total = total
     quote.save()
+    print(f'*** inicia actualizacion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return redirect(list)

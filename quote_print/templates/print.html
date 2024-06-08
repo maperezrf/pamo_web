@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -22,104 +23,118 @@
         .pg3{ 
         background-image: url('{% static "images/cotizacion_img/Pg3.png" %}')
         }
-    </style> 
+    </style>
 </head>
 <div>
     <div class="page container">
-        <div class='back pg1' >
-        </div> 
+        <div class='back pg1'>
+        </div>
     </div>
     <div class="page">
-        <div class='back pg2' >
+        <div class='back pg2'>
         </div>
     </div>
     <div class="page" id='cotizacion'>
-        <div class='back pg3' >
-        <div class="container">
-            <div class="overlay-text">
-                <p class="texto-derecha">FEPRIN SAS / PAMO.CO<br>
-                    NIT: 900.382.733-3 Régimen Común<br>
-                    Actividad Económica 4752 Tarifa Renta 0,40%<br>
-                    AV CARACAS No 66 - 67 BOGOTA - D.C.<br>
-                    Teléfonos: (601)9168880 3124875756<br><br>
-                    No somos Autoretenedores - No somos Grandes Contribuyentes<br>
-                    Régimen IVA: COMÚN Actividad ICA: 47521 6,90x mil</p>
-            </div>
-            <div class= 'info-customer'>
-                <p>{% if info.customer.displayName %}  <strong>Nombre / Empresa:</strong> {{info.customer.displayName|title}} <br><br> {% endif %}
-                    {% if info.customer.email %} <strong>Correo:</strong> {{info.customer.email}} <br><br> {% endif %}
-                    {% if nit %} <strong>Nit:</strong> {{nit}} <br><br> {% endif %}
-                    {% if info.customer.defaultAddress.phone %} <strong>Teléfono:</strong> {{info.customer.defaultAddress.phone|cut:"0123456789"}} <br><br> {% endif %}
-                    Plazo: 10 dias Fecha de Vencimiento: {{plazo}}
-                </P>
-                <p>Teléfono: 316 7578855</P>
-                <p class="texto-derecha">Fecha: <u>{{update}}/</u><br><br>Cotización No. {{info.name|slice:"1:" }}</P>
-            </div>
-            <div>
-                <table class="product-table" id="product-table">
-                    <thead>
-                        <tr>
-                            <th class="column H5" style="width: 70px;">FOTO</th>
-                            <th class="column" style="padding: 8px 40px;">SKU</th>
-                            <th class="column" style="padding: 8px 90px;">DESCRIPCIÓN</th>
-                            <th class="column" style="width: 104.4px;">CANTIDAD</th>
-                            <th class="column" style="width: 114.9px;">P. UNITARIO</th>
-                            <th class="column" style="width: 90.65px;">TOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                </tbody>
-            </table>
-            <div id = "footer">
-                <div class = 'cont_ends' >
-                    <div class='btns'>
-                        {% if info.appliedDiscount.title %}<p>{{ info.appliedDiscount.title }}</p> {% endif %}
-                        <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la<br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
-                        <a href="{{info.invoiceUrl}}"><img src="{% static 'images/cotizacion_img/Bot-pago.png' %}" width='30px' alt="boton pago"></a>
-                        <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
-                        <a href="https://api.whatsapp.com/send?phone=576019142738&text=Hola,%20tengo%20dudas%20con%20mi%20cotización%20{{info.name|slice:"1:" }}"><img src="{% static 'images/cotizacion_img/bton-W.png' %}" width= '30px' alt="boton w"></a>
-                    </div>
-                    <div class= "totales">
-                        <div class='texto-derecha' style = "margin-right: 10px;">
-                            <p><strong>Subtotal</strong></p>
-                            <p><strong>IVA</strong></p>
-                            {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong></p> {% endif %}
-                                <p><strong>Total</strong></p>
-                        </div>
-                        <div>
-                            <p id= 'subtotal'>
-                            </p>
-                            <p id ='iva' >
-                            </p>
-                            {% if info.appliedDiscount.amount %}<p id = 'descuento'>{% endif %}
+        <div class='back pg3'>
+            <div class="container">
+                <div class="overlay-text">
+                    <p class="texto-derecha">FEPRIN SAS / PAMO.CO
+                        <br> NIT: 900.382.733-3 Régimen Común
+                        <br> Actividad Económica 4752 Tarifa Renta 0,40%
+                        <br> AV CARACAS No 66 - 67 BOGOTA - D.C.
+                        <br> Teléfonos: (601)9168880 3124875756
+                        <br>
+                        <br> No somos Autoretenedores - No somos Grandes Contribuyentes
+                        <br> Régimen IVA: COMÚN Actividad ICA: 47521 6,90x mil</p>
+                </div>
+                <div class='info-customer'>
+                    <p>{% if info.customer.displayName %} <strong>Nombre / Empresa:</strong> {{info.customer.displayName|title}}
+                        <br>
+                        <br> {% endif %} {% if info.customer.email %} <strong>Correo:</strong> {{info.customer.email}}
+                        <br>
+                        <br> {% endif %} {% if nit %} <strong>Nit:</strong> {{nit}}
+                        <br>
+                        <br> {% endif %} {% if info.customer.defaultAddress.phone %} <strong>Teléfono:</strong> {{info.customer.defaultAddress.phone|cut:"0123456789"}}
+                        <br>
+                        <br> {% endif %} Plazo: 10 dias Fecha de Vencimiento: {{plazo}}
+                    </P>
+                    <p>Teléfono: 316 7578855</P>
+                    <p class="texto-derecha">Fecha: <u>{{update}}/</u>
+                        <br>
+                        <br>Cotización No. {{info.name|slice:"1:" }}</P>
+                </div>
+                <div>
+                    <table class="product-table" id="product-table">
+                        <thead>
+                            <tr>
+                                <th class="column H5" style="width: 70px;">FOTO</th>
+                                <th class="column" style="padding: 8px 40px;">SKU</th>
+                                <th class="column" style="padding: 8px 90px;">DESCRIPCIÓN</th>
+                                <th class="column" style="width: 104.4px;">CANTIDAD</th>
+                                <th class="column" style="width: 114.9px;">P. UNITARIO</th>
+                                <th class="column" style="width: 90.65px;">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <div id="footer">
+                        <div class='cont_ends'>
+                            <div class='btns'>
+                                {% if info.appliedDiscount.title %}
+                                <p>{{ info.appliedDiscount.title }}</p> {% endif %}
+                                <p>Ahora puedes pagar tus compras en linea con WOMPI. Edita tus datos de envío y facturación, selecciona la
+                                    <br>opción de transferencia y elige entre Bancolombia o Davivienda.</p>
+                                <a href="{{info.invoiceUrl}}"><img src="{% static 'images/cotizacion_img/Bot-pago.png' %}" width='30px' alt="boton pago"></a>
+                                <p>Comunicate directamente con nosotros si tienes dudas o deseas hacer alguna modificación</p>
+                                <a href="https://api.whatsapp.com/send?phone=576019142738&text=Hola,%20tengo%20dudas%20con%20mi%20cotización%20{{info.name|slice:" 1: " }}"><img src="{% static 'images/cotizacion_img/bton-W.png' %}" width='30px' alt="boton w"></a>
+                            </div>
+                            <div class="totales">
+                                <div class='texto-derecha' style="margin-right: 10px;">
+                                    <p><strong>Subtotal</strong></p>
+                                    <p><strong>IVA</strong></p>
+                                    {% if info.appliedDiscount.amount %}
+                                    <p><strong>Descuento</strong></p> {% endif %}
+                                    <p><strong>Total</strong></p>
+                                </div>
+                                <div>
+                                    <p id='subtotal'>
+                                    </p>
+                                    <p id='iva'>
+                                    </p>
+                                    {% if info.appliedDiscount.amount %}
+                                    <p id='descuento'>{% endif %}
 
-                            <p  id = 'total'> 
+                                        <p id='total'>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="linea-horizontal"></div>
+                        <div class='politics'>
+                            <p style="width: 800px;margin: 0 auto;">
+                                POLITICAS DE REEMBOLSO DE FEPRIN SAS
+                                <br> Consulta nuestra politica de reembolso https://www.pamo.co/policies/refund-policy
+                                <br>
+                                <span style='text-align: justify;'>
+                                    Todas las devoluciones y/o garantías estarán sujetas al derecho de retracto y a la política de garantías por lo que toda solicitud debe ser notificada por el correo ventas@pamo.co, en el tiempo establecido por PAMO COLOMBIA que equivalen a treinta (30) días fecha calendario a partir de que el cliente tenga el producto. Si la garantía de
+                                    tu producto es procedente, se realizará la reparación pertinente totalmente gratuita de los defectos del bien y se suministrará oportunamente los repuestos requeridos siempre
+                                    y cuando el producto cumpla con los siguientes requisitos: 1. El producto de venir correctamente embalado 2. El producto debe venir limpio y desinfectado (sin ningún tipo de
+                                    residuo) previamente antes de ser recibido. PORFAVOR CONSERVE EL EMPAQUE Y GUIAS DEL PRODUCTO PARA SU RESPECTIVA GARANTIA YA QUE EL PRODUCTO PUDO VERSE
+                                    AFECTADO POR EL MALTRATO EN SU EMBALAJE.
+                                    POLITICAS DE PRIVACIDAD DE FEPRIN SAS
+                                    Consulta nuestra politica de Privacidad
+                                </span>
+                            </p>
+                            <a href="#" class='boton-imagen' id="botonImprimir">
+                                <img src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
+                                <span>Imprimir</span>
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="linea-horizontal"></div>
-                <div class= 'politics'>
-                <p style="width: 800px;margin: 0 auto;">
-                    POLITICAS DE REEMBOLSO DE FEPRIN SAS<br>
-                    Consulta nuestra politica de reembolso https://www.pamo.co/policies/refund-policy<br>
-                    <span style='text-align: justify;' >
-                    Todas las devoluciones y/o garantías estarán sujetas al derecho de retracto y a la política de garantías por lo que toda solicitud debe ser notificada por el correo ventas@pamo.co, en el tiempo establecido por PAMO COLOMBIA que equivalen a treinta (30) días fecha calendario a partir de que el cliente tenga el producto. Si la garantía de
-                    tu producto es procedente, se realizará la reparación pertinente totalmente gratuita de los defectos del bien y se suministrará oportunamente los repuestos requeridos siempre
-                    y cuando el producto cumpla con los siguientes requisitos: 1. El producto de venir correctamente embalado 2. El producto debe venir limpio y desinfectado (sin ningún tipo de
-                    residuo) previamente antes de ser recibido. PORFAVOR CONSERVE EL EMPAQUE Y GUIAS DEL PRODUCTO PARA SU RESPECTIVA GARANTIA YA QUE EL PRODUCTO PUDO VERSE
-                    AFECTADO POR EL MALTRATO EN SU EMBALAJE.
-                    POLITICAS DE PRIVACIDAD DE FEPRIN SAS
-                    Consulta nuestra politica de Privacidad</span>
-                </p>
-                <a href="#"class = 'boton-imagen' id="botonImprimir">
-                    <img  src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
-                    <span>Imprimir</span>
-                </a>
             </div>
         </div>
-    </div>
-    </div> 
-</div>
+
 </html>
 <script src="{% static 'js/functions.js' %}"></script>
 <script>
@@ -231,22 +246,29 @@
             container = divPageAdd.getElementsByClassName('container')[0]
 
                 if ((container.offsetHeight + 322) > 800  && (rowGroups.length == index+1)){
-                    container.appendChild(footer.getElementsByClassName('cont_ends')[0]);
-                    var divPageAdd = divPage.cloneNode(true); //clona el div
-                    //quita datos de cliente
-                    infoCustomers = divPageAdd.getElementsByClassName('info-customer');
-                    while (infoCustomers.length > 0) {
-                    infoCustomers[0].parentNode.removeChild(infoCustomers[0]);
-                    }//hasta aqui quita datos de cliente
-                    table = divPageAdd.getElementsByClassName('product-table')[0];
-                    table.remove()
-                    document.body.appendChild(divPageAdd);
-                    container = divPageAdd.getElementsByClassName('container')[0];
-                    politics = footer.getElementsByClassName('politics')[0];
-                    politics.style.marginTop = "60px";
-                    container.appendChild(politics);
+                    add_footer()
                 }
+                if (!document.getElementById('footer')){
+                    add_footer()
+                }
+                
             }    
       });
+
+      function add_footer() {
+      container.appendChild(footer.getElementsByClassName('cont_ends')[0]);
+      var divPageAdd = divPage.cloneNode(true); //clona el div
+      //quita datos de cliente
+      infoCustomers = divPageAdd.getElementsByClassName('info-customer');
+      while (infoCustomers.length > 0) {
+      infoCustomers[0].parentNode.removeChild(infoCustomers[0]);
+      }//hasta aqui quita datos de cliente
+      table = divPageAdd.getElementsByClassName('product-table')[0];
+      table.remove()
+      document.body.appendChild(divPageAdd);
+      container = divPageAdd.getElementsByClassName('container')[0];
+      politics = footer.getElementsByClassName('politics')[0];
+      politics.style.marginTop = "60px";
+      container.appendChild(politics);}
     };
 </script>
