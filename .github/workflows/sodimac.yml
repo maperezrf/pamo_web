@@ -9,8 +9,6 @@ jobs:
     name: Enviar solicitud GET
     runs-on: ubuntu-latest
     steps:
-      - name: test
-        run: print('desde la automatizacion' )
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v3
