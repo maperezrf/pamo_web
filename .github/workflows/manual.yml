@@ -2,7 +2,7 @@ name: Mi flujo de trabajo GET
 
 on:
   schedule:
-    - cron: '*/9 * * *' # Ejecutar a las 8 AM, 12 PM y 4 PM
+    - cron: '*/9 * * * *' # Ejecutar a las 8 AM, 12 PM y 4 PM
 
 jobs:
   build:
