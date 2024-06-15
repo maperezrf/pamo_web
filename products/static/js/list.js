@@ -28,6 +28,7 @@ function confirmation (){
                 html: text_success + text_successfull,
                 icon: "success"
               });
+
             }
             else{
               Swal.fire({

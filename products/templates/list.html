@@ -70,7 +70,7 @@ Comprobación de datos
               </tr>
             </thead>
               {% for i in table %}
-                  <td id = '{{i.sku}}' class = "celda-dup"><div class = 'celda  text-center'>{{i.sku}}</div></td>
+                  <td id = '{{i.sku_shopi}}' class = "celda-dup"><div class = 'celda  text-center'>{{i.sku_shopi}}</div></td>
                     {% if i.id_shopi != 'nan' %}
                     <td class= 'column-1' id = '{{i.titulo}}'><div class = 'celda text-center'>{% if i.titulo %}{{i.titulo}} {% else %} Sin información {% endif %}</div></td>
                     <td class= 'column-1' id = '{{i.title_shopi}}'><div class = 'celda text-center'>{{i.title_shopi}}</div></td>

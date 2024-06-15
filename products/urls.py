@@ -10,5 +10,6 @@ urlpatterns = [
     path("review_updates", views.review_updates, name="review_updates"),
     path("update_products", views.update_products, name="update_products"),
     path("export_products", views.export_products, name="export_products"),
-    path("index", views.test_view, name="index"),
+    path("download/<int:process>", views.download_report, name="export_products"),
+    # path("index", views.test_view, name="index"),
 ]

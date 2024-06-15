@@ -118,8 +118,8 @@ class CoreDf():
         # if not df_shopi.empty:
         # self.df_rev = self.df_rev.merge(df, how = 'left', on='sku')
         self.df_rev.drop_duplicates(subset=['sku_shopi','idshopi'], inplace=True)
-        self.df_rev.loc[self.df_rev.duplicated('sku_shopi', keep=False), 'duplicate'] = True 
-        self.df_rev.sort_values(['sku_shopi','duplicate']).reset_index(inplace = True, drop=True)
+        # self.df_rev.loc[self.df_rev.duplicated('sku_shopi', keep=False), 'duplicate'] = True 
+        # self.df_rev.sort_values(['sku_shopi','duplicate']).reset_index(inplace = True, drop=True)
 
     def get_df_mer(self):
         return self.df_rev

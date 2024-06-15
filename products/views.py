@@ -21,6 +21,8 @@ from openpyxl.styles import Font
 from datetime import datetime
 from pamo import settings
 from functools import reduce
+from django.template import loader
+from django.http import FileResponse
 import os
 pd.options.display.max_columns= 500
 
@@ -28,20 +30,24 @@ cdf = CoreDf()
 
 @login_required
 def list_products(request):
+    print(f'*** inicia vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     products_mg = create_file_products()
     context = {'products':products_mg.to_dict( orient ='records')}
+    print(f'*** finaliza vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'list_products.html', context)
 
 @login_required
 def update(request):
+    print(f'*** inicia actualizacion base productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     try:
-        obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0))
+        obj_to_save = Products.objects.filter(Q(margen__gt=0) | Q(costo__gt=0) | Q(margen_comparacion_db__gt=0))
         data_list = []
         for i in obj_to_save:
             dic = {}
             dic['id'] = i.id
             dic['margen'] = float(i.margen)
             dic['costo'] = float(i.costo)
+            dic['margen_comparacion_db'] = float(i.margen_comparacion_db)
             data_list.append(dic)
         data_to_save = [SaveMargins(**elemento) for elemento in data_list]
         SaveMargins.objects.bulk_create(data_to_save)
@@ -62,6 +68,7 @@ def update(request):
         ids_saved_list = [i.id  for i in  items_saved]
         margen_saved = {i.id: float(i.margen) for i in  items_saved}
         costo_saved = {i.id: float(i.costo) for i in  items_saved}
+        margen_comp_saved = {i.id: float(i.margen_comparacion_db) for i in  items_saved}
         try:
             for i in list_products:
                 for k in i:
@@ -82,6 +89,7 @@ def update(request):
                         if int(dic['idShopi']) in ids_saved_list:
                             dic['margen'] = margen_saved[float(dic['idShopi'])]
                             dic['costo'] = costo_saved[float(dic['idShopi'])]
+                            dic['margen_comparacion_db'] = margen_comp_saved[float(dic['idShopi'])]
                         data_list.append(dic)
         except Exception as e:
             print (e)
@@ -91,13 +99,16 @@ def update(request):
         data_to_save = [Products(**elemento) for elemento in data_list]
         Products.objects.bulk_create(data_to_save)
         data = {'status': 'success'}
+        print(f'*** inicia actualizacion base productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     except:
         if items_saved:
             items_saved.delete()
+        print(f'*** la actualizacion de productos fallo {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return JsonResponse(data)
 
 @login_required
 def set_update(request):
+    print(f'*** inicia seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     grupos = request.user.groups.all()
     ids_grupos = [grupo.id for grupo in grupos]
     if 1 in ids_grupos:
@@ -108,8 +119,10 @@ def set_update(request):
                 cdf.set_df(file)
                 columns = cdf.get_df_columns()
                 context = {'columns_file':columns, 'columns_shopi': COLUMNS_SHOPI}
+                print(f'*** finaliza seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
             else: 
                 print(form_1.errors)
+                print(f'*** error en seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
         else:
             form = fileForm()
             context = {'form':form}
@@ -119,6 +132,7 @@ def set_update(request):
 
 @login_required
 def review_updates(request):
+    print(f'*** inicia revision de actualizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     if request.method == 'POST':
         data = request.POST.dict()
         cdf.rename_columns(data)
@@ -135,8 +149,9 @@ def review_updates(request):
             responses.append(response)
             if len([j[0]['node']['id'] for j in [i['node']['variants']['edges'] for i in response['data']['products']['edges']] if j[0]['node']['sku'] == data_file.iloc[i]['SKU']]) == 0:
                 skus_no_found.append(data_file.iloc[i]['SKU'])
-                
+                data_file.loc[data_file['SKU'].isin(skus_no_found), 'NOVEDAD'] = 'SKU no encontrado'
         df_shopi, sku_duplicated = cdf.set_df_shopi(responses)
+        data_file.loc[data_file['SKU'].isin(sku_duplicated), 'NOVEDAD'] = 'SKU duplicado en archivo'
         df_filter = df_shopi[['idShopi', 'sku_shopi']].rename(columns={'sku_shopi':'sku'}).to_dict('records')
         consulta = Q()
         for filtro in df_filter:
@@ -156,21 +171,27 @@ def review_updates(request):
         df_rev['costo_db'] = df_rev['costo_db'].fillna(0)
         df_rev['margen_comparacion_db'] = df_rev['margen_comparacion_db'].fillna(0)
         table = df_rev.to_dict(orient = 'records')
+        df_rev.to_excel(os.path.join(settings.MEDIA_ROOT, 'temp_upload.xlsx'), index=False)
         data = {'table' : table }
+        data_file['NOVEDAD'].fillna('Sin Novedad', inplace=True)
+        data_file.to_excel( os.path.join(settings.MEDIA_ROOT, 'review_report.xlsx'), index=False)
+        print(f'*** finaliza revision de actualizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'list.html',context=data)
 
 @login_required
 def update_products(request):
+    print(f'*** inicia actualizacion de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     try:
-        df_rev = cdf.get_df_mer()
-        # df_rev = pd.read_csv('df_rev.csv')
-        # cdf.df_rev = df_rev
+        # df_rev = cdf.get_df_mer()
+        df_rev = pd.read_excel(os.path.join(settings.MEDIA_ROOT, 'temp_upload.xlsx'))
+        cdf.df_rev = df_rev
         df = update_products_db(df_rev.reset_index(drop=True))
         cdf.set_costo(df)
-        shopi = ConnectionsShopify()
+        shopi = ConnectionsShopify() 
         variables = cdf.set_variables()
         cont = 0
         not_update = []
+        check = []
         for variable in variables:
             print(variable)
             try:
@@ -186,19 +207,19 @@ def update_products(request):
                     inventory_hql = INVENTORY_ADJUST
                 query = UPDATE_QUERY.format(productInput = product_var, variantInput = variant_var, inventoryAdjustInput = inventory_var, productUpdateq = product_hql, productVariantUpdateq = variant_hql, inventoryAdjustQuantity = inventory_hql)
                 res = shopi.request_graphql(query, variable)
-                check = []
                 for i in ['productUpdate', 'productVariantUpdate']:
                     try:
                         if (i in res.json()['data']):
                             if len(res.json()['data'][i]['userErrors']) == 0:
-                                check.append(True)
+                                check.append({'sku':variable['variantInput']['sku'], 'Resultado':'Proceso exitoso'})
                             else:
-                                check.append(False) 
+                                check.append({'sku':variable['variantInput']['sku'], 'Resultado':'Proceso no exitoso'}) 
+                        print(check)
                     except:
                         pass
                     try:
                         if res.json()['errors']:
-                            check.append(False)
+                            check.append({'sku':variable['variantInput']['sku'], 'Resultado':'Proceso no exitoso'})
                     except:
                         pass
                 if all(check):
@@ -208,12 +229,16 @@ def update_products(request):
             except:
                 not_update.append(variable['variantInput']['sku'])
             data = {'success': True, 'element_success': cont,'not_successful':not_update}
+        print(f'*** finaliza actualizacion de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     except Exception as e:
         data =  {'success': False}
         print(e)
+        print('guardando archivo')
+    pd.DataFrame(check).to_excel(os.path.join(settings.MEDIA_ROOT, 'final_review.xlsx'),index=False)
     return JsonResponse(data)
 
 def export_products(request):
+    print(f'*** inicia vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     current_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     df = create_file_products()
     df.replace(0,"Sin información", inplace = True)
@@ -243,8 +268,21 @@ def export_products(request):
                 response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = f'attachment; filename="{file}"'
     os.remove(file_path)
-
+    print(f'*** finaliza vista productos {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return response
 
-def test_view(request):
-    return render(request, 'index.html', context={})
+@login_required
+def download_report(request, process):
+    print(f'*** inicia descarga de informes de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+    print('descargando archivo')
+    if process == 1:
+        name = 'review_report.xlsx'
+    elif process == 2:
+        name = 'final_review.xlsx'
+    file_path = os.path.join(settings.MEDIA_ROOT, name)
+    with open(file_path, 'rb') as excel_file:
+                response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                response['Content-Disposition'] = f'attachment; filename="{name}"'
+    os.remove(file_path)
+    print(f'*** finaliza descarga de informes de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+    return response
