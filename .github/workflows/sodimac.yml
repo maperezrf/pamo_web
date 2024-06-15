@@ -19,7 +19,7 @@ jobs:
         run: pip install requests
 
       - name: Enviar solicitud GET
-        run: |
+        script: |
           import requests
 
           print('se incia desde el bot')
