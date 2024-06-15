@@ -91,21 +91,18 @@
                             </div>
                             <div class="totales">
                                 <div class='texto-derecha' style="margin-right: 10px;">
+                                    <p><strong>Total bruto</strong></p>
+                                    {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong></p> {% endif %}
                                     <p><strong>Subtotal</strong></p>
                                     <p><strong>IVA</strong></p>
-                                    {% if info.appliedDiscount.amount %}
-                                    <p><strong>Descuento</strong></p> {% endif %}
                                     <p><strong>Total</strong></p>
                                 </div>
                                 <div>
-                                    <p id='subtotal'>
-                                    </p>
-                                    <p id='iva'>
-                                    </p>
-                                    {% if info.appliedDiscount.amount %}
-                                    <p id='descuento'>{% endif %}
-
-                                        <p id='total'>
+                                    <p id='total-bruto'></p>
+                                    {% if info.appliedDiscount.amount %}<p id='descuento'></p>{% endif %}
+                                    <p id='subtotal'></p>
+                                    <p id='iva'></p>
+                                    <p id='total'></p>
                                 </div>
                             </div>
                         </div>
@@ -165,11 +162,14 @@
         });
         totales.iva = totales.total - (totales.total/1.19)
         totales.totalSinIva = totales.total - totales.iva
-        totales.descuento = datos.appliedDiscount == null ? '' : datos.appliedDiscount.amount
-        totales.total = totales.total - totales.descuento 
-        document.getElementById('subtotal').textContent =  formatNumber(totales.totalSinIva)
-        document.getElementById('iva').textContent =  formatNumber(totales.iva)
+        totales.descuento = datos.appliedDiscount == null ? '' : (Math.round((datos.appliedDiscount.amount / datos.totalPrice)*100))/100 *(totales.totalSinIva)
+        totales.subtotal = totales.totalSinIva - totales.descuento  
+        totales.subTotalSinIva = totales.subtotal * 0.19 
+        totales.total = totales.subtotal + totales.subTotalSinIva 
+        document.getElementById('total-bruto').textContent =  formatNumber(totales.totalSinIva)
         document.getElementById('descuento') == null ? '' : document.getElementById('descuento').textContent = formatNumber(parseFloat(totales.descuento))
+        document.getElementById('subtotal').textContent = formatNumber(parseFloat(totales.subtotal))
+        document.getElementById('iva').textContent =  formatNumber(totales.subTotalSinIva)
         document.getElementById('total').textContent =  formatNumber(totales.total)
 
       function setTable(table, data) {
