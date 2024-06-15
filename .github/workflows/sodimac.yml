@@ -1,0 +1,31 @@
+name: bot sodimac
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Ejecutar cada 5 minutos
+
+jobs:
+  build:
+    name: Enviar solicitud GET
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.11' # Especifica la versión de Python
+
+      - name: Instalar requests
+        run: pip install requests
+
+      - name: Enviar solicitud GET
+        run: |
+          import requests
+          print('se incia desde el bot')
+          url = 'https://pamoweb-production.up.railway.app/pamo_bots/sodimac' # Reemplaza con la URL real
+          response = requests.get(url)
+          if response.status_code == 200:
+            print(f"Solicitud GET exitosa: {response.text}")
+          else:
+            print(f"Error al enviar solicitud GET: {response.status_code}")
+            
