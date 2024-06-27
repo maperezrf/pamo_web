@@ -36,3 +36,15 @@
     width: 50%;
     height: auto;
 }
+.input-stock{
+    border: solid 1px;
+    width: 80px !important;
+    padding: 3px;
+}
+.input-stock:focus{
+    border: solid 1px;
+}
+.error-message{
+    color: red;
+    
+}

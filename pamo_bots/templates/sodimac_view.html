@@ -1,31 +1,55 @@
 {% extends 'index.html' %}
 
 {% block title %}
-Automatizaciones
+  Automatizaciones
 {% endblock %}
 
-{% block page_name %} 
-Automatizaciones
+{% block page_name %}
+  Automatizaciones
 {% endblock %}
 
-{% block subpage_name %} 
-Sodimac
+{% block subpage_name %}
+  Sodimac
 {% endblock %}
 
-{% block name_now %} 
-Automatizacion Sodimac
+{% block name_now %}
+  Automatizacion Sodimac
 {% endblock %}
-
 
 {% block content %}
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/bots.css' %}">
-<script src="{% static 'js/bots.js' %}"></script>
-<div class= 'card'>
-    <div class = 'card-body text-center'>
-        <h3> Automatización Sodimac </h3>
-        <a href = 'sodimac'  > <button class = 'btn btn-success text-center'> Importar ordenes </button></a>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/bots.css' %}" />
+  <script src="{% static 'js/bots.js' %}"></script>
+  <div class="container">
+    <div class="row text-center">
+      <div class="col">
+        <a href="/pamo_bots/get_orders">
+          <div class="container-fluid">
+            <div class="card">
+              <div>
+                <img src="{% static 'images/importacion.png' %}" class="imagen pt-4" />
+              </div>
+              <div class="card-body text-center pt-">
+                <h3>Cargar ordenes</h3>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="col">
+        <a href="/pamo_bots/manager_database">
+          <div class="container-fluid">
+            <div class="card">
+              <div>
+                <img src="{% static 'images/gestion_base.png' %}" class="imagen pt-4" />
+              </div>
+              <div class="card-body text-center pt-">
+                <h3>Gestionar base</h3>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
     </div>
-</div>
-
+  </div>
 {% endblock %}

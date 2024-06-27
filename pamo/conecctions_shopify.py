@@ -55,9 +55,11 @@ class ConnectionsShopify():
 
     def create_orders(self):
         orders_gb = self.orders.groupby('ORDEN_COMPRA').agg({'variant_id':list, 'CANTIDAD_SKU':list,'COSTO_SKU':list}).reset_index()
-        cont = 0
         print(orders_gb.shape[0])
         print(len(orders_gb))
+        data_log = {}
+        data_log['success'] = []
+        data_log['error'] = []
         for i in range(len(orders_gb)):   
             products = []
             oc = orders_gb.iloc[i]['ORDEN_COMPRA']
@@ -77,14 +79,13 @@ class ConnectionsShopify():
                         "note": f"orden de compra: {oc}"
                     }
                 }
-                print(data)  
                 try:  
                     response = requests.post(URL_CREATE_ORDERS, headers= self.headers_shopify, json = data)
                     if response.status_code == 201:
-                        cont += 1
+                        data_log['success'].append(oc)
                 except:
-                    pass
-        return cont
+                    data_log['error'].append(oc)
+        return data_log
     
     def get_orders(self):
         return self.orders

@@ -1,0 +1,68 @@
+{% extends 'index.html' %}
+
+{% block title %}
+  Automatizaciones
+{% endblock %}
+
+{% block page_name %}
+  Automatizaciones
+{% endblock %}
+
+{% block subpage_name %}
+  Sodimac
+{% endblock %}
+
+{% block name_now %}
+  Gestion base de datos
+{% endblock %}
+
+{% block content %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" />
+  <h1 class="container text-center space">Sodimac</h1>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-striped" id="dbSodimac">
+        <thead>
+          <tr>
+            <th scope="col" class="h4 text-center">SKU Sodimac</th>
+            <th scope="col" class="h5 text-center column-1">SKU shopify</th>
+            <th scope="col" class="h5 text-center column-1">EAN</th>
+            <th scope="col" class="h5 text-center">Stock base</th>
+            <th scope="col" class="h5 text-center">Stock api</th>
+            <th scope="col" class="h5 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in table %}
+            <tr id="{{ i.SKU }}">
+              <td class="celda text-center">{{ i.SKU }}</td>
+              <td class="celda text-center">{{ i.RF_pamo }}</td>
+              <td class="celda text-center">{{ i.cod_barras }}</td>
+              <td class="celda text-center" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
+              <td class="celda text-center">pendiente</td>
+              <td>
+                <a href="">actualizar</a>
+                <a href="">cargar</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- CARGAR ARCHIVO -->
+    {% comment %} {% if form %}
+      {% endcomment %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">{{ form.file }}</div>
+        <button type="submit" class="btn btn-success" style="width: 10%">Cargar</button>
+      </form>
+      {% comment %}
+    {% endif %} {% endcomment %}
+  </div>
+  <script src="{% static 'js/manager_database.js' %}"></script>
+{% endblock %}

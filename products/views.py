@@ -7,12 +7,10 @@ from pamo.queries import *
 from pamo.constants import COLUMNS_SHOPI
 from pamo.conecctions_shopify import ConnectionsShopify
 import time
-from products.forms import fileForm, comparationForm
+from products.forms import fileForm
 import pandas as pd
 from pamo.core_df import CoreDf
 from pamo.conecctions_shopify import ConnectionsShopify
-import numpy as np
-from unidecode import unidecode
 from django.contrib.auth.decorators import login_required
 from pamo.functions import update_products_db, create_file_products
 from openpyxl import Workbook
@@ -20,9 +18,6 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font
 from datetime import datetime
 from pamo import settings
-from functools import reduce
-from django.template import loader
-from django.http import FileResponse
 import os
 pd.options.display.max_columns= 500
 
