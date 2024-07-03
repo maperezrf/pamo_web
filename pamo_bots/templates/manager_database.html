@@ -19,10 +19,12 @@
 {% block content %}
   {% load static %}
   <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}" />
   <h1 class="container text-center space">Sodimac</h1>
+
   <div class="card">
-    <div class="table-responsive">
-      <table class="table table-striped" id="dbSodimac">
+    <div class="table">
+      <table class="table table-striped dataTable" id="dbSodimac">
         <thead>
           <tr>
             <th scope="col" class="h4 text-center">SKU Sodimac</th>
@@ -35,34 +37,74 @@
         </thead>
         <tbody>
           {% for i in table %}
-            <tr id="{{ i.SKU }}">
+            <tr>
               <td class="celda text-center">{{ i.SKU }}</td>
               <td class="celda text-center">{{ i.RF_pamo }}</td>
-              <td class="celda text-center">{{ i.cod_barras }}</td>
+              <td class="celda text-center">
+                  {{ i.cod_barras }}
+              </td>
               <td class="celda text-center" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
-              <td class="celda text-center">pendiente</td>
+              <td class="celda text-center">{{ i.stock_sodi }}</td>
               <td>
-                <a href="">actualizar</a>
-                <a href="">cargar</a>
+                  <a href="#"><img class="img mx-1 get-inventory-link"  id="{{ i.cod_barras }}" src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
+                  <a href="#"><img class="img mx-1" src=" {% static 'images\cargar.png' %}" alt="" /></a>
+                  <a href="#"><img class="img mx-1" src=" {% static 'images\eliminar.png' %}" alt="" /></a>
               </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-  </div>
-
-  <div class="card">
-    <!-- CARGAR ARCHIVO -->
-    {% comment %} {% if form %}
-      {% endcomment %}
-      <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="mb-3">{{ form.file }}</div>
-        <button type="submit" class="btn btn-success" style="width: 10%">Cargar</button>
-      </form>
-      {% comment %}
-    {% endif %} {% endcomment %}
+    <div class="container">
+      <a href="/pamo_bots/set_inventario"><button class="btn btn-info btn-upload">Cargar plantilla</button></a>
+    </div>
   </div>
   <script src="{% static 'js/manager_database.js' %}"></script>
+
+  <script>
+    console.log('dbSodimac')
+    let dataTable
+    let dataTableIsInitialized = false
+    
+    const dataTableOptions = {
+      pageLength: 25,
+      destroy: true,
+      order: [[0, 'desc']],
+      columnDefs: [{ className: 'text-center', targets: [0, 1, 2, 3, 4, 5] }],
+      language: {
+        sProcessing: 'Procesando...',
+        sLengthMenu: 'Mostrar _MENU_ registros por página',
+        sZeroRecords: 'No se encontraron resultados',
+        sEmptyTable: 'Ningún dato disponible en esta tabla',
+        sInfo: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+        sInfoEmpty: 'Mostrando 0 a 0 de 0 registros',
+        sInfoFiltered: '(filtrado de _MAX_ registros en total)',
+        sInfoPostFix: '',
+        sSearch: 'Buscar:',
+        sUrl: '',
+        sInfoThousands: ',',
+        sLoadingRecords: 'Cargando...',
+        oPaginate: {
+          sFirst: 'Primero',
+          sLast: 'Último',
+          sNext: '>>',
+          sPrevious: '<<'
+        }
+      },
+      scrollX: true, // Activa el desplazamiento horizontal
+      fixedHeader: true // Fija los encabezados mientras se desplaza
+    }
+    
+    const initDataTable = async () => {
+      if (dataTableIsInitialized) {
+        dataTable.destroy()
+      }
+      dataTable = $('#dbSodimac').DataTable(dataTableOptions)
+      dataTableIsInitialized = true
+    }
+    
+    window.addEventListener('load', async () => {
+      await initDataTable()
+    })
+  </script>
 {% endblock %}

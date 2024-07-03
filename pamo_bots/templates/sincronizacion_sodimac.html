@@ -21,14 +21,12 @@
   {% load utils %}
   <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" />
   <h1 class="container text-center space">Cargar un archivo</h1>
-  <button class="btn">Descargar plantilla</button>
-  <div class="card">
+  <div class="card p-1">
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      <div class="mb-3">{{ form.file }}</div>
-      <button type="submit" class="btn btn-success" style="width: 10%">Cargar</button>
+      <div class="mt-5">{{ form.file }}</div>
+      <button type="submit" class="btn btn-success" style="width: auto">Cargar</button>
     </form>
+    <button class="btn btn-warning btn-upload mt-1">Descargar plantilla</button>
   </div>
-  <script src="{% static 'js/upload_file.js' %}"></script>
-  <script src="{% static 'js/functions.js' %}"></script>
 {% endblock %}

@@ -65,14 +65,14 @@ class ConnectionsSodimac():
         return pd.DataFrame(stock_list)
 
     def set_inventory(self, df):
-        data = self.get_data_set_inventory
+        data = self.set_inventory(df)
         return requests.post(URL_SODIMAC, headers = self.headers, json=data).json()
 
-    def get_data_set_inventory(self, df):
+    def set_inventory(self, df):
         data_list = []
         for i in range(df.shape[0]):
             dic = {}
-            dic['proveedor'] = '63F3PR1N54527'
+            dic['proveedor'] = REFERENCIA_FPRN
             dic['ean'] = df.iloc[i].codigo_barras
             dic['inventarioDispo'] = df.iloc[i].stock_sodimac
             dic['stockMinimo'] = 0
@@ -80,3 +80,18 @@ class ConnectionsSodimac():
             dic['usuario'] = "Bot"
             data_list.append(dic)
         return data_list
+
+    def get_inventaio(self, products):
+        for i in products:
+            print('seteando inventario')
+            data = {
+            "proveedor": REFERENCIA_FPRN,
+            "ean": i[0:12]
+            }
+            response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
+            item = ProductsSodimac.objects.get(cod_barras = i)
+            item.stock = response[0]['EXISTENCIA']
+            item.stock_sodi = item.stock
+            print(response)
+            print('guardando...')
+            item.save()

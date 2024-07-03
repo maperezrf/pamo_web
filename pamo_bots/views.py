@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect
-
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.connections_sodimac import ConnectionsSodimac
 from datetime import datetime
 from pamo.functions import create_file_products
 from products.forms import fileForm
 from pamo_bots.models import LogBotOrders, ProductsSodimac
+import pandas as pd
+from pamo_bots.core_df import Core
+import json
 
 
 def sodimac_view(request):
@@ -17,7 +19,7 @@ def get_orders(request):
 
 def manager_database(request):
     products = ProductsSodimac.objects.all()
-    data = {'form':fileForm, 'table':products}
+    data = {'table':products}
     return render(request, 'manager_database.html', context= data)
 
 def create_orders(request):
@@ -72,16 +74,27 @@ def create_orders(request):
 # 4. Generar vista para cargar archivo excel, actualizar el inventario y base de datos
 
 def set_inventario(request):
-    print('Comparando inventario....')
-    products = create_file_products()
-    
-    # sodi = ConnectionsSodimac()
-    # stock_sodimac = sodi.get_inventory()
-    # shopi = ConnectionsShopify()
-    # df = shopi.get_inventory(stock_sodimac)
-    # request = sodi.set_inventory(df)
-    return render(request, 'sincronizacion_sodimac.html', context={'form':fileForm})
-    
+    # se recibe un archivo en excel, actualiza los registros que se encuentran en la base y los que no los crea 
+    if request.method == 'GET':
+        form = fileForm()
+        data = {'form':form} 
+        return render(request, 'sincronizacion_sodimac.html', context=data)
+    elif request.method == 'POST':
+        # crea o actualiza los registros en la base de datos
+        form_1 = fileForm(request.POST, request.FILES)
+        if form_1.is_valid():
+            file = request.FILES['file']
+            core = Core()
+            core.set_df(file)
+            core.process()
+            return redirect('pamo_bots:manager_database')
+        else: 
+            print(form_1.errors)
+            print(f'*** error en seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
 
-
-     
+def get_inventory_view(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        list_products = data.get('products')
+        sodi = ConnectionsSodimac()
+        sodi.get_inventaio(list_products)

@@ -15,6 +15,7 @@
 .dataTables_filter{
   margin-right: 50%;
   margin-top: 2%;
+
 }
 .dataTables_info{
   margin-left: 150px ;
@@ -25,7 +26,16 @@
   padding: 5px; /* Ajusta el espacio interno según tus preferencias */
   border-radius: 4px; /* Ajusta el redondeo de las esquinas según tus preferencias */
   display: inline-block; /* Añade display:inline-block para evitar ocultar al hacer clic */
+  max-width: 224px;
+}
+.dataTables_filter input:focus {
+  border: 1px solid #ccc; /* Ajusta el estilo del borde según tus preferencias */
 }
 .page-item .page-link{
   border-radius: 0% !important;
+}
+
+
+.table {
+  width: 100% !important;
 }

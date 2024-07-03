@@ -10,7 +10,6 @@ import time
 from products.forms import fileForm
 import pandas as pd
 from pamo.core_df import CoreDf
-from pamo.conecctions_shopify import ConnectionsShopify
 from django.contrib.auth.decorators import login_required
 from pamo.functions import update_products_db, create_file_products
 from openpyxl import Workbook

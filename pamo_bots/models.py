@@ -6,6 +6,7 @@ class ProductsSodimac(models.Model):
     Indicador = models.CharField(max_length=100, null=True, blank=True)
     cod_barras = models.CharField(max_length=15, null=True, blank=True)
     stock = models.IntegerField(null=True, blank=True ,default= 0)
+    stock_sodi = models.IntegerField(null=True, blank=True ,default= 0)
 
 class LogBotOrders(models.Model):
     date = models.DateTimeField(auto_now=True, blank=False, null=False)

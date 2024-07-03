@@ -48,3 +48,13 @@
     color: red;
     
 }
+.btn-upload{
+    width: auto !important;
+}
+.img{
+    width: 20px;
+    transition: width 0.1s ease; 
+}
+.img:hover{
+    width: 25px;
+}
