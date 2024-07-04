@@ -90,7 +90,7 @@
                                 <a href="https://api.whatsapp.com/send?phone=576019142738&text=Hola,%20tengo%20dudas%20con%20mi%20cotización%20{{info.name|slice:" 1: " }}"><img src="{% static 'images/cotizacion_img/bton-W.png' %}" width='30px' alt="boton w"></a>
                             </div>
                             <div class="totales">
-                                <div class='texto-derecha' style="margin-right: 10px;">
+                                <div class='texto-derecha' style="margin-right: 10px; min-width: 100px;">
                                     <p><strong>Total bruto</strong></p>
                                     {% if info.appliedDiscount.amount %}<p><strong>Descuento</strong></p> {% endif %}
                                     <p><strong>Subtotal</strong></p>
