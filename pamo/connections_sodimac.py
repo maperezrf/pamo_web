@@ -35,6 +35,7 @@ class ConnectionsSodimac():
     def make_merge(self):
         skus_objects = ProductsSodimac.objects.all()
         skus =  pd.DataFrame(list(skus_objects.values()))
+        skus.drop_duplicates('SKU', inplace=True)
         self.orders['SKU'] = self.orders['SKU'].apply(lambda x:x.strip())
         self.orders = self.orders.merge(skus, how='left', on='SKU')
         self.orders.loc[self.orders['RF_pamo'].notna(), 'SKU'] =  self.orders.loc[self.orders['RF_pamo'].notna(), 'RF_pamo']
