@@ -38,17 +38,17 @@
         <tbody>
           {% for i in table %}
             <tr>
-              <td class="celda text-center">{{ i.SKU }}</td>
+              <td class="celda text-center sku">{{ i.SKU }}</td>
               <td class="celda text-center">{{ i.RF_pamo }}</td>
               <td class="celda text-center">
                   {{ i.cod_barras }}
               </td>
-              <td class="celda text-center" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
+              <td class="celda text-center stock-to-set" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
               <td class="celda text-center">{{ i.stock_sodi }}</td>
-              <td>
-                  <a href="#"><img class="img mx-1 get-inventory-link"  id="{{ i.cod_barras }}" src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
-                  <a href="#"><img class="img mx-1" src=" {% static 'images\cargar.png' %}" alt="" /></a>
-                  <a href="#"><img class="img mx-1" src=" {% static 'images\eliminar.png' %}" alt="" /></a>
+              <td id="{{ i.cod_barras }}">
+                  <a href="#"><img class="img mx-1 get-inventory-link"   src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
+                  <a href="#"><img class="img mx-1 set-inventory-link" src=" {% static 'images\cargar.png' %}" alt="" /></a>
+                  <a href="#"><img class="img mx-1 delete-inventory-link" src=" {% static 'images\eliminar.png' %}" alt="" /></a>
               </td>
             </tr>
           {% endfor %}
@@ -60,6 +60,7 @@
     </div>
   </div>
   <script src="{% static 'js/manager_database.js' %}"></script>
+  <script src="{% static 'js/functions.js' %}"></script>
 
   <script>
     console.log('dbSodimac')

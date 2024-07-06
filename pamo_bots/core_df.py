@@ -11,7 +11,6 @@ class Core () :
         self.df = pd.read_excel(file, dtype=str)
         self.df.fillna('0', inplace=True)
     
-    # SKU SODIMAC	SKU SHOPIFY	STOCK	EAN
     def process(self):
         products = ProductsSodimac.objects.filter(SKU__in = self.df['SKU SODIMAC'].unique())
         products_df = pd.DataFrame(list(products.values()))
@@ -42,15 +41,10 @@ class Core () :
                 item.stock = row['STOCK']
                 new_products.append(item)
             ProductsSodimac.objects.bulk_create(new_products)
-                
-            
-            
-            
-
     
-        
-        
-        
-        
-        
-    
+    def update_database_item(self, sku, ean, stock):
+        item = ProductsSodimac.objects.get(SKU = sku)
+        item.cod_barras = ean
+        item.stock = stock
+        item.stock_sodi = stock
+        item.save()

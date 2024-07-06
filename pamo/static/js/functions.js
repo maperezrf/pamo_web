@@ -15,10 +15,11 @@ function show_loading(){
   })
 }
 
-function show_success(){
+function show_success(msj = None){
   Swal.fire({
       icon: "success",
       title: 'Proceso Exitoso',
+      text: msj,
       showConfirmButton: false,
       allowOutsideClick: false,
       timer: 1000

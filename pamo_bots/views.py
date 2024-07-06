@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.connections_sodimac import ConnectionsSodimac
 from datetime import datetime
@@ -73,7 +74,7 @@ def create_orders(request):
 # 3. Generar vista para setear datos de stock utilizar api
 # 4. Generar vista para cargar archivo excel, actualizar el inventario y base de datos
 
-def set_inventario(request):
+def set_inventory(request):
     # se recibe un archivo en excel, actualiza los registros que se encuentran en la base y los que no los crea 
     if request.method == 'GET':
         form = fileForm()
@@ -97,4 +98,18 @@ def get_inventory_view(request):
         data = json.loads(request.body)
         list_products = data.get('products')
         sodi = ConnectionsSodimac()
-        sodi.get_inventaio(list_products)
+        return JsonResponse(sodi.get_inventaio(list_products))
+
+def set_inventory_view(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        sku = data.get('sku')
+        product = data.get('product')
+        stock = data.get('stock')
+        columnas = ["sku", "codigo_barras", "stock_sodimac"]
+        data = [[sku, product, stock]]
+        df = pd.DataFrame(data, columns=columnas)
+        sodi = ConnectionsSodimac()
+        sodi.set_inventory(df)
+        core = Core()
+        core.update_database_item(sku, product, stock)
