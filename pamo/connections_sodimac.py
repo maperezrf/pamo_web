@@ -49,11 +49,7 @@ class ConnectionsSodimac():
         stock_list = []
         for i in range(df_products.shape[0]):
             if df_products.iloc[i].cod_barras != '':    
-                data = {
-                "proveedor" : REFERENCIA_FPRN,
-                "ean" : df_products.iloc[i].cod_barras[:12]
-                }
-                response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
+                response = self.request_inventory_api(df_products.iloc[i].cod_barras)
                 try:
                     dic = {}
                     dic['codigo_barras'] = df_products.iloc[i].cod_barras
@@ -66,10 +62,15 @@ class ConnectionsSodimac():
 
     def set_inventory(self, df):
         data = self.get_data_inventory(df)
-        print(data)
-        response = requests.post(URL_SET_INVENTARIO, headers = self.headers, json=data).json()
-        print(response)
-        return response
+        for i in data:
+            response_get_inventory = self.request_inventory_api(i['ean'])
+            if len(response_get_inventory) > 0 :
+                response = requests.post(URL_SET_INVENTARIO, headers = self.headers, json=i).json()
+                print(response)
+                data = {'success':True, "message":"Actializacion exitosa"}
+            else:
+                data = {'success':False, "message":"No se encontró ningun producto con el Ean proporcionado"}
+        return data
 
     def get_data_inventory(self, df):
         data_list = []
@@ -87,11 +88,7 @@ class ConnectionsSodimac():
     def get_inventaio(self, products):
         for i in products:
             print('consultando inventario')
-            data = {
-            "proveedor": REFERENCIA_FPRN,
-            "ean": i[0:12]
-            }
-            response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
+            response = self.request_inventory_api(i)
             if len(response) == 0:
                 data = {'success':False, "message":"No se encontró ningun producto con el Ean proporcionado"}
             else:
@@ -103,3 +100,11 @@ class ConnectionsSodimac():
                 item.save()
                 data = {'success':True, "message":"Se actualizo correctamente el stock en la base de datos"}
             return data
+    
+    def request_inventory_api(self, ean):
+            data = {
+            "proveedor": REFERENCIA_FPRN,
+            "ean": ean[0:12]
+            }
+            response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
+            return response

@@ -110,6 +110,7 @@ def set_inventory_view(request):
         data = [[sku, product, stock]]
         df = pd.DataFrame(data, columns=columnas)
         sodi = ConnectionsSodimac()
-        sodi.set_inventory(df)
+        data = sodi.set_inventory(df)
         core = Core()
         core.update_database_item(sku, product, stock)
+        return  JsonResponse(data)

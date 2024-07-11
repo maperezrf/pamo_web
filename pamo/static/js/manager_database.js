@@ -11,6 +11,20 @@ function hanldeDBClick(element) {
     input.focus()
 }
 
+function setValueInput() {
+    document.body.addEventListener('click', (event) => {
+        inputs = document.getElementsByClassName('input-stock')
+        if (inputs.length > 0) {
+            inputs = document.getElementsByClassName('input-stock')
+            if ( ! event.target.contains(input)) {
+                elements = Array.from(inputs)
+                console.log('inputs')
+                entryValue(elements)
+            }
+        }
+    })
+}
+
 const observer = new MutationObserver(mutationCallback);
 const option = {
     childList: true,
@@ -21,26 +35,32 @@ observer.observe(target, option);
 
 
 function mutationCallback() {
-    const inputElements = document.querySelectorAll('input'); // Select all 'input' elements
+    const inputElements = document.querySelectorAll('input');
     inputElements.forEach((element) => {
         element.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
-                console.log(element.value != '')
-                cel = element.parentNode.parentNode
-                if (!element.value.includes(".") && (element.value != '')) {
-                    cel.removeChild(element.parentNode)
-                    cel.innerText = parseInt(element.value)
-                } else {
-                    if (!document.getElementById('errormessage')) {
-                        errorMessage = document.createElement('p')
-                        errorMessage.id = 'errormessage'
-                        errorMessage.innerText = "El valor ingresado no es correcto"
-                        errorMessage.classList.add('error-message')
-                        cel.appendChild(errorMessage)
-                    }
-                }
+                entryValue([element])
             }
         });
+    })
+}
+
+function entryValue(elements) {
+    console.log(elements)
+    elements.forEach((element) => {
+        cel = element.parentNode.parentNode
+        if (!element.value.includes(".") && (element.value != '')) {
+            cel.removeChild(element.parentNode)
+            cel.innerText = parseInt(element.value)
+        } else {
+            if (!document.getElementById('errormessage')) {
+                errorMessage = document.createElement('p')
+                errorMessage.id = 'errormessage'
+                errorMessage.innerText = "El valor ingresado no es correcto"
+                errorMessage.classList.add('error-message')
+                cel.appendChild(errorMessage)
+            }
+        }
     })
 }
 
@@ -50,6 +70,7 @@ function get_inventory() {
         element.addEventListener('click', function (event) {
             event.preventDefault()
             console.log(element.id)
+            show_loading()
             $.ajax({
                 url: 'get_inventory',
                 type: 'POST',
@@ -99,11 +120,10 @@ function set_inventory() {
     linksElements.forEach((element) => {
         element.addEventListener('click', function (event) {
             event.preventDefault()
-            searchValue = document.querySelector('input[type="search"]').value;
-            localStorage.setItem('searchValue', searchValue)
             stockToSet = element.parentNode.parentNode.parentNode.getElementsByClassName('stock-to-set')[0].innerText
             sku = element.parentNode.parentNode.parentNode.getElementsByClassName('sku')[0].innerText
             id = element.parentNode.parentNode.id
+            show_loading()
             $.ajax({
                 url: 'set_inventory',
                 type: 'POST',
@@ -152,6 +172,7 @@ function set_inventory() {
 document.addEventListener('DOMContentLoaded', (event) => {
     get_inventory()
     set_inventory()
+    setValueInput()
 })
 
 
@@ -170,3 +191,13 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+function show_loading(){
+    Swal.fire({
+        icon: 'info',
+        title: 'Cargando',
+        text: 'Por favor espera...',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+    })
+  }
