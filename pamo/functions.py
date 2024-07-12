@@ -34,8 +34,7 @@ def update_products_db(df):
 def create_file_products():
     products =  pd.DataFrame(list(Products.objects.all().values()))
     products_sodimac = pd.DataFrame(list(ProductsSodimac.objects.all().values()))
-    products_sodimac = products_sodimac.loc[((products_sodimac['RF_pamo'] != '') | products_sodimac['RF_pamo'].notna()) & (products_sodimac['Indicador'] != 'KIT'), ['SKU', 'RF_pamo']]
-    products_mg= products.merge(products_sodimac[['SKU', 'RF_pamo']], how='left', left_on= 'sku', right_on = 'RF_pamo')
+    products_mg= products.merge(products_sodimac[['sku_sodimac', 'sku_pamo']], how='left', left_on= 'sku', right_on = 'sku_pamo')
     products_mg.drop_duplicates('id', inplace= True)
     products_mg.fillna(0.0, inplace = True)
     return  products_mg

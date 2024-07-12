@@ -1,0 +1,36 @@
+{% extends 'index.html' %}
+
+{% block title %}
+  Actualización de productos
+{% endblock %}
+
+{% block page_name %}
+  Productos
+{% endblock %}
+
+{% block subpage_name %}
+  Actualización de productos
+{% endblock %}
+
+{% block name_now %}
+  Actualización de productos
+{% endblock %}
+
+{% block content %}
+  {% load static %}
+  {% load utils %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" />
+  <h1 class="container text-center space">Cargar un archivo</h1>
+  <div class="card p-1">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mt-5 container">{{ form.file }}</div>
+      <div class="container d-flex justify-content-center">
+        <a href="/products/download/4" id = 'download-template'><button class="btn btn-secondary btn-upload mx-4">Descagrar plantilla</button></a>
+        <button type="submit" id='upload-file' class="btn btn-success mx-2" style="width: auto">Cargar archivo</button>
+      </div>
+    </form>
+  </div>
+  <script src="{% static 'js/sincronizacion_sodimac.js' %}"></script>
+  <script src="{% static 'js/functions.js' %}"></script>
+{% endblock %}

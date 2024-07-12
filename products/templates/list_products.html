@@ -25,7 +25,7 @@ Listado de productos
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/functions.js' %}"></script>
 <div class = "card"> 
-      <table class="table table-striped" id="cotizaciones">
+      <table class="table table-striped dataTable" id="cotizaciones">
         <thead >
           <tr >  
             <th scope="col" class = 'h4 text-center'>ID</th>
@@ -83,8 +83,8 @@ Listado de productos
                 Sin información
                 {% endif %} 
             </td>
-            <td>{% if  i.SKU %}
-              <a href = 'https://www.homecenter.com.co/homecenter-co/product/{{i.SKU}}' target="_blank">{{i.SKU}}
+            <td>{% if  i.sku_sodimac %}
+              <a href = 'https://www.homecenter.com.co/homecenter-co/product/{{i.sku_sodimac}}' target="_blank">{{i.sku_sodimac}}
               {% else %}
                 Sin informacion
               {% endif %} 

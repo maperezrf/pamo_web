@@ -7,12 +7,9 @@ from pamo.queries import *
 from pamo.constants import COLUMNS_SHOPI
 from pamo.conecctions_shopify import ConnectionsShopify
 import time
-from products.forms import fileForm, comparationForm
+from products.forms import fileForm
 import pandas as pd
 from pamo.core_df import CoreDf
-from pamo.conecctions_shopify import ConnectionsShopify
-import numpy as np
-from unidecode import unidecode
 from django.contrib.auth.decorators import login_required
 from pamo.functions import update_products_db, create_file_products
 from openpyxl import Workbook
@@ -20,9 +17,6 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font
 from datetime import datetime
 from pamo import settings
-from functools import reduce
-from django.template import loader
-from django.http import FileResponse
 import os
 pd.options.display.max_columns= 500
 
@@ -279,10 +273,13 @@ def download_report(request, process):
         name = 'review_report.xlsx'
     elif process == 2:
         name = 'final_review.xlsx'
+    elif process == 3:
+        name = 'plantilla cargue stock sodimac.xlsx'
     file_path = os.path.join(settings.MEDIA_ROOT, name)
     with open(file_path, 'rb') as excel_file:
                 response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = f'attachment; filename="{name}"'
-    os.remove(file_path)
+    if process != 3:
+        os.remove(file_path)
     print(f'*** finaliza descarga de informes de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return response

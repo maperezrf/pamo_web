@@ -1,0 +1,58 @@
+{% extends 'index.html' %}
+
+{% block title %}
+  Automatizaciones
+{% endblock %}
+
+{% block page_name %}
+  Automatizaciones
+{% endblock %}
+
+{% block subpage_name %}
+  Sodimac
+{% endblock %}
+
+{% block name_now %}
+  Cargar ordenes
+{% endblock %}
+
+{% block content %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/bots.css' %}" />
+  <script src="{% static 'js/bots.js' %}"></script>
+  <a href="#">
+    <div class="container-fluid">
+      <div class="card card-get">
+        <div class="card-body text-center">
+          <h3>Cargar ordenes Sodimac</h3>
+          <a href="sodimac"><button class="btn btn-success text-center">Importar ordenes</button></a>
+        </div>
+      </div>
+    </div>
+  </a>
+  <div class="container-fluid pt-3">
+    <div class="card card-get">
+      <div class="card-body text-center">
+        <h3>Historial ejecución</h3>
+        <div data-spy="scroll">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Resultado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in logs %}
+                <tr>
+                  <th>{{ log.date }}</th>
+                  <td>{{ log.log }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

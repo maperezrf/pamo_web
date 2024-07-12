@@ -16,6 +16,7 @@ class Products(models.Model):
     costo = models.FloatField(null=True, blank=True, default=0)
     margen_comparacion_db = models.FloatField(null=True, blank=True, default=0)
 
+
     def __str__(self) -> str:
         return self.title
     

@@ -36,3 +36,25 @@
     width: 50%;
     height: auto;
 }
+.input-stock{
+    border: solid 1px;
+    width: 80px !important;
+    padding: 3px;
+}
+.input-stock:focus{
+    border: solid 1px;
+}
+.error-message{
+    color: red;
+    
+}
+.btn-upload{
+    width: auto !important;
+}
+.img{
+    width: 20px;
+    transition: width 0.1s ease; 
+}
+.img:hover{
+    width: 25px;
+}

@@ -1,0 +1,111 @@
+{% extends 'index.html' %}
+
+{% block title %}
+  Automatizaciones
+{% endblock %}
+
+{% block page_name %}
+  Automatizaciones
+{% endblock %}
+
+{% block subpage_name %}
+  Sodimac
+{% endblock %}
+
+{% block name_now %}
+  Gestion base de datos
+{% endblock %}
+
+{% block content %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}" />
+  <h1 class="container text-center space">Sodimac</h1>
+
+  <div class="card">
+    <div class="table">
+      <table class="table table-striped dataTable" id="dbSodimac">
+        <thead>
+          <tr>
+            <th scope="col" class="h4 text-center">SKU Sodimac</th>
+            <th scope="col" class="h5 text-center column-1">SKU shopify</th>
+            <th scope="col" class="h5 text-center column-1">EAN</th>
+            <th scope="col" class="h5 text-center">Stock base</th>
+            <th scope="col" class="h5 text-center">Stock api</th>
+            <th scope="col" class="h5 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in table %}
+            <tr>
+              <td class="celda text-center sku">
+                <a href="https://www.homecenter.com.co/homecenter-co/product/{{ i.sku_sodimac }}" target="_blank">{{ i.sku_sodimac }}</a>
+              </td>
+              <td class="celda text-center">{{ i.sku_pamo }}</td>
+              <td class="celda text-center">{{ i.ean }}</td>
+              <td class="celda text-center stock-to-set" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
+              <td class="celda text-center">{{ i.stock_sodi }}</td>
+              <td id="{{ i.ean }}">
+                <a href="#"><img class="img mx-1 get-inventory-link" src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
+                <a href="#"><img class="img mx-1 set-inventory-link" src=" {% static 'images\cargar.png' %}" alt="" /></a>
+                {% comment %} <a href="#"><img class="img mx-1 delete-inventory-link" src=" {% static 'images\eliminar.png' %}" alt="" /></a> {% endcomment %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="container d-flex justify-content-center">
+      <a href="#" id = 'update-base'><button class="btn btn-success btn-upload mx-4">Actualizar base</button></a>
+      <a href="/pamo_bots/upload"><button class="btn btn-info btn-upload mx-4">Cargar plantilla</button></a>
+    </div>
+  </div>
+  <script src="{% static 'js/manager_database.js' %}"></script>
+  <script src="{% static 'js/functions.js' %}"></script>
+
+  <script>
+    let dataTable
+    let dataTableIsInitialized = false
+    
+    const dataTableOptions = {
+      pageLength: 25,
+      destroy: true,
+      order: [[0, 'desc']],
+      columnDefs: [{ className: 'text-center', targets: [0, 1, 2, 3, 4, 5] }],
+      language: {
+        sProcessing: 'Procesando...',
+        sLengthMenu: 'Mostrar _MENU_ registros por página',
+        sZeroRecords: 'No se encontraron resultados',
+        sEmptyTable: 'Ningún dato disponible en esta tabla',
+        sInfo: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+        sInfoEmpty: 'Mostrando 0 a 0 de 0 registros',
+        sInfoFiltered: '(filtrado de _MAX_ registros en total)',
+        sInfoPostFix: '',
+        sSearch: 'Buscar:',
+        sUrl: '',
+        sInfoThousands: ',',
+        sLoadingRecords: 'Cargando...',
+        oPaginate: {
+          sFirst: 'Primero',
+          sLast: 'Último',
+          sNext: '>>',
+          sPrevious: '<<'
+        }
+      },
+      scrollX: true, // Activa el desplazamiento horizontal
+      fixedHeader: true // Fija los encabezados mientras se desplaza
+    }
+    
+    const initDataTable = async () => {
+      if (dataTableIsInitialized) {
+        dataTable.destroy()
+      }
+      dataTable = $('#dbSodimac').DataTable(dataTableOptions)
+      dataTableIsInitialized = true
+    }
+    
+    window.addEventListener('load', async () => {
+      await initDataTable()
+    })
+  </script>
+{% endblock %}
