@@ -46,9 +46,8 @@
               <td class="celda text-center stock-to-set" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
               <td class="celda text-center">{{ i.stock_sodi }}</td>
               <td id="{{ i.ean }}">
-                <a href="#"><img class="img mx-1 get-inventory-link" src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
-                <a href="#"><img class="img mx-1 set-inventory-link" src=" {% static 'images\cargar.png' %}" alt="" /></a>
-                {% comment %} <a href="#"><img class="img mx-1 delete-inventory-link" src=" {% static 'images\eliminar.png' %}" alt="" /></a> {% endcomment %}
+                <a><img class="img mx-1 get-inventory-link" src="{% static 'images/cargar.png' %}" alt="Not found" /></a>
+                <a><img class="img mx-1 set-inventory-link" src="{% static 'images/sincronizar.png' %}" alt="Not found" /></a>
               </td>
             </tr>
           {% endfor %}
@@ -56,7 +55,7 @@
       </table>
     </div>
     <div class="container d-flex justify-content-center">
-      <a href="#" id = 'update-base'><button class="btn btn-success btn-upload mx-4">Actualizar base</button></a>
+      <a href="#" id="update-base"><button class="btn btn-success btn-upload mx-4">Actualizar base</button></a>
       <a href="/pamo_bots/upload"><button class="btn btn-info btn-upload mx-4">Cargar plantilla</button></a>
     </div>
   </div>

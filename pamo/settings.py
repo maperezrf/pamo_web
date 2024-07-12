@@ -64,7 +64,7 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, "pamo" ,"templates"),
                 os.path.join(BASE_DIR, "quote_print", "templates"),
                 os.path.join(BASE_DIR, "products", "templates"),
-                os.path.join(BASE_DIR, "products", "pamo_bots")],
+                os.path.join(BASE_DIR, "pamo_bots", "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -79,6 +79,7 @@ TEMPLATES = [
         },
     },
 ]
+print(os.path.join(BASE_DIR, "pamo_bots", "templates"))
 
 WSGI_APPLICATION = 'pamo.wsgi.application'
 
