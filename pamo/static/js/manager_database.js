@@ -16,7 +16,7 @@ function setValueInput() {
         inputs = document.getElementsByClassName('input-stock')
         if (inputs.length > 0) {
             inputs = document.getElementsByClassName('input-stock')
-            if ( ! event.target.contains(input)) {
+            if (!event.target.contains(input)) {
                 elements = Array.from(inputs)
                 console.log('inputs')
                 entryValue(elements)
@@ -82,7 +82,6 @@ function get_inventory() {
                 },
                 success: function (response) {
                     if (response.success) {
-                        console.log(response.message)
                         Swal.fire({
                             icon: "success",
                             title: 'Proceso Exitoso',
@@ -96,7 +95,6 @@ function get_inventory() {
                         }, 2000);
                     }
                     else {
-                        console.log(response.message)
                         Swal.fire({
                             icon: "error",
                             title: 'Error',
@@ -135,7 +133,6 @@ function set_inventory() {
                 },
                 success: function (response) {
                     if (response.success) {
-                        console.log(response.message)
                         Swal.fire({
                             icon: "success",
                             title: 'Proceso Exitoso',
@@ -149,7 +146,6 @@ function set_inventory() {
                         }, 2000);
                     }
                     else {
-                        console.log(response.message)
                         Swal.fire({
                             icon: "error",
                             title: 'Error',
@@ -168,13 +164,50 @@ function set_inventory() {
     })
 }
 
+function get_inventory_total() {
+    document.getElementById('update-base').addEventListener('click', function (event) {
+        event.preventDefault()
+        show_loading()
+        $.ajax({
+            url: 'update_base',
+            type: 'GET',
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')  // Incluye el token CSRF en la solicitud
+            }, success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: 'Proceso Exitoso',
+                        text: response.message,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        timer: 2000
+                    })
+                    setTimeout(function () {
+                        location.reload();
+                    }, 2000);
+                    location.href= "/products/download/2";
+                }
+                else {
+                    Swal.fire({
+                        icon: "error",
+                        title: 'Error',
+                        text: response.message,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        timer: 2000
+                    })
+                }
+            },
+            error: function (response) {
+                console.log(response)
+            }
 
-document.addEventListener('DOMContentLoaded', (event) => {
-    get_inventory()
-    set_inventory()
-    setValueInput()
-})
-
+        })
+    })
+}
 
 function getCookie(name) {
     let cookieValue = null;
@@ -192,7 +225,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function show_loading(){
+function show_loading() {
     Swal.fire({
         icon: 'info',
         title: 'Cargando',
@@ -200,4 +233,11 @@ function show_loading(){
         showConfirmButton: false,
         allowOutsideClick: false,
     })
-  }
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    get_inventory()
+    set_inventory()
+    setValueInput()
+    get_inventory_total()
+})

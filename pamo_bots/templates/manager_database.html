@@ -38,25 +38,26 @@
         <tbody>
           {% for i in table %}
             <tr>
-              <td class="celda text-center sku">{{ i.SKU }}</td>
-              <td class="celda text-center">{{ i.RF_pamo }}</td>
-              <td class="celda text-center">
-                  {{ i.cod_barras }}
+              <td class="celda text-center sku">
+                <a href="https://www.homecenter.com.co/homecenter-co/product/{{ i.sku_sodimac }}" target="_blank">{{ i.sku_sodimac }}</a>
               </td>
+              <td class="celda text-center">{{ i.sku_pamo }}</td>
+              <td class="celda text-center">{{ i.ean }}</td>
               <td class="celda text-center stock-to-set" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
               <td class="celda text-center">{{ i.stock_sodi }}</td>
-              <td id="{{ i.cod_barras }}">
-                  <a href="#"><img class="img mx-1 get-inventory-link"   src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
-                  <a href="#"><img class="img mx-1 set-inventory-link" src=" {% static 'images\cargar.png' %}" alt="" /></a>
-                  <a href="#"><img class="img mx-1 delete-inventory-link" src=" {% static 'images\eliminar.png' %}" alt="" /></a>
+              <td id="{{ i.ean }}">
+                <a href="#"><img class="img mx-1 get-inventory-link" src=" {% static 'images\sincronizar.png' %}" alt="" /></a>
+                <a href="#"><img class="img mx-1 set-inventory-link" src=" {% static 'images\cargar.png' %}" alt="" /></a>
+                {% comment %} <a href="#"><img class="img mx-1 delete-inventory-link" src=" {% static 'images\eliminar.png' %}" alt="" /></a> {% endcomment %}
               </td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <div class="container">
-      <a href="/pamo_bots/set_inventario"><button class="btn btn-info btn-upload">Cargar plantilla</button></a>
+    <div class="container d-flex justify-content-center">
+      <a href="#" id = 'update-base'><button class="btn btn-success btn-upload mx-4">Actualizar base</button></a>
+      <a href="/pamo_bots/upload"><button class="btn btn-info btn-upload mx-4">Cargar plantilla</button></a>
     </div>
   </div>
   <script src="{% static 'js/manager_database.js' %}"></script>

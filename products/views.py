@@ -273,10 +273,13 @@ def download_report(request, process):
         name = 'review_report.xlsx'
     elif process == 2:
         name = 'final_review.xlsx'
+    elif process == 3:
+        name = 'plantilla cargue stock sodimac.xlsx'
     file_path = os.path.join(settings.MEDIA_ROOT, name)
     with open(file_path, 'rb') as excel_file:
                 response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                 response['Content-Disposition'] = f'attachment; filename="{name}"'
-    os.remove(file_path)
+    if process != 3:
+        os.remove(file_path)
     print(f'*** finaliza descarga de informes de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return response

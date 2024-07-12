@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.connections_sodimac import ConnectionsSodimac
+from django.conf import settings
 from datetime import datetime
 from pamo.functions import create_file_products
 from products.forms import fileForm
@@ -9,7 +10,7 @@ from pamo_bots.models import LogBotOrders, ProductsSodimac
 import pandas as pd
 from pamo_bots.core_df import Core
 import json
-
+import os
 
 def sodimac_view(request):
     return render(request, 'sodimac_view.html', context={})
@@ -69,11 +70,6 @@ def create_orders(request):
         log_item.save()
         return redirect('pamo_bots:get_orders')
 
-# 1. Generar vista para traer toda la información de sodimac vinculado con shopify.
-# 2. Generar vista para traer el stock de sodimac, y actualizar base de datos
-# 3. Generar vista para setear datos de stock utilizar api
-# 4. Generar vista para cargar archivo excel, actualizar el inventario y base de datos
-
 def set_inventory(request):
     # se recibe un archivo en excel, actualiza los registros que se encuentran en la base y los que no los crea 
     if request.method == 'GET':
@@ -88,7 +84,15 @@ def set_inventory(request):
             core = Core()
             core.set_df(file)
             core.process()
-            return redirect('pamo_bots:manager_database')
+            products, df = core.get_products()
+            sodi = ConnectionsSodimac()
+            response_get = sodi.get_inventario([i.ean for i in products])
+            save_review(response_get)
+            df_resposne = pd.DataFrame(response_get)
+            df_resposne = df_resposne.loc[df_resposne['success'] == True]
+            df = df_resposne.merge(df, how='left', on ='ean')
+            # sodi.set_inventory(df)
+            return JsonResponse({'success' :True, 'message' :''})
         else: 
             print(form_1.errors)
             print(f'*** error en seteo de archivo actualizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
@@ -96,9 +100,9 @@ def set_inventory(request):
 def get_inventory_view(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        list_products = data.get('products')
+        ean_list = data.get('products')
         sodi = ConnectionsSodimac()
-        return JsonResponse(sodi.get_inventaio(list_products))
+        return JsonResponse(sodi.get_inventario(ean_list)[0])
 
 def set_inventory_view(request):
     if request.method == "POST":
@@ -106,7 +110,7 @@ def set_inventory_view(request):
         sku = data.get('sku')
         product = data.get('product')
         stock = data.get('stock')
-        columnas = ["sku", "codigo_barras", "stock_sodimac"]
+        columnas = ["sku", "ean", "stock"]
         data = [[sku, product, stock]]
         df = pd.DataFrame(data, columns=columnas)
         sodi = ConnectionsSodimac()
@@ -114,3 +118,19 @@ def set_inventory_view(request):
         core = Core()
         core.update_database_item(sku, product, stock)
         return  JsonResponse(data)
+
+def update_base(request):
+    products = ProductsSodimac.objects.all()
+    list_ean = [i.ean for i in products]
+    sodi = ConnectionsSodimac()
+    response = sodi.get_inventario(list_ean)
+    save_review(response)
+    return JsonResponse({'success':True, 'message': ''})
+
+def save_review(response):
+    products = ProductsSodimac.objects.all()
+    products = pd.DataFrame(products.values())
+    df = pd.DataFrame(response)
+    df = df.merge(products, how= 'left', on = ['ean'] )
+    df = df[['sku_sodimac', 'sku_pamo', 'ean', 'message']]
+    df.to_excel(os.path.join(settings.MEDIA_ROOT, 'final_review.xlsx'),index=False)

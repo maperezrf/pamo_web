@@ -24,9 +24,13 @@
   <div class="card p-1">
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      <div class="mt-5">{{ form.file }}</div>
-      <button type="submit" class="btn btn-success" style="width: auto">Cargar</button>
+      <div class="mt-5 container">{{ form.file }}</div>
+      <div class="container d-flex justify-content-center">
+        <a href="/products/download/4" id = 'download-template'><button class="btn btn-secondary btn-upload mx-4">Descagrar plantilla</button></a>
+        <button type="submit" id='upload-file' class="btn btn-success mx-2" style="width: auto">Cargar archivo</button>
+      </div>
     </form>
-    <button class="btn btn-warning btn-upload mt-1">Descargar plantilla</button>
   </div>
+  <script src="{% static 'js/sincronizacion_sodimac.js' %}"></script>
+  <script src="{% static 'js/functions.js' %}"></script>
 {% endblock %}

@@ -36,8 +36,8 @@ class ConnectionsSodimac():
         skus_objects = ProductsSodimac.objects.all()
         skus =  pd.DataFrame(list(skus_objects.values()))
         self.orders['SKU'] = self.orders['SKU'].apply(lambda x:x.strip())
-        self.orders = self.orders.merge(skus, how='left', on='SKU')
-        self.orders.loc[self.orders['RF_pamo'].notna(), 'SKU'] =  self.orders.loc[self.orders['RF_pamo'].notna(), 'RF_pamo']
+        self.orders = self.orders.merge(skus, how='left', left_on='SKU', right_on='sku_sodimac')
+        self.orders.loc[self.orders['sku_pamo'].notna(), 'SKU'] =  self.orders.loc[self.orders['sku_pamo'].notna(), 'sku_pamo']
     
     def get_orders(self):
         return self.orders
@@ -66,7 +66,6 @@ class ConnectionsSodimac():
             response_get_inventory = self.request_inventory_api(i['ean'])
             if len(response_get_inventory) > 0 :
                 response = requests.post(URL_SET_INVENTARIO, headers = self.headers, json=i).json()
-                print(response)
                 data = {'success':True, "message":"Actializacion exitosa"}
             else:
                 data = {'success':False, "message":"No se encontró ningun producto con el Ean proporcionado"}
@@ -77,29 +76,31 @@ class ConnectionsSodimac():
         for i in range(df.shape[0]):
             dic = {}
             dic["proveedor"] = REFERENCIA_FPRN
-            dic["ean"] = df.iloc[i].codigo_barras
-            dic["inventarioDispo"] = df.iloc[i].stock_sodimac
+            dic["ean"] = df.iloc[i].ean
+            dic["inventarioDispo"] = df.iloc[i].stock
             dic["stockMinimo"] = 0
             dic["canal"] = "Bogota"
             dic["usuario"] = "Bot"
             data_list.append(dic)
         return data_list
 
-    def get_inventaio(self, products):
-        for i in products:
-            print('consultando inventario')
+    def get_inventario(self, ean_list):
+        responses_list = []
+        for i in ean_list:
             response = self.request_inventory_api(i)
+            print(i)
             if len(response) == 0:
-                data = {'success':False, "message":"No se encontró ningun producto con el Ean proporcionado"}
+                responses_list.append({'success':False, 'ean': i, "message":"No se encontró ningun producto con el Ean proporcionado" })
             else:
-                item = ProductsSodimac.objects.get(cod_barras = i)
+                item = ProductsSodimac.objects.get(ean = i)
                 item.stock = response[0]['EXISTENCIA']
                 item.stock_sodi = item.stock
-                print(response)
-                print('guardando...')
                 item.save()
-                data = {'success':True, "message":"Se actualizo correctamente el stock en la base de datos"}
-            return data
+                responses_list.append({'success':True, 'ean': i, "message":"Se actualizo correctamente el stock en la base de datos" })
+        return responses_list
+    
+    def get_multiple_inventory(self, products):
+        pass
     
     def request_inventory_api(self, ean):
             data = {
