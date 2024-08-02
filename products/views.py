@@ -237,8 +237,8 @@ def export_products(request):
     df = create_file_products()
     df.replace(0,"Sin información", inplace = True)
     df.fillna("Sin información", inplace = True)
-    df = df[['id', 'title', 'tags', 'vendor', 'status', 'price', 'compareAtPrice', 'sku', 'barcode', 'inventoryQuantity', 'margen', 'costo', 'margen_comparacion_db', 'SKU']]
-    df.rename(columns = {'title':'titulo', 'vendor':'proveedor', 'status':'estado publicacion', 'price':'precio', 'compareAtPrice': 'precio comparación', 'barcode':'Codigo de barras', 'inventoryQuantity':'stock','SKU':'sodimac'}, inplace=True)
+    df = df[['id', 'title', 'tags', 'vendor', 'status', 'price', 'compareAtPrice', 'sku', 'barcode', 'inventoryQuantity', 'margen', 'costo', 'margen_comparacion_db', 'sku_sodimac']]
+    df.rename(columns = {'title':'titulo', 'vendor':'proveedor', 'status':'estado publicacion', 'price':'precio', 'compareAtPrice': 'precio comparación', 'barcode':'Codigo de barras', 'inventoryQuantity':'stock','sku_sodimac':'sodimac'}, inplace=True)
     folder = settings.MEDIA_ROOT
     file = f'products_{current_time}.xlsx'
 
