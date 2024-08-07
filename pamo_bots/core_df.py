@@ -45,5 +45,4 @@ class Core () :
         item = ProductsSodimac.objects.get(sku_sodimac = sku)
         item.ean = ean
         item.stock = stock
-        item.stock_sodi = stock
         item.save()

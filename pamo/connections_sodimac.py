@@ -66,7 +66,8 @@ class ConnectionsSodimac():
         for i in data:
             response_get_inventory = self.request_inventory_api(i['ean'])
             if len(response_get_inventory) > 0 :
-                response = requests.post(URL_SET_INVENTARIO, headers = self.headers, json=i).json()
+                response = requests.post(URL_SET_INVENTARIO, headers = self.headers, json=[i]).json()
+                print(response)
                 data = {'success':True, "message":"Actializacion exitosa"}
             else:
                 data = {'success':False, "message":"No se encontró ningun producto con el Ean proporcionado"}
@@ -89,13 +90,12 @@ class ConnectionsSodimac():
         responses_list = []
         for i in ean_list:
             response = self.request_inventory_api(i)
-            print(i)
+            print(response)
             if len(response) == 0:
                 responses_list.append({'success':False, 'ean': i, "message":"No se encontró ningun producto con el Ean proporcionado" })
             else:
                 item = ProductsSodimac.objects.get(ean = i)
-                item.stock = response[0]['EXISTENCIA']
-                item.stock_sodi = item.stock
+                item.stock_sodi = response[0]['EXISTENCIA']
                 item.save()
                 responses_list.append({'success':True, 'ean': i, "message":"Se actualizo correctamente el stock en la base de datos" })
         return responses_list

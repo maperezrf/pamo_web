@@ -46,8 +46,8 @@
               <td class="celda text-center stock-to-set" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
               <td class="celda text-center">{{ i.stock_sodi }}</td>
               <td id="{{ i.ean }}">
-                <a><img class="img mx-1 get-inventory-link" src="{% static 'images/cargar.png' %}" alt="Not found" /></a>
-                <a><img class="img mx-1 set-inventory-link" src="{% static 'images/sincronizar.png' %}" alt="Not found" /></a>
+                <a><img class="img mx-1 set-inventory-link" src="{% static 'images/cargar.png' %}" alt="Not found" /></a>
+                <a><img class="img mx-1 get-inventory-link" src="{% static 'images/sincronizar.png' %}" alt="Not found" /></a>
               </td>
             </tr>
           {% endfor %}
