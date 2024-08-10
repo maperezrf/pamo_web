@@ -12,6 +12,11 @@ import re
 
 
 def list(request):
+    try:
+        code = request.GET.get('code')
+        print(code)
+    except:
+        pass
     print(f'*** inicia lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     last_element = Quote.objects.latest('id')
     end_cursor = last_element.cursor
