@@ -1,6 +1,7 @@
 import pandas as pd
 from pamo.constants import COLUMNS_SHOPI
 from unidecode import unidecode
+import ast
 
 class CoreDf():
 
@@ -126,10 +127,11 @@ class CoreDf():
     
     def set_costo(self, df):
         if "precio" not in self.df_rev.columns:
-            self.df_rev['precio'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_db']))
+            # self.df_rev['precio'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_db']))
+            self.df_rev['precio'] = self.df_rev['price']
         if "precio_comparacion" not in self.df_rev.columns:
-            self.df_rev['precio_comparacion'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_comparacion_db']))
-    
+            # self.df_rev['precio_comparacion'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_comparacion_db']))
+            self.df_rev['precio_comparacion'] = self.df_rev['compareatprice']
     def set_variables(self):
         variables = []
         self.df_rev = self.df_rev.loc[self.df_rev['id_products'] != 'nan'].reset_index(drop=True)
@@ -152,7 +154,7 @@ class CoreDf():
                 pass
             try:
                 tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
-                tags_shopi = self.df_rev.loc[i]['tags_shopi']
+                tags_shopi = ast.literal_eval(self.df_rev.loc[i]['tags_shopi'])
                 tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
                 tags_shopi.extend(tags_new)
                 product['tags'] = tags_shopi

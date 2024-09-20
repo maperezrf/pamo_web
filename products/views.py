@@ -156,6 +156,8 @@ def review_updates(request):
             'sku' : products.values_list('sku', flat=True),
             'margen_db' : products.values_list('margen', flat=True),
             'costo_db' : products.values_list('costo', flat=True),
+            'price' : products.values_list('price', flat=True),
+            'compareAtPrice' : products.values_list('compareAtPrice', flat=True),
             'margen_comparacion_db' : products.values_list('margen_comparacion_db', flat=True),
             }
         df_base = pd.DataFrame(data).reset_index(drop=True)
