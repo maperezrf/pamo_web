@@ -42,8 +42,8 @@ def create_orders(request):
             print(orders)
             print('creando ordenes')
             orders_created = shopi.create_orders()
-            success_len = len(orders_created['success']) 
-            error_len = len(orders_created['error']) 
+            success_len = len(orders_created['success'])
+            error_len = len(orders_created['error'])
             print('Se ejecuto shopy satisfactoriamente')
             descripcion_error=''
             descripcion_success=''

@@ -178,9 +178,7 @@ def review_updates(request):
 def update_products(request):
     print(f'*** inicia actualizacion de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     try:
-        # df_rev = cdf.get_df_mer()
-        df_rev = pd.read_excel(os.path.join(settings.MEDIA_ROOT, 'temp_upload.xlsx'))
-        cdf.df_rev = df_rev
+        df_rev = cdf.get_df_mer()
         df = update_products_db(df_rev.reset_index(drop=True))
         cdf.set_costo(df)
         shopi = ConnectionsShopify() 

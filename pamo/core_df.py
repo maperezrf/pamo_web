@@ -126,12 +126,13 @@ class CoreDf():
         return self.df_rev
     
     def set_costo(self, df):
-        if "precio" not in self.df_rev.columns:
-            # self.df_rev['precio'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_db']))
-            self.df_rev['precio'] = self.df_rev['price']
-        if "precio_comparacion" not in self.df_rev.columns:
-            # self.df_rev['precio_comparacion'] = pd.to_numeric(df['costo_db'])/ (1- pd.to_numeric(df['margen_comparacion_db']))
-            self.df_rev['precio_comparacion'] = self.df_rev['compareatprice']
+        # if "precio" not in self.df_rev.columns:
+        self.df_rev['precio'] = df['precio']
+        # self.df_rev['precio'] = self.df_rev['price']
+        # if "precio_comparacion" not in self.df_rev.columns:
+        self.df_rev['precio_comparacion'] = df['precio_comparacion'] 
+        # self.df_rev['precio_comparacion'] = self.df_rev['compareatprice']
+
     def set_variables(self):
         variables = []
         self.df_rev = self.df_rev.loc[self.df_rev['id_products'] != 'nan'].reset_index(drop=True)

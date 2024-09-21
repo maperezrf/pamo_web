@@ -19,14 +19,14 @@ def update_products_db(df):
                 element.margen = df.loc[i,'margen'] if 'margen' in df.columns else float(element.margen)
                 element.costo = df.loc[i,'costo'] if 'costo' in df.columns else float(element.costo)
                 element.margen_comparacion_db = df.loc[i,'margen_comparacion'] if 'margen_comparacion' in df.columns else element.margen_comparacion_db
+                element.price = int(element.costo)/(1-float(element.margen))
+                element.compareAtPrice = int(element.costo)/(1-float(element.margen_comparacion_db))
                 element.save()
-                df.loc[i,'margen_db'] = float(element.margen)
-                df.loc[i,'costo_db'] = float(element.costo)
-                df.loc[i,'margen_comparacion_db'] = float(element.margen_comparacion_db)
+                df.loc[i,'precio'] = float(element.price)
+                df.loc[i,'precio_comparacion'] = float(element.compareAtPrice)
             except Exception as e:
-                df.loc[i,'margen_db'] = 0
-                df.loc[i,'costo_db'] = 0
-                df.loc[i,'margen_comparacion_db'] = 0
+                df.loc[i,'precio'] = float(element.price)
+                df.loc[i,'precio_comparacion'] = float(element.compareAtPrice)
                 print(f"{e} {df.loc[i,'id_products']} {df.loc[i,'sku_shopi']}")
     return df
 
