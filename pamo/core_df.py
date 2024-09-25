@@ -138,7 +138,7 @@ class CoreDf():
         self.df_rev = self.df_rev.loc[self.df_rev['id_products'] != 'nan'].reset_index(drop=True)
         for i in range(self.df_rev.shape[0]):
             variants = {'id':self.df_rev.loc[i]['id_variant']}
-            variants['sku'] = self.df_rev.loc[i]['sku_shopi']
+            # variants['sku'] = self.df_rev.loc[i]['sku_shopi']
             product = {'id':f"gid://shopify/Product/{self.df_rev.loc[i]['id_products']}"}
             inventory = {'inventoryLevelId':self.df_rev.loc[i]['inventorylevelsid']}
             try:
