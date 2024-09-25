@@ -11,7 +11,7 @@ def make_json(res):
     return(res)
 
 def update_products_db(df):
-    for i in range(df.shape[0]):
+    for i in range(df.shape[0]):          
         sku_to_search = df.loc[i,'id_products']
         if  sku_to_search != 'nan':
             try:
