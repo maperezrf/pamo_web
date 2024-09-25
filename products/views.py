@@ -201,6 +201,7 @@ def update_products(request):
                     inventory_hql = INVENTORY_ADJUST
                 query = UPDATE_QUERY.format(productInput = product_var, variantInput = variant_var, inventoryAdjustInput = inventory_var, productUpdateq = product_hql, productVariantUpdateq = variant_hql, inventoryAdjustQuantity = inventory_hql)
                 res = shopi.request_graphql(query, variable)
+                print(res)
                 for i in ['productUpdate', 'productVariantUpdate']:
                     try:
                         if (i in res.json()['data']):
@@ -220,7 +221,8 @@ def update_products(request):
                     cont +=1
                 else:
                     not_update.append(variable['variantInput']['sku'])
-            except:
+            except Exception as e:
+                print(e)
                 not_update.append(variable['variantInput']['sku'])
             data = {'success': True, 'element_success': cont,'not_successful':not_update}
         print(f'*** finaliza actualizacion de productos shopify{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
