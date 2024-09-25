@@ -201,7 +201,7 @@ def update_products(request):
                     inventory_hql = INVENTORY_ADJUST
                 query = UPDATE_QUERY.format(productInput = product_var, variantInput = variant_var, inventoryAdjustInput = inventory_var, productUpdateq = product_hql, productVariantUpdateq = variant_hql, inventoryAdjustQuantity = inventory_hql)
                 res = shopi.request_graphql(query, variable)
-                print(res)
+                print(res.json())
                 for i in ['productUpdate', 'productVariantUpdate']:
                     try:
                         if (i in res.json()['data']):
