@@ -79,12 +79,12 @@ class ConnectionsShopify():
                         "note": f"orden de compra: {oc}"
                     }
                 }
-                try:  
-                    response = requests.post(URL_CREATE_ORDERS, headers= self.headers_shopify, json = data)
-                    if response.status_code == 201:
-                        data_log['success'].append(oc)
-                except:
-                    data_log['error'].append(oc)
+            try:  
+                response = requests.post(URL_CREATE_ORDERS, headers= self.headers_shopify, json = data)
+                if response.status_code == 201:
+                    data_log['success'].append(oc)
+            except:
+                data_log['error'].append(oc)
         return data_log
     
     def get_orders(self):

@@ -15,7 +15,13 @@ def update_products_db(df):
         sku_to_search = df.loc[i,'id_products']
         if  sku_to_search != 'nan':
             try:
-                element = Products.objects.get(idShopi = df.loc[i,'id_products'], sku =  df.loc[i,'sku_shopi'])
+                element, create  = Products.objects.get_or_create(idShopi = df.loc[i,'id_products'], sku =  df.loc[i,'sku_shopi'])
+                if create:
+                    element.title = df.loc[i,'title_shopi']
+                    element.tags = df.loc[i,'tags_shopi']
+                    element.vendor = df.loc[i,'vendor_shopi']
+                    element.barcode = df.loc[i,'barcode_shopi']
+                    element.status = df.loc[i,'status_shopi']
                 element.margen = df.loc[i,'margen'] if 'margen' in df.columns else float(element.margen)
                 element.costo = df.loc[i,'costo'] if 'costo' in df.columns else float(element.costo)
                 element.margen_comparacion_db = df.loc[i,'margen_comparacion'] if 'margen_comparacion' in df.columns else element.margen_comparacion_db
@@ -29,7 +35,6 @@ def update_products_db(df):
                 df.loc[i,'precio_comparacion'] = float(element.compareAtPrice)
                 print(f"{e} {df.loc[i,'id_products']} {df.loc[i,'sku_shopi']}")
     return df
-
 
 def create_file_products():
     products =  pd.DataFrame(list(Products.objects.all().values()))
