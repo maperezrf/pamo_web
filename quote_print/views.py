@@ -42,7 +42,7 @@ def list(request):
         dic['cursor'] = cursor_new
         data_to_save = [Quote(**elemento) for elemento in data_list]
         Quote.objects.bulk_create(data_to_save)
-    data_table = Quote.objects.all()
+    data_table = Quote.objects.all().order_by('-id')[:500]
     data = {"table" :data_table, 'url_base':settings.BASE_URL}
     print(f'*** finaliza lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'table_draft_orders.html', data)
