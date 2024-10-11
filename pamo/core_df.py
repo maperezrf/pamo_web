@@ -155,7 +155,7 @@ class CoreDf():
                 pass
             try:
                 tags_archive= self.df_rev.loc[i]['tags'].strip(',').split(',')
-                tags_shopi = ast.literal_eval(self.df_rev.loc[i]['tags_shopi'])
+                tags_shopi = self.df_rev.loc[i]['tags_shopi']
                 tags_new = [i.upper() for i in [i.lower().strip() for i in tags_archive] if i not in [j.lower().strip() for j in tags_shopi ]]
                 tags_shopi.extend(tags_new)
                 product['tags'] = tags_shopi
