@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.connections_sodimac import ConnectionsSodimac
+from pamo.connections_melonn import connMelonn
 from django.conf import settings
 from datetime import datetime
 from pamo.functions import create_file_products
@@ -31,31 +32,25 @@ def create_orders(request):
         sodi = ConnectionsSodimac()
         data_log = {}
         data_log['error'] = False
+        descripcion_error = ''
         if sodi.get_orders_api():
             print('Haciendo cruces de SKUS')
             sodi.make_merge()
-            orders = sodi.get_orders()
-            shopi = ConnectionsShopify()
-            shopi.set_orders_df(orders)
-            shopi.get_variant_id()
-            orders = shopi.get_orders()
-            print(orders)
-            print('creando ordenes')
-            orders_created = shopi.create_orders()
-            success_len = len(orders_created['success'])
-            error_len = len(orders_created['error'])
-            print('Se ejecuto shopy satisfactoriamente')
-            descripcion_error=''
-            descripcion_success=''
-            if success_len > 0:
-                descripcion_success = f'ordenes generadas: {", ".join([f"{i}" for i in  orders_created["success"]])}'
-                print(f'ordenes generadas: {", ".join([f"{i}" for i in  orders_created["success"]])}')
-                print(f'se generaron {success_len} ordenes satisfactoria mente')
-            if error_len > 0:
-                 data_log['error'] = True
-                 descripcion_error = f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}'
-                 print(f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}')
-            print(f'*** debug termina bot sodimac {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+            df = sodi.get_orders()
+            orders_created = []
+            for i in df['ORDEN_COMPRA'].unique(): 
+                melonn = connMelonn()
+                orders = df.loc[df['ORDEN_COMPRA'] == i]
+                melonn.create_data(orders)
+                response = melonn.create_order()
+                if response['statusCode'] == 201:
+                    orders_created.append(orders['ORDEN_COMPRA'].unique()[0])
+                else:
+                    data_log['error'] = True
+                    descripcion_error = f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}'
+                    print(f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}')
+                print(f'*** debug termina bot sodimac {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+            descripcion_success = f'ordenes generadas: {", ".join([f"{i}" for i in orders_created])}'
             data_log['get_orders'] = True
             data_log['log'] = descripcion_error + ' ' + descripcion_success
         else:
