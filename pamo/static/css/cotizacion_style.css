@@ -122,10 +122,12 @@ th {
     display: flex;
     margin-right: 81px;
 }
-
+.font-weight-bold{
+    font-weight: 700;
+}
 .totales p{
     margin: 2px;
-    width: 100px;
+    width: 110px;
 }
 
 .img-product{
