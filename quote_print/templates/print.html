@@ -175,7 +175,10 @@
         document.getElementById('subtotal').textContent = formatNumber(parseFloat(totales.subtotal))
         document.getElementById('iva').textContent =  formatNumber(parseFloat(totales.subTotalSinIva))
         document.getElementById('total').textContent =  formatNumber(parseFloat(totales.total))
-        document.getElementById('percent').textContent +=  ` ${totales.percent}%`
+        if (datos.appliedDiscount){
+            document.getElementById('percent').textContent +=  ` ${totales.percent}%`
+        }
+        
 
       function setTable(table, data) {
         var tbody = table.getElementsByTagName('tbody')[0];
