@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.connections_sodimac import ConnectionsSodimac
+from pamo.connections_airtable import connAirtable
 from pamo.connections_melonn import connMelonn
 from django.conf import settings
 from datetime import datetime
@@ -53,6 +54,9 @@ def create_orders(request):
             descripcion_success = f'ordenes generadas: {", ".join([f"{i}" for i in orders_created])}'
             data_log['get_orders'] = True
             data_log['log'] = descripcion_error + ' ' + descripcion_success
+            connAir = connAirtable()
+            res_con_air = connAir.process(orders_created)
+            print(res_con_air)
         else:
             data_log['get_orders'] = False
             data_log['log'] = 'No se encontraron ordenes.'
