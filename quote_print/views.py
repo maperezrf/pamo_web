@@ -1,20 +1,22 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from pamo.conecctions_shopify import ConnectionsShopify
+from django.http import JsonResponse
 from pamo.constants import *
 from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
 from pamo.functions import make_json
-import random
+from pamo.connecctions_sigo import SigoConnection
+from quote_print.models import SigoCostumers
+import pandas as pd
 import re
 
 
 def list(request):
     try:
         code = request.GET.get('code')
-        print(code)
     except:
         pass
     print(f'*** inicia lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
@@ -43,6 +45,9 @@ def list(request):
         data_to_save = [Quote(**elemento) for elemento in data_list]
         Quote.objects.bulk_create(data_to_save)
     data_table = Quote.objects.all().order_by('-id')[:500]
+    quote_data = pd.DataFrame([{'id':i.id, 'name':i.name, 'customer':i.customer, 'total':i.total, 'created_at':i.created_at} for i in data_table])
+    sigo_costumers = pd.DataFrame(SigoCostumers.objects.all().values())
+    # quote_data.merge(sigo_costumers, how = 'left', left_on='')
     data = {"table" :data_table, 'url_base':settings.BASE_URL}
     print(f'*** finaliza lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'table_draft_orders.html', data)
@@ -100,3 +105,9 @@ def update_draft (request,id_sho):
     quote.save()
     print(f'*** inicia actualizacion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return redirect(list)
+
+def send_data_to_sigo(request):
+    sigo_con = SigoConnection()
+    sigo_con.synchronize_all_costumers()
+    return JsonResponse({'success':True, 'message': ''})
+

@@ -22,27 +22,32 @@ Listado cotizaciones
 <link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}">
 <script src="{% static 'js/functions.js' %}"></script>
 <h1 class="container text-center space">Cotizaciones</h1>
-<div class = "card"> 
-      <table class="table table-striped container space"  id="cotizaciones">
+<div class = "card table-responsive"> 
+      <table class="table table-striped table-sm container space"  id="cotizaciones">
         <thead >
           <tr >  
             <th scope="col" class = 'h4 text-center'># Cotizacíon</th>
             <th scope="col" class = 'h4 text-center'>Cliente</th>
             <th scope="col" class = 'h4 text-center'>Valor</th>
             <th scope="col" class = 'h4 text-center'>Fecha Creacion</th>
-            <th scope="col" class = 'h4 text-center'>Detalle</th>
+            <th scope="col" class = 'h4 text-center'>Acciones</th>
           </tr>
         </thead>
           {% for i in table %}
           <tr>
-     
+            {% comment %} <button type="button" class="btn bg-gradient-primary" data-bs-toggle="tooltip" data-bs-placement="left" title="Tooltip on left">
+              Tooltip on left
+            </button> {% endcomment %}
             <td class="h5 name" id = 'name'>{{i.name}}</td>
             <td class="h5">{{i.customer}}</td>
             <td class="h5"><script> document.write(formatNumber({{i.total}})) </script></td>
             <td class="h5">{{i.created_at}}</td>
-            <td style="display: flex;"><button class="imprimir-btn btn btn-success" style="margin-right: 20px;" id_draft ="{{i.id}}" data-cotizacion="cotizacion1">Ver</button>
-            <a href="#" class = 'update-btn' id_draft ="{{i.id}}" ><img src='https://cdn-icons-png.flaticon.com/512/2748/2748606.png' width="40" alt="Actualizar"></td>
-          </a></td> 
+            <td>
+            <a href='#' class = "imprimir-btn mx-3" id_draft ="{{i.id}}" data-cotizacion="cotizacion1" data-bs-toggle="tooltip" data-bs-placement="left" title="Ver detalle"><img src="{% static 'images/ver_cotizacion.png' %}" width="30" alt="ver detalle"></a>
+            <a href="#" class = 'update-btn' id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="left" title="Actualizar"><img src='https://cdn-icons-png.flaticon.com/512/2748/2748606.png' width="30" alt="Actualizar"></a>
+            <a href="#" class = 'mx-3' id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="right" title="Facturar en Sigo"><img src="{% static 'images/enviar_enabled.png' %}" width="30" alt="Enviar a sigo"></a>
+            {% comment %} <a href="#" class = 'mx-3' id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="right" title="Buscar cliente"><img src="{% static 'images/search_client.png' %}" width="30" alt="Enviar a sigo"></a> {% endcomment %}
+          </td>
           </tr>
           {% endfor %}
         </table>
