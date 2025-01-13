@@ -12,9 +12,13 @@ query {{
         createdAt
         updatedAt
         totalPrice
+        tags
         customer {{
           firstName
           lastName
+            addresses(first: 1) {{
+            company
+          }}
         }}
       }}
     }}
@@ -94,9 +98,13 @@ GET_DRAFT_ORDER_UPDATE = """
         createdAt
         updatedAt
         totalPrice
+        tags
         customer {{
           firstName
           lastName
+          addresses(first: 1) {{
+            company
+          }}
         }}
       }}
     }}

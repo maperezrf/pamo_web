@@ -31,18 +31,23 @@ class SigoConnection():
         return item_token
     
     def synchronize_new_costumer(self):
-        response = requests.request("GET", "https://api.siigo.com/v1/customers?page=1&page_size=50", headers = self.headers).json()
-        response['results']
+        date = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
+        response = requests.request("GET", f"https://api.siigo.com/v1/customers?created_start={date}", headers = self.headers).json()
+        created_count = 0 
         for i in response['results']:
-            item, created = SigoCostumers.objects.get_or_create(id=i['id'],identification=i['identification'])
-
+            item, created =  SigoCostumers.objects.get_or_create(id=i['id'],identification=i['identification'])
+            if created:
+                created_count += 1
+        return created_count
+    
     def synchronize_all_costumers(self):
         response = requests.request("GET", "https://api.siigo.com/v1/customers?", headers = self.headers).json()
         customers = []
         SigoCostumers.objects.all().delete()
         pages = math.ceil(response['pagination']['total_results']/100)
 
-        for i in range(pages):
+        for i in range(pages+3):
+            print(i)
             response = requests.request("GET", f"https://api.siigo.com/v1/customers?page={i+1}&page_size=100", headers = self.headers).json()
             for j in response['results']:
                 item = SigoCostumers()
@@ -50,6 +55,17 @@ class SigoConnection():
                 item.identification = j['identification']
                 customers.append(item)
         SigoCostumers.objects.bulk_create(customers)
+    
+    def get_info_costumer(self, id_client):
+        response = requests.request("GET", f"https://api.siigo.com/v1/customers/{id_client}", headers = self.headers).json()
+        data = {}
+        data['id'] = response['id']
+        data['tipo_doc'] = response['id_type']['name']
+        data['identificacion'] = f"{response['identification']}-{ response['check_digit']}"
+        data['name'] = " ".join(response['name']).title()
+        data['email'] = response['contacts'][0]['email']
+        return data
+        
 
 
 

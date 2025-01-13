@@ -9,11 +9,14 @@ from datetime import datetime
 from pamo.functions import create_file_products
 from products.forms import fileForm
 from pamo_bots.models import LogBotOrders, ProductsSodimac
+from quote_print.models import SodimacOrders
 import pandas as pd
 from pamo_bots.core_df import Core
 import json
 import os
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def sodimac_view(request):
     return render(request, 'sodimac_view.html', context={})
 
@@ -25,6 +28,7 @@ def manager_database(request):
     products = ProductsSodimac.objects.all()
     data = {'table':products}
     return render(request, 'manager_database.html', context= data)
+
 
 def create_orders(request):
     # try:
@@ -39,7 +43,8 @@ def create_orders(request):
             sodi.make_merge()
             df = sodi.get_orders()
             orders_created = []
-            for i in df['ORDEN_COMPRA'].unique(): 
+            for index, row in df.iterrows(): 
+                SodimacOrders.objects.get_or_create(id=row.ORDEN_COMPRA)
                 melonn = connMelonn()
                 orders = df.loc[df['ORDEN_COMPRA'] == i]
                 melonn.create_data(orders)
@@ -53,10 +58,7 @@ def create_orders(request):
                 print(f'*** debug termina bot sodimac {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
             descripcion_success = f'ordenes generadas: {", ".join([f"{i}" for i in orders_created])}'
             data_log['get_orders'] = True
-            data_log['log'] = descripcion_error + ' ' + descripcion_success
-            connAir = connAirtable()
-            res_con_air = connAir.process(orders_created)
-            print(res_con_air)
+            data_log['log'] = descripcion_error + ' ' + descripcion_success 
         else:
             data_log['get_orders'] = False
             data_log['log'] = 'No se encontraron ordenes.'
@@ -67,6 +69,13 @@ def create_orders(request):
         log_item.error = data_log['error']
         log_item.log = data_log['log']
         log_item.save()
+
+        orders = [i['id'] for i in SodimacOrders.objects.filter(status = '1-PENDIENTE').values()]
+        sodi.reinyectar_oc(orders)
+        sodi.get_orders_api()
+        sodi.make_merge()
+        df = sodi.get_orders()
+        invoices = df.loc[df['ESTADO_OC']=='4-ESTADO FINAL']
         return redirect('pamo_bots:get_orders')
 
 def set_inventory(request):

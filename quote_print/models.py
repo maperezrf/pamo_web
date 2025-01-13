@@ -7,7 +7,7 @@ class Quote(models.Model):
     seller = models.CharField(max_length=50, null=True, blank=True)
     cursor = models.CharField(max_length=80, null=True, blank=True)
     total = models.IntegerField(False, null=False, blank=False ,default= 0 )
-    nit = models.CharField(max_length=25, null=False, blank=False)
+    nit = models.CharField(max_length=25, null=True, blank=True)
 
     def __str__(self) -> str:
         return self.name
@@ -20,4 +20,7 @@ class SigoCostumers(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     identification = models.CharField(max_length=40, null=False, blank=False)
 
-
+class SodimacOrders(models.Model):
+    id = models.CharField(max_length=40, primary_key=True)
+    status = models.CharField(max_length=20, default= '1-PENDIENTE')
+    factura = models.CharField(max_length=20)

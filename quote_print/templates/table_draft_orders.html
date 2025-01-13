@@ -23,14 +23,16 @@ Listado cotizaciones
 <script src="{% static 'js/functions.js' %}"></script>
 <h1 class="container text-center space">Cotizaciones</h1>
 <div class = "card table-responsive"> 
+  {% comment %} {{table}} {% endcomment %}
       <table class="table table-striped table-sm container space"  id="cotizaciones">
         <thead >
           <tr >  
-            <th scope="col" class = 'h4 text-center'># Cotizacíon</th>
-            <th scope="col" class = 'h4 text-center'>Cliente</th>
-            <th scope="col" class = 'h4 text-center'>Valor</th>
-            <th scope="col" class = 'h4 text-center'>Fecha Creacion</th>
-            <th scope="col" class = 'h4 text-center'>Acciones</th>
+            <th scope="col" class = "h4 text-center"># Cotizacíon</th>
+            <th scope="col" class = "h4 text-center">Cliente</th>
+            <th scope="col" class = "h4 text-center">Valor</th>
+            <th scope="col" class = "h4 text-center">Vendedor</th>
+            <th scope="col" class = "h4 text-center">Nit</th>
+            <th scope="col" class = "h4 text-center">Acciones</th>
           </tr>
         </thead>
           {% for i in table %}
@@ -38,23 +40,27 @@ Listado cotizaciones
             {% comment %} <button type="button" class="btn bg-gradient-primary" data-bs-toggle="tooltip" data-bs-placement="left" title="Tooltip on left">
               Tooltip on left
             </button> {% endcomment %}
-            <td class="h5 name" id = 'name'>{{i.name}}</td>
+            <td class="h5 name" id = "name"><a href="https://admin.shopify.com/store/prueba-1615/draft_orders/{{i.id}}" target="_blank">{{i.name}}</a></td>
             <td class="h5">{{i.customer}}</td>
             <td class="h5"><script> document.write(formatNumber({{i.total}})) </script></td>
-            <td class="h5">{{i.created_at}}</td>
+            <td class="h5">{{i.seller}}</td>
+            <td class="h5">{{i.nit}}</td>
             <td>
-            <a href='#' class = "imprimir-btn mx-3" id_draft ="{{i.id}}" data-cotizacion="cotizacion1" data-bs-toggle="tooltip" data-bs-placement="left" title="Ver detalle"><img src="{% static 'images/ver_cotizacion.png' %}" width="30" alt="ver detalle"></a>
-            <a href="#" class = 'update-btn' id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="left" title="Actualizar"><img src='https://cdn-icons-png.flaticon.com/512/2748/2748606.png' width="30" alt="Actualizar"></a>
-            <a href="#" class = 'mx-3' id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="right" title="Facturar en Sigo"><img src="{% static 'images/enviar_enabled.png' %}" width="30" alt="Enviar a sigo"></a>
-            {% comment %} <a href="#" class = 'mx-3' id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="right" title="Buscar cliente"><img src="{% static 'images/search_client.png' %}" width="30" alt="Enviar a sigo"></a> {% endcomment %}
+            <a href="#" class = "imprimir-btn mx-3" id_draft ="{{i.id}}" data-cotizacion="cotizacion1" data-bs-toggle="tooltip" data-bs-placement="left" title="Ver detalle"><img src="{% static 'images/ver_cotizacion.png' %}" width="30" alt="ver detalle"></a>
+            <a href="#" class = "update-btn" id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="left" title="Actualizar"><img src="https://cdn-icons-png.flaticon.com/512/2748/2748606.png" width="30" alt="Actualizar"></a>
+            <a href="#" {% if i.id_siigo != "0" %} class = "siigo-check mx-3" {% else %} class = "siigo-pending mx-3" {% endif %} class = "siigo-btn mx-3" id_draft ="{{i.id}}" nit="{{i.nit}}" id_siigo= {{i.id_siigo}} data-bs-toggle="tooltip" data-bs-placement="right" title="Facturar en Sigo">
+              {% if i.id_siigo != "0" %}
+              <img src="{% static 'images/enviar_enabled.png' %}" width="30" alt="Enviar a sigo">
+              {% else %}
+              <img src="{% static 'images/advertencia.png' %}" width="30" alt="Enviar a sigo">
+              {% endif %}
+            </a> 
           </td>
           </tr>
           {% endfor %}
         </table>
     </div>
-
-<script>
-
+    <script>
   let dataTable;
   let dataTableIsInitialized = false;
   
@@ -103,7 +109,9 @@ Listado cotizaciones
 
   const botonesActualizar = document.querySelectorAll('.update-btn');
   botonesActualizar.forEach((boton) => {
-    boton.addEventListener('click', function() {
+    boton.addEventListener('click', function(e) {
+    e.preventDefault()
+    show_loading()
     $.ajax('/quoteprint/'+this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','')+'/update',{
       success: function(data, status, xhr){
         location.reload();
@@ -112,9 +120,153 @@ Listado cotizaciones
     })
   })
 
+  const siigoButton = document.querySelectorAll('.siigo-check');
+  siigoButton.forEach((boton) => {
+    boton.addEventListener('click', function(e) {
+      e.preventDefault()  
+      show_loading()
+      id_siigo = boton.getAttribute('id_siigo')
+      $.ajax({
+        url: `get_info_costumer/${id_siigo}`,
+        type: 'GET',
+        contentType: 'application/json',
+        dataType: 'json',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')  // Incluye el token CSRF en la solicitud
+        },
+        success: async function (response) {
+            if (response.success) {
+              show_info( await response.data)
+            }
+            else {
+                Swal.fire({
+                    icon: "error",
+                    title: 'Error',
+                    text: response.message,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    timer: 2000
+                })
+            }
+        },
+        error: function (response) {
+            console.log(response)
+        }
+    })
+    })
+  })
+  
+  const siigoPending = document.querySelectorAll('.siigo-pending');
+  siigoPending.forEach((boton) => {
+    boton.addEventListener('click', function(e) {
+      e.preventDefault()
+      show_alert_customer_not_found(boton.getAttribute('nit'))
+    })
+  })
+
+
   window.addEventListener("load", async () =>{
     await initDataTable();
   })
 
+
+  function show_info(data){
+    data = JSON.parse(data)
+    Swal.fire({
+      icon:'info',
+      html: `
+       <h4> informacion del cliente </h4>
+       <p>
+        <b>Nombre: </b><a href="https://siigonube.siigo.com/#/third-party/351/${data.id}" target="_blank">${data.name}</a><br>
+        <b>Tipo documento: </b>${data.tipo_doc}<br>
+        <b>Identificación: </b>${data.identificacion}<br>
+        <b>correo: </b>${data.email ? data.email : 'No existe un correo para este cliente'}<br>
+       </p>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Facturar",
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        show_loading()
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "info");
+      }
+    });
+  }
+
+
+
+  function show_alert_customer_not_found(nit){
+    Swal.fire({
+      icon:'question',
+      html:`
+      <h4> No encontrado </h4>
+      <p>
+       No se encontró un cliente en siigo para el siguiente numero de identificacion: <b>${nit}</b><br>
+      </p>`,
+      showCancelButton: true,
+      confirmButtonText: "Buscar cliente en Siigo",
+      cancelButtonText: "Volver"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        show_loading()
+        $.ajax({
+          url: 'search_new_customers/',
+          type: 'GET',
+          contentType: 'application/json',
+          dataType: 'json',
+          headers: {
+              'X-CSRFToken': getCookie('csrftoken')  // Incluye el token CSRF en la solicitud
+          },
+          success: function (response) {
+              if (response.success) {
+                  Swal.fire({
+                      icon: "success",
+                      title: 'Proceso Exitoso',
+                      text: response.message,
+                      showConfirmButton: false,
+                      allowOutsideClick: false,
+                      timer: 2000
+                  })
+                  setTimeout(function () {
+                      location.reload();
+                  }, 2000);
+              }
+              else {
+                  Swal.fire({
+                      icon: "error",
+                      title: 'Error',
+                      text: response.message,
+                      showConfirmButton: false,
+                      allowOutsideClick: false,
+                      timer: 2000
+                  })
+              }
+          },
+          error: function (response) {
+              console.log(response)
+          }
+      })
+      }
+    });
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 </script>
+<script src="{% static 'js/quoteTable.js' %}"></script>
 {% endblock %}

@@ -28,7 +28,7 @@ class ConnectionsSodimac():
                 for producto in orden['PRODUCTOS']:
                     ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
             self.orders = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC','FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])
-            self.orders['COSTO_SKU'] = self.orders['COSTO_SKU'] * 1.19
+            self.orders['COSTO_SKU_IVA'] = self.orders['COSTO_SKU'] * 1.19
             print(self.orders)
             return True
             
@@ -110,3 +110,16 @@ class ConnectionsSodimac():
             }
             response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
             return response
+
+    def reinyectar_oc(self, orders):
+        for i in orders:
+            data = {
+            "ReferenciaProveedor": REFERENCIA_FPRN,
+            "PMG_PO_NUMBER": i
+            }
+            response = requests.post(URL_REINYECTAR_OC, headers = self.headers, json=data)
+            if response.json()['Value'][0]['DESCRIPCION'] == 'TRANSACCION EXITOSA':
+                print(f"orden {i} reinyectada")
+            else:
+                print(f"error al reinyectar orden {i}")
+        
