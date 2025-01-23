@@ -1,20 +1,25 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from pamo.conecctions_shopify import ConnectionsShopify
+from django.http import JsonResponse
 from pamo.constants import *
 from pamo.queries import *
 from datetime import timedelta, datetime
 from django.contrib.auth.decorators import login_required
 from quote_print.models import Quote
 from pamo.functions import make_json
-import random
+from pamo.connecctions_sigo import SigoConnection
+from quote_print.models import SigoCostumers
+import pandas as pd
 import re
+import json
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def list(request):
     try:
         code = request.GET.get('code')
-        print(code)
     except:
         pass
     print(f'*** inicia lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
@@ -35,6 +40,9 @@ def list(request):
                 dic['name'] = i['node']['name']
                 dic['created_at'] = i['node']['createdAt']
                 dic['total'] = int(float(i['node']['totalPrice']))
+                dic['nit'] = i['node']['customer']['addresses'][0]['company'].split('-')[0][:24] if (i['node']['customer']) and ('addresses' in i['node']['customer']) and (i['node']['customer']['addresses'][0]['company']) else None
+                dic['seller'] = i['node']['tags']if i['node']['tags'] else None
+                dic['seller'] = dic['seller'][0] if dic['seller'] else None
                 nombre =  i['node']['customer']['firstName'].title() if (i['node']['customer']) and (i['node']['customer']['firstName']) else "" 
                 apellido = i['node']['customer']['lastName'].title() if (i['node']['customer']) and (i['node']['customer']['lastName']) else ""     
                 dic['customer'] = f"{nombre} {apellido}" 
@@ -42,11 +50,17 @@ def list(request):
         dic['cursor'] = cursor_new
         data_to_save = [Quote(**elemento) for elemento in data_list]
         Quote.objects.bulk_create(data_to_save)
-    data_table = Quote.objects.all().order_by('-id')[:500]
-    data = {"table" :data_table, 'url_base':settings.BASE_URL}
+    quote_data = pd.DataFrame(Quote.objects.all().order_by('-id')[:500].values())
+    # quote_data = pd.DataFrame([{'id':i.id, 'name':i.name, 'customer':i.customer, 'total':i.total, 'created_at':i.created_at} for i in data_table])
+    sigo_costumers = pd.DataFrame(SigoCostumers.objects.all().values())
+    merge_sigo = quote_data.merge(sigo_costumers, how = 'left', left_on='nit', right_on='identification', suffixes=('','_siigo'))
+    merge_sigo.fillna('0', inplace=True)
+    quote_data = merge_sigo.to_dict(orient='records')
+    data = {"table" :quote_data, 'url_base':settings.BASE_URL}
     print(f'*** finaliza lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'table_draft_orders.html', data)
 
+@login_required
 def print_drafr(request,id):
     print(f'*** inicia impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     ConnectionsShopify()
@@ -80,6 +94,7 @@ def print_drafr(request,id):
     print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'print.html', data)
 
+@login_required
 def update_draft (request,id_sho):
     print(f'*** inicia actualizacion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     print('esta entrando')
@@ -97,6 +112,43 @@ def update_draft (request,id_sho):
     quote = Quote.objects.get(id=id_sho)
     quote.customer = customer
     quote.total = total
+    quote.nit = res['node']['customer']['addresses'][0]['company'].split('-')[0][:24] if (res['node']['customer']) and ('addresses' in res['node']['customer']) and (res['node']['customer']['addresses'][0]['company']) else None
+    seller = res['node']['tags']if res['node']['tags'] else None
+    quote.seller = seller[0] if seller else None
+
     quote.save()
     print(f'*** inicia actualizacion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
-    return redirect(list)
+    return JsonResponse({'success':True, 'message': ''})
+
+@login_required
+def set_all_constumers(request):
+    try:
+        sigo_con = SigoConnection()
+        sigo_con.synchronize_all_costumers()
+        return JsonResponse({'success':True, 'message': ''})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
+
+@login_required
+def search_new_customers(request):
+    try:
+        sigo_con = SigoConnection()
+        customer_created = sigo_con.synchronize_new_costumer()
+        return JsonResponse({'success':True, 'message': f'clientes encontrados: {customer_created}'})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
+
+@login_required
+def get_info_customer(request, id_siigo):
+    try:
+        sigo_con = SigoConnection()
+        data = sigo_con.get_info_costumer(id_siigo)
+        return JsonResponse({'success':True, 'data': json.dumps(data)})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
+    
+
+
