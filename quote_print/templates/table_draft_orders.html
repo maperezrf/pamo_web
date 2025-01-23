@@ -48,13 +48,13 @@ Listado cotizaciones
             <td>
             <a href="#" class = "imprimir-btn mx-3" id_draft ="{{i.id}}" data-cotizacion="cotizacion1" data-bs-toggle="tooltip" data-bs-placement="left" title="Ver detalle"><img src="{% static 'images/ver_cotizacion.png' %}" width="30" alt="ver detalle"></a>
             <a href="#" class = "update-btn" id_draft ="{{i.id}}" data-bs-toggle="tooltip" data-bs-placement="left" title="Actualizar"><img src="https://cdn-icons-png.flaticon.com/512/2748/2748606.png" width="30" alt="Actualizar"></a>
-            <a href="#" {% if i.id_siigo != "0" %} class = "siigo-check mx-3" {% else %} class = "siigo-pending mx-3" {% endif %} class = "siigo-btn mx-3" id_draft ="{{i.id}}" nit="{{i.nit}}" id_siigo= {{i.id_siigo}} data-bs-toggle="tooltip" data-bs-placement="right" title="Facturar en Sigo">
+            {% comment %} <a href="#" {% if i.id_siigo != "0" %} class = "siigo-check mx-3" {% else %} class = "siigo-pending mx-3" {% endif %} class = "siigo-btn mx-3" id_draft ="{{i.id}}" nit="{{i.nit}}" id_siigo= {{i.id_siigo}} data-bs-toggle="tooltip" data-bs-placement="right" title="Facturar en Sigo">
               {% if i.id_siigo != "0" %}
               <img src="{% static 'images/enviar_enabled.png' %}" width="30" alt="Enviar a sigo">
               {% else %}
               <img src="{% static 'images/advertencia.png' %}" width="30" alt="Enviar a sigo">
               {% endif %}
-            </a> 
+            </a>  {% endcomment %}
           </td>
           </tr>
           {% endfor %}

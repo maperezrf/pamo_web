@@ -23,4 +23,7 @@ class SigoCostumers(models.Model):
 class SodimacOrders(models.Model):
     id = models.CharField(max_length=40, primary_key=True)
     status = models.CharField(max_length=20, default= '1-PENDIENTE')
-    factura = models.CharField(max_length=20)
+    factura = models.CharField(max_length=20, null=True, blank=True)
+    novelty = models.CharField(max_length=200, null=True, blank=True)
+    date_invoice = models.DateField(blank=True, null=True)
+ 

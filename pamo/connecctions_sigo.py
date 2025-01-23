@@ -4,11 +4,14 @@ from quote_print.models import SigoToken, SigoCostumers
 import math
 import requests
 import json
+from datetime import datetime
+import math
 
 class SigoConnection():
     headers = {
     'Content-Type': 'application/json'
     }
+    today_str = datetime.now().strftime('%Y-%m-%d')
 
     def __init__(self):
         item_token = SigoToken.objects.all().first()
@@ -66,7 +69,169 @@ class SigoConnection():
         data['email'] = response['contacts'][0]['email']
         return data
         
+    def get_data(self, df, oc, taxes):
+        items = []
+        total_cost = 0
+        for index, row in df.loc[df['ORDEN_COMPRA']== oc].iterrows():
+            item = {}
+            item["code"] = row.SKU
+            item["quantity"] =row.CANTIDAD_SKU
+            item["price"] =round(row.COSTO_SKU,2)
+            item["discount"] = 0
+            item["taxes"] = taxes
+            cost_unique = row.COSTO_SKU * row.CANTIDAD_SKU
+            total_cost += cost_unique
+            iva = total_cost *.19
+            reteica = round(total_cost * 0.01104, 2)
+            reteiva = iva* 0.15
+            retencion = total_cost * 0.025
+            items.append(item)    
+            value_api = row.get('novelty', None)
+        return items, total_cost, reteica, row.ORDEN_COMPRA, reteiva, retencion, value_api
 
-
-
-        
+    def create_invoice(self, df, taxes):
+        responses = {}
+        for i in df['ORDEN_COMPRA'].unique():
+            items, total_cost, reteica, oc, reteiva, retencion, value_api  = self.get_data(df, i, taxes)
+            if value_api != '0':
+                value = value_api
+            else:
+                value = round(total_cost + round((total_cost *0.19),2) - round(reteiva,2) - round(reteica,2) - round(retencion,2),2)
+            playload =  json.dumps( {
+            "document":{
+                "id":26647
+            },
+            "date":self.today_str,
+            "customer":{
+                "person_type":"Company",
+                "id_type":"31",
+                "identification":"800242106",
+                "branch_office":0,
+                "name":[
+                    "SODIMAC COLOMBIA S A"
+                ],
+                "address":{
+                    "address":"CR 68 D 80 70",
+                    "city":{
+                        "country_code":"Co",
+                        "country_name":"Colombia",
+                        "state_code":"11",
+                        "city_code":"11001",
+                        "city_name":"Bogotá"
+                    },
+                    "postal_code":"110911"
+                },
+                "phones":[
+                    {
+                        "indicative":"601",
+                        "number":"5460000",
+                        "extension":"000"
+                    }
+                ],
+                "contacts":[
+                    {
+                        "first_name":"SODIMAC",
+                        "last_name":"COLOMBIA S A",
+                        "email":"recepcionfacturaelectronicasodimac2@homecenter.co",
+                        "phone":{
+                        "indicative":"000",
+                        "number":"0000000"
+                        }
+                    },
+                    {
+                        "first_name":"FACTURACION",
+                        "last_name":"",
+                        "email":"recepcionfacturaelectronicasodimac2@homecenter.co",
+                        "phone":{
+                        
+                        }
+                    },
+                    {
+                        "first_name":"marketplace",
+                        "last_name":"@pamo.co",
+                        "email":"marketplace@pamo.co",
+                        "phone":{
+                        
+                        }
+                    },
+                    {
+                        "first_name":"LIDERCOMERCAIL1",
+                        "last_name":"@PAMO.CO",
+                        "email":"LIDERCOMERCAIL1@PAMO.CO",
+                        "phone":{
+                        
+                        }
+                    },
+                    {
+                        "first_name":"Jeffry",
+                        "last_name":"Herrera",
+                        "email":"jherreram@homecenter.co",
+                        "phone":{
+                        "indicative":"57",
+                        "number":"3155549249"
+                        }
+                    },
+                    {
+                        "first_name":"omunoz",
+                        "last_name":"@homecenter.co",
+                        "email":"omunoz@homecenter.co",
+                        "phone":{
+                        
+                        }
+                    },
+                    {
+                        "first_name":"contabilidad",
+                        "last_name":"@feprin.com",
+                        "email":"contabilidad@feprin.com",
+                        "phone":{
+                        
+                        }
+                    },
+                    {
+                        "first_name":"facturacionelectronica",
+                        "last_name":"@feprin.com",
+                        "email":"facturacionelectronica@feprin.com",
+                        "phone":{
+                        
+                        }
+                    }
+                ]
+            },
+            "cost_center":116,
+            "seller":643,
+            "retentions":[
+                {
+                    "id":13457
+                },
+                {
+                    "id":13464
+                }
+            ],
+            "reteica":reteica,
+            "stamp":{
+                "send":True
+            },
+            "mail":{
+                "send":False
+            },
+            "observations":"Para pagos por bancos a nombre de FEPRIN S.A.S. tenga en cuenta la siguiente información:\nDAVIVIENDA Cuenta de Ahorros 457600102745\nBANCOLOMBIA Cuenta de Ahorros 17400002178\nRevisa nuestras políticas de cambios y garantías: www.pamo.co.",
+            "items":items,
+            "payments":[
+                {
+                    "id":6507,
+                    "value": value,
+                    "due_date":self.today_str
+                }
+            ],
+            "additional_fields":{
+                "purchase_order":{
+                    "number":f"{oc}"
+                }
+            }
+            })
+            print(playload)
+            response = requests.request("POST", config('URL_CREATE_INVOICES'), headers=self.headers, data=playload)
+            print(response)
+            print(response.json())
+            responses[oc] = response
+        return responses

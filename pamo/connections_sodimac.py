@@ -4,6 +4,7 @@ import pandas as pd
 import json
 from io import StringIO
 from pamo_bots.models import ProductsSodimac
+import time
 
 class ConnectionsSodimac():
 
@@ -112,14 +113,18 @@ class ConnectionsSodimac():
             return response
 
     def reinyectar_oc(self, orders):
-        for i in orders:
-            data = {
-            "ReferenciaProveedor": REFERENCIA_FPRN,
-            "PMG_PO_NUMBER": i
-            }
-            response = requests.post(URL_REINYECTAR_OC, headers = self.headers, json=data)
-            if response.json()['Value'][0]['DESCRIPCION'] == 'TRANSACCION EXITOSA':
-                print(f"orden {i} reinyectada")
-            else:
-                print(f"error al reinyectar orden {i}")
+        try:
+            for i in orders:
+                data = {
+                "ReferenciaProveedor": REFERENCIA_FPRN,
+                "PMG_PO_NUMBER": i
+                }
+                
+                response = requests.post(URL_REINYECTAR_OC, headers = self.headers, json=data)
+                if response.json()['Value'][0]['DESCRIPCION'] == 'TRANSACCION EXITOSA':
+                    print(f"orden {i} reinyectada")
+                else:
+                    print(f"error al reinyectar orden {i}")
+        except:
+            print('Ocurrio un error')
         
