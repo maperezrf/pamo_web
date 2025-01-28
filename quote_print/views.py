@@ -40,7 +40,7 @@ def list(request):
                 dic['name'] = i['node']['name']
                 dic['created_at'] = i['node']['createdAt']
                 dic['total'] = int(float(i['node']['totalPrice']))
-                dic['nit'] = i['node']['customer']['addresses'][0]['company'].split('-')[0][:24] if (i['node']['customer']) and ('addresses' in i['node']['customer']) and (i['node']['customer']['addresses'][0]['company']) else None
+                dic['nit'] = i['node']['customer']['addresses'][0]['company'].split('-')[0][:24] if (True if (i['node']['customer'].get('addresses', False)) else False) and (True if (i['node'].get('customer', False)) else False)  else None
                 dic['seller'] = i['node']['tags']if i['node']['tags'] else None
                 dic['seller'] = dic['seller'][0] if dic['seller'] else None
                 nombre =  i['node']['customer']['firstName'].title() if (i['node']['customer']) and (i['node']['customer']['firstName']) else "" 
