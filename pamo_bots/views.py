@@ -78,11 +78,12 @@ def create_orders(request):
         df = sodi.get_orders()
         invoices = df.loc[df['ESTADO_OC']=='4-ESTADO FINAL']
         invoices_values = pd.DataFrame(SodimacOrders.objects.filter(novelty__contains = 'The total payments must be equal to the total invoice. The total invoice calculated is ').values())
-        invoices_values['novelty'] = invoices_values['novelty'].apply(lambda x :x.replace('The total payments must be equal to the total invoice. The total invoice calculated is ', ''))
-        invoices_values['id'] = invoices_values['id'].astype(int)
-        invoices = invoices.merge(invoices_values, how='left', left_on='ORDEN_COMPRA', right_on='id')
+        if not invoices_values.empty :
+            invoices_values['novelty'] = invoices_values['novelty'].apply(lambda x :x.replace('The total payments must be equal to the total invoice. The total invoice calculated is ', ''))
+            invoices_values['id'] = invoices_values['id'].astype(int)
+            invoices = invoices.merge(invoices_values, how='left', left_on='ORDEN_COMPRA', right_on='id')
+            invoices['novelty'].fillna('0', inplace=True)
         invoices.drop_duplicates(inplace=True)
-        invoices['novelty'].fillna('0', inplace=True)
         taxes = [{'id':16104}, {'id': 13456 }]
         conn_sigo = SigoConnection()
         responses = conn_sigo.create_invoice(invoices, taxes)
