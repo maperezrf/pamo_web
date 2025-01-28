@@ -93,7 +93,7 @@ class SigoConnection():
         responses = {}
         for i in df['ORDEN_COMPRA'].unique():
             items, total_cost, reteica, oc, reteiva, retencion, value_api  = self.get_data(df, i, taxes)
-            if value_api != '0':
+            if value_api:
                 value = value_api
             else:
                 value = round(total_cost + round((total_cost *0.19),2) - round(reteiva,2) - round(reteica,2) - round(retencion,2),2)
