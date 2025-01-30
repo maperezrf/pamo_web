@@ -75,6 +75,7 @@ def create_orders(request):
         sodi.reinyectar_oc(orders)
         sodi.get_orders_api()
         sodi.make_merge()
+        sodi.set_kits()
         df = sodi.get_orders()
         invoices = df.loc[df['ESTADO_OC']=='4-ESTADO FINAL']
         invoices_values = pd.DataFrame(SodimacOrders.objects.filter(novelty__contains = 'The total payments must be equal to the total invoice. The total invoice calculated is ').values())

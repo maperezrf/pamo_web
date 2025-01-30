@@ -4,6 +4,7 @@ import pandas as pd
 import json
 from io import StringIO
 from pamo_bots.models import ProductsSodimac
+from quote_print.models import SodimacKits
 import time
 
 class ConnectionsSodimac():
@@ -41,6 +42,11 @@ class ConnectionsSodimac():
         self.orders = self.orders.merge(skus, how='left', left_on='SKU', right_on='sku_sodimac')
         self.orders.loc[self.orders['sku_pamo'].notna(), 'SKU'] =  self.orders.loc[self.orders['sku_pamo'].notna(), 'sku_pamo']
     
+    def set_kits(self):
+        skus_kits = pd.DataFrame(SodimacKits.objects.all().values())
+        self.orders = self.orders.merge(skus_kits, how='left', left_on='sku_sodimac',right_on='kitnumber')
+        self.orders.loc[self.orders['kitnumber'].notna(), ['SKU', 'CANTIDAD_SKU']] = self.orders.loc[self.orders['kitnumber'].notna(), ['sku','quantity']].values
+
     def get_orders(self):
         return self.orders
     
