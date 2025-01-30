@@ -27,3 +27,7 @@ class SodimacOrders(models.Model):
     novelty = models.CharField(max_length=200, null=True, blank=True)
     date_invoice = models.DateField(blank=True, null=True)
  
+class SodimacKits(models.Model):
+    kitnumber = models.CharField(max_length=50,null=False, blank=False)
+    sku = models.CharField(max_length=50,null=False, blank=False)
+    quantity = models.IntegerField(null=False, blank=False ,default= 0 )
