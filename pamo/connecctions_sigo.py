@@ -76,10 +76,10 @@ class SigoConnection():
             item = {}
             item["code"] = row.SKU
             item["quantity"] =row.CANTIDAD_SKU
-            item["price"] =round(row.COSTO_SKU,2)
+            item["price"] =round(row.COSTO_SKU_x,2)
             item["discount"] = 0
             item["taxes"] = taxes
-            cost_unique = row.COSTO_SKU * row.CANTIDAD_SKU
+            cost_unique = row.COSTO_SKU_x * row.CANTIDAD_SKU
             total_cost += cost_unique
             iva = total_cost *.19
             reteica = round(total_cost * 0.01104, 2)
