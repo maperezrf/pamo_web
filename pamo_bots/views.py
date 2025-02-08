@@ -71,38 +71,38 @@ def create_orders(request):
         log_item.log = data_log['log']
         log_item.save()
 
-        # orders = [i['id'] for i in SodimacOrders.objects.filter(status = '1-PENDIENTE').values()]
-        # sodi.reinyectar_oc(orders)
-        # sodi.get_orders_api()
-        # sodi.make_merge()
-        # sodi.set_kits()
-        # df = sodi.get_orders()
-        # invoices = df.loc[df['ESTADO_OC']=='4-ESTADO FINAL']
-        # invoices_values = pd.DataFrame(SodimacOrders.objects.filter(novelty__contains = 'The total payments must be equal to the total invoice. The total invoice calculated is ').values())
-        # if not invoices_values.empty :
-        #     invoices_values['novelty'] = invoices_values['novelty'].apply(lambda x :x.replace('The total payments must be equal to the total invoice. The total invoice calculated is ', ''))
-        #     invoices_values['id'] = invoices_values['id'].astype(int)
-        #     invoices = invoices.merge(invoices_values, how='left', left_on='ORDEN_COMPRA', right_on='id')
-        #     invoices['novelty'].fillna('0', inplace=True)
-        # invoices.drop_duplicates(inplace=True)
-        # taxes = [{'id':16104}, {'id': 13456 }]
-        # conn_sigo = SigoConnection()
-        # responses = conn_sigo.create_invoice(invoices, taxes)
-        # for i in responses:
-        #     item = SodimacOrders.objects.get(id = i)
-        #     if responses[i].status_code == 201:
-        #         item.status = '4-ESTADO FINAL'
-        #         item.factura = responses[i].json()['name']
-        #         item.date_invoice = datetime.date.today()
-        #         item.novelty = ''
-        #     else:
-        #         item.novelty = responses[i].json()['Errors'][0]['Message']
-        #         if item.novelty == "The document already exists. This occurs if you are making duplicate requests simultaneously.":
-        #             item.status = '4-ESTADO FINAL'
-        #             print(f'La factura para la oc {i} ya esta creada')
-        #         else:
-        #             print(f'ocurrio un error con la factura {i}')
-        #     item.save()
+        orders = [i['id'] for i in SodimacOrders.objects.filter(status = '1-PENDIENTE').values()]
+        sodi.reinyectar_oc(orders)
+        sodi.get_orders_api()
+        sodi.make_merge()
+        sodi.set_kits()
+        df = sodi.get_orders()
+        invoices = df.loc[df['ESTADO_OC']=='4-ESTADO FINAL']
+        invoices_values = pd.DataFrame(SodimacOrders.objects.filter(novelty__contains = 'The total payments must be equal to the total invoice. The total invoice calculated is ').values())
+        if not invoices_values.empty :
+            invoices_values['novelty'] = invoices_values['novelty'].apply(lambda x :x.replace('The total payments must be equal to the total invoice. The total invoice calculated is ', ''))
+            invoices_values['id'] = invoices_values['id'].astype(int)
+            invoices = invoices.merge(invoices_values, how='left', left_on='ORDEN_COMPRA', right_on='id')
+            invoices['novelty'].fillna('0', inplace=True)
+        invoices.drop_duplicates(inplace=True)
+        taxes = [{'id':16104}, {'id': 13456 }]
+        conn_sigo = SigoConnection()
+        responses = conn_sigo.create_invoice(invoices, taxes)
+        for i in responses:
+            item = SodimacOrders.objects.get(id = i)
+            if responses[i].status_code == 201:
+                item.status = '4-ESTADO FINAL'
+                item.factura = responses[i].json()['name']
+                item.date_invoice = datetime.date.today()
+                item.novelty = ''
+            else:
+                item.novelty = responses[i].json()['Errors'][0]['Message']
+                if item.novelty == "The document already exists. This occurs if you are making duplicate requests simultaneously.":
+                    item.status = '4-ESTADO FINAL'
+                    print(f'La factura para la oc {i} ya esta creada')
+                else:
+                    print(f'ocurrio un error con la factura {i}')
+            item.save()
         return redirect('pamo_bots:get_orders')
 
 def set_inventory(request):

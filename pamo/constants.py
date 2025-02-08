@@ -26,3 +26,5 @@ PORT_VAR = config("PORT")
 
 # OTHERS
 COLUMNS_SHOPI = ['N/A','Codigo barras','Costo','Precio','Precio comparación','Proveedor','SKU','Stock','Tags','Titulo']
+
+SALES_PHONE = config('SALES_PHONE')
