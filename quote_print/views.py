@@ -93,7 +93,7 @@ def print_drafr(request,id):
             i['node']['title'] = i['node']['title'].replace('"','~')
         if str(i['node']['title']).__contains__("'"): 
             i['node']['title'] = i['node']['title'].replace("'",'~')    
-    data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num, 'url':f'https://api.whatsapp.com/send?phone=576019142738&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}'}
+    data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num, 'url':f"https://api.whatsapp.com/send?phone=576019142738&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}"}
     print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
 
     return render(request, 'print.html', data)
