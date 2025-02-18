@@ -12,6 +12,7 @@ class SigoConnection():
     'Content-Type': 'application/json'
     }
     today_str = datetime.now().strftime('%Y-%m-%d')
+    print(f'La fecha de hoy es: {today_str}')
 
     def __init__(self):
         item_token = SigoToken.objects.all().first()
