@@ -2,7 +2,7 @@ name: bot sodimac
 
 on:
   schedule:
-    - cron: '0 5,9,14 * * *'
+    - cron: '0 6,16,20 * * *'
 
 jobs:
   build:
