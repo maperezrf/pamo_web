@@ -11,10 +11,11 @@ class SigoConnection():
     headers = {
     'Content-Type': 'application/json'
     }
-    today_str = datetime.now().strftime('%Y-%m-%d')
-    print(f'La fecha de hoy es: {today_str}')
+
 
     def __init__(self):
+        self.today_str = datetime.now().strftime('%Y-%m-%d')
+        print(f'La fecha de hoy es: {self.today_str}')
         item_token = SigoToken.objects.all().first()
         if item_token.date_expired.replace(tzinfo=None) < datetime.now():
             item_token = self.update_token()
