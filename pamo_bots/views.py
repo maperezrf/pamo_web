@@ -95,10 +95,11 @@ def create_orders(request):
                 item.factura = responses[i].json()['name']
                 item.date_invoice = datetime.date.today()
                 item.novelty = ''
+                item.value = responses[i].json()['total']
             else:
                 item.novelty = responses[i].json()['Errors'][0]['Message']
                 if item.novelty == "The document already exists. This occurs if you are making duplicate requests simultaneously.":
-                    item.status = '4-ESTADO FINAL'
+                    # item.status = '4-ESTADO FINAL'
                     print(f'La factura para la oc {i} ya esta creada')
                 else:
                     print(f'ocurrio un error con la factura {i}')
