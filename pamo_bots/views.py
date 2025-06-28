@@ -49,13 +49,13 @@ def create_orders(request):
                 melonn = connMelonn()
                 orders = df.loc[df['ORDEN_COMPRA'] == row.ORDEN_COMPRA]
                 melonn.create_data(orders)
-                response = melonn.create_order()
-                if response['statusCode'] == 201:
-                    orders_created.append(orders['ORDEN_COMPRA'].unique()[0])
-                else:
-                    data_log['error'] = True
-                    descripcion_error = f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}'
-                    print(f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}')
+                # response = melonn.create_order()
+                # if response['statusCode'] == 201:
+                #     orders_created.append(orders['ORDEN_COMPRA'].unique()[0])
+                # else:
+                #     data_log['error'] = True
+                #     descripcion_error = f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}'
+                #     print(f'se encotraron errores en las ordenes: {", ".join([f"{i}" for i in  orders_created["error"]])}')
             print(f'*** debug termina bot sodimac {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
             descripcion_success = f'ordenes generadas: {", ".join([f"{i}" for i in orders_created])}'
             data_log['get_orders'] = True

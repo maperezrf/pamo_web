@@ -17,8 +17,8 @@ class SigoConnection():
         self.today_str = datetime.now().strftime('%Y-%m-%d')
         print(f'La fecha de hoy es: {self.today_str}')
         item_token = SigoToken.objects.all().first()
-        if item_token.date_expired.replace(tzinfo=None) < datetime.now():
-            item_token = self.update_token()
+        # if item_token.date_expired.replace(tzinfo=None) < datetime.now():
+        item_token = self.update_token()
         self.headers['Authorization'] =  item_token.token
         self.headers['Partner-Id'] =  config('SIGO_PARNER_ID')
 
@@ -235,7 +235,14 @@ class SigoConnection():
             })
             print(playload)
             response = requests.request("POST", config('URL_CREATE_INVOICES'), headers=self.headers, data=playload)
+            print(f'respuesta**********************:{response}')
             print(response)
-            print(response.json())
+            try:
+                print(response.json())
+            except Exception as e:
+                print('error')
+                print(e)
             responses[oc] = response
         return responses
+
+

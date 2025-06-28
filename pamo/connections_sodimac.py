@@ -44,7 +44,7 @@ class ConnectionsSodimac():
     
     def set_kits(self):
         skus_kits = pd.DataFrame(SodimacKits.objects.all().values())
-        self.orders = self.orders.merge(skus_kits, how='left', left_on='sku_sodimac',right_on='kitnumber')
+        self.orders = self.orders.merge(skus_kits, how='left', left_on='SKU',right_on='kitnumber')
         self.orders.loc[self.orders['kitnumber'].notna(), ['SKU', 'CANTIDAD_SKU']] = self.orders.loc[self.orders['kitnumber'].notna(), ['sku','quantity']].values
         gb = self.orders.groupby(['ORDEN_COMPRA','kitnumber', 'COSTO_SKU']).agg({'quantity':'sum'}).reset_index()
         gb['COSTO_SKU'] = gb['COSTO_SKU'] / gb['quantity']
