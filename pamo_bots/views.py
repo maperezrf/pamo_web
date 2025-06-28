@@ -46,9 +46,9 @@ def create_orders(request):
             orders_created = []
             for index, row in df.iterrows(): 
                 SodimacOrders.objects.get_or_create(id=row.ORDEN_COMPRA)
-                melonn = connMelonn()
-                orders = df.loc[df['ORDEN_COMPRA'] == row.ORDEN_COMPRA]
-                melonn.create_data(orders)
+                # melonn = connMelonn()
+                # orders = df.loc[df['ORDEN_COMPRA'] == row.ORDEN_COMPRA]
+                # melonn.create_data(orders)
                 # response = melonn.create_order()
                 # if response['statusCode'] == 201:
                 #     orders_created.append(orders['ORDEN_COMPRA'].unique()[0])
