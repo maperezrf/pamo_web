@@ -98,11 +98,11 @@ DATABASES = {
     }
 }
 
-if DEBUG:
-    try :
-        from .local_settings import *
-    except ImportError:
-        pass
+# if DEBUG:
+#     try :
+#         from .local_settings import *
+#     except ImportError:
+#         pass
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

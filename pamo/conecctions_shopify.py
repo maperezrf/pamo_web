@@ -4,7 +4,7 @@ import pandas as pd
 import json
 # from pamo.functions import make_json
 import os
-from datetime import datetime
+from quote_print.models import SodimacOrders
 from pamo.queries import GET_VARIANT_ID, GET_INVENTORY
 
 
@@ -27,15 +27,29 @@ class ConnectionsShopify():
 
     def get_variant_id(self):
         sku_un = self.orders['SKU'].unique()
+        self.orders['variant_id'] = None
         for i in sku_un:
             query = GET_VARIANT_ID.format(skus = str(i).strip())
             response = requests.post(URL_GRAPHQL, headers=self.headers_shopify, data=json.dumps({"query": query}))
-            try:
-                variant_id = str(response.json()['data']['products']['edges'][0]['node']['variants']['edges'][0]['node']['id']).replace('gid://shopify/ProductVariant/', '')
-                self.orders.loc[self.orders['SKU']==i, 'variant_id'] = variant_id
-            except:
+            id_searching = response.json().get('data', {}).get('productVariants', {}).get('edges',[])
+            if  id_searching:
+                variant_id = id_searching[0].get('node',{}).get('id', '')
+                if variant_id:
+                    variant_id = str(variant_id).replace('gid://shopify/ProductVariant/', '')
+                    self.orders.loc[self.orders['SKU']==i, 'variant_id'] = variant_id
+                else:
+                    print(f'No se encontro el SKU en shopify: {i}')
+                    self.add_novelty(i)
+            else:
                 print(f'No se encontro el SKU en shopify: {i}')
+                self.add_novelty(i)
         return self.orders.loc[self.orders['variant_id'].notna()]
+
+    def add_novelty(self, sku):
+        for i in self.orders.loc[self.orders['SKU'] == sku]['ORDEN_COMPRA'].unique():
+            obj, _ = SodimacOrders.objects.get_or_create(id = i)
+            obj.oc_shopify = f'No se encontro el SKU :{sku} en shopify'
+            obj.save()
 
     def bucle_request(self, query, datatype):
         response = self.request_graphql(query.format(cursor=''))
@@ -68,23 +82,33 @@ class ConnectionsShopify():
             variant_id = orders_gb.iloc[i]['variant_id']
             products = []    
             for i in range(len(variant_id)):
-                products.append({"variant_id": variant_id[i], "quantity": cantidad[i], "price": costo[i]})
-                data = {
-                    "order": {
-                        "line_items": products,
-                        "customer": {
-                            "id": 7247084421397
-                        },
-                        "financial_status": "pending",
-                        "note": f"orden de compra: {oc}"
+                if variant_id[i]:
+                    products.append({"variant_id": variant_id[i], "quantity": cantidad[i], "price": costo[i]})
+                    data = {
+                        "order": {
+                            "line_items": products,
+                            "customer": {
+                                "id": 7247084421397
+                            },
+                            "financial_status": "pending",
+                            "note": f"orden de compra: {oc}",
+                            "tags": "SODIMAC"
+                        }
                     }
-                }
-            try:  
-                response = requests.post(URL_CREATE_ORDERS, headers= self.headers_shopify, json = data)
-                if response.status_code == 201:
-                    data_log['success'].append(oc)
-            except:
-                data_log['error'].append(oc)
+                    try:  
+                        obj, _ =SodimacOrders.objects.get_or_create(id = oc)
+                        response = requests.post(URL_CREATE_ORDERS, headers= self.headers_shopify, json = data)
+                        if response.status_code == 201:
+                            obj.oc_shopify = response.json().get('order',{}).get('order_number',{})
+                            obj.save()
+                            data_log['success'].append(oc)
+                        else:
+                            obj.oc_shopify ='Error al crear la orden'
+                            obj.save()
+                    except:
+                        obj.oc_shopify ='Error al crear la orden'
+                        obj.save()
+                        data_log['error'].append(oc)
         return data_log
     
     def get_orders(self):

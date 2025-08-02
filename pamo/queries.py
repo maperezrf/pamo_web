@@ -112,7 +112,7 @@ GET_DRAFT_ORDER_UPDATE = """
 }}
 """
 
-GET_PRODUCTS ="""
+GET_PRODUCTS = """
 {{
    products(first: 249 {cursor})  {{
       pageInfo {{
@@ -170,7 +170,7 @@ PRODUCT_VARIANT_UPDATE = """
   }
 """
 
-INVENTORY_ADJUST ="""
+INVENTORY_ADJUST = """
   inventoryAdjustQuantity(input: $inventoryAdjustInput) {
   inventoryLevel {
     available
@@ -179,23 +179,38 @@ INVENTORY_ADJUST ="""
 """
 
 GET_VARIANT_ID = """{{
-products(first: 1, query: "sku:{skus}") {{
+  productVariants(first: 1, query: "sku:{skus}") {{
     edges {{
-    node {{
+      node {{
         id
-        variants(first: 1) {{
-        edges {{
-            node {{
-            id
-            sku
-            }}
+        sku
+        product {{
+          id
+          title
         }}
-        }}
+      }}
     }}
-    }}
-}}
-}}
-"""
+  }}
+}}"""
+# """{{
+# products(first: 1, query: "sku:{skus}") {{
+# edges {{
+# node {{
+# id
+# variants(first: 1) {{
+# edges {{
+# node {{
+# id
+# sku
+# }}
+# }}
+# }}
+# }}
+# }}
+# }}
+# }}
+# """
+
 
 GET_INVENTORY = """
 {{
@@ -216,7 +231,6 @@ products(first: 1, query: "sku:{sku}") {{
 }}
 }}
 """
-
 
 
 GET_VARIANT = """
@@ -242,7 +256,7 @@ GET_VARIANT = """
 }}
 """
 
-GET_PRODUCT= """
+GET_PRODUCT = """
 query {{
    product(id : "gid://shopify/Product/{id}") {{
           id

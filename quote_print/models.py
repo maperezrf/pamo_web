@@ -27,6 +27,7 @@ class SodimacOrders(models.Model):
     novelty = models.CharField(max_length=200, null=True, blank=True)
     date_invoice = models.DateField(blank=True, null=True)
     value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    oc_shopify = models.CharField(max_length=50, null=True, blank=True, unique=False)
  
 class SodimacKits(models.Model):
     kitnumber = models.CharField(max_length=50,null=False, blank=False)

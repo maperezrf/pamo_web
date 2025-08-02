@@ -152,6 +152,3 @@ def get_info_customer(request, id_siigo):
     except Exception as e:
         print(e)
         return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
-    
-
-
