@@ -38,6 +38,8 @@ def create_orders(request):
         sodi = ConnectionsSodimac()
         data_log = {}
         data_log['error'] = False
+        data_log['get_orders'] = False
+        data_log['log'] = 'No se encontraron ordenes.'
         descripcion_error = ''
         if sodi.get_orders_api():
             print('Haciendo cruces de SKUS')
@@ -180,3 +182,6 @@ def save_review(response):
     df = df.merge(products, how= 'left', on = ['ean'] )
     df = df[['sku_sodimac', 'sku_pamo', 'ean', 'message']]
     df.to_excel(os.path.join(settings.MEDIA_ROOT, 'final_review.xlsx'),index=False)
+
+
+('14611583','14586213','14625267','14633883','14634992','14645515','14646496','14647872','14649860','14653154','14655726','14659933','14622008','14645272','14645330','14647319','14647871','14652854','14654624','14615395','14625968','14646909','14650417')

@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'quote_print',
     'products',
-    'pamo_bots'
+    'pamo_bots',
+    'api_core',
 ]
 
 MIDDLEWARE = [

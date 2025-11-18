@@ -12,6 +12,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
     path('pamo_bots/', include("pamo_bots.urls")),
+    path('orders_api/', include("api_core.urls")),
 ] 
 
 if settings.DEBUG:
