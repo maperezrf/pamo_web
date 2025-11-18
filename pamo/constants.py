@@ -28,3 +28,7 @@ PORT_VAR = config("PORT")
 COLUMNS_SHOPI = ['N/A','Codigo barras','Costo','Precio','Precio comparación','Proveedor','SKU','Stock','Tags','Titulo']
 
 SALES_PHONE = config('SALES_PHONE')
+
+# ENVIA
+URL_ENVIA = config('URL_ENVIA')
+TOKEN_ENVIA = config('TOKEN_ENVIA')
