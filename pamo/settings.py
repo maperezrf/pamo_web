@@ -30,6 +30,8 @@ DEBUG = DEBUG_VAR
 ALLOWED_HOSTS = ['https://pamoweb-production.up.railway.app/','127.0.0.1','localhost','pamoweb-production.up.railway.app', 'https://app.vambeai.com']
 CSRF_TRUSTED_ORIGINS = ['https://*.pamoweb-production.up.railway.app/','https://*.127.0.0.1','http://*.pamoweb-production.up.railway.app/', 'https://app.vambeai.com']
 
+CORS_ALLOWED_ORIGINS = ['https://app.vambeai.com']
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,12 +43,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'quote_print',
+    'corsheaders',
     'products',
     'pamo_bots',
     'api_core',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
