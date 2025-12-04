@@ -55,8 +55,10 @@ class OrderInfo(APIView):
 
     def get(self, request):
         id_obj = request.query_params['id']
+        print(f'Se recibe la solicitud con el id {id_obj}')
         obj = self.get_object(id_obj)
         if obj:
+            print('Se encontro el id en la base de datos')
             detail = self.get_order_details(obj)
             return  Response(data={'data':detail}, status=status.HTTP_200_OK)
         else:
@@ -77,5 +79,7 @@ class OrderInfo(APIView):
         'Authorization': TOKEN_ENVIA
         }
         response = requests.request("GET", url, headers=headers, data=payload)
+        print("Respuesta Envia")
+        print(response)
         return response.json()
 
