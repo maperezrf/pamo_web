@@ -55,12 +55,15 @@ class OrderInfo(APIView):
 
     def get(self, request):
         id_obj = request.query_params['id']
+        print(f'Se recibe la solicitud con el id {id_obj}')
         obj = self.get_object(id_obj)
         if obj:
+            print('Se encontro el id en la base de datos')
             detail = self.get_order_details(obj)
             return  Response(data={'data':detail}, status=status.HTTP_200_OK)
         else:
-            return Response(data={'message':'No se encontró el numero de pedido'}, status=status.HTTP_200_OK)
+            print("No se encontro nada")
+            return Response(data={'message':'No se encontró el numero de pedido'}, status=status.HTTP_404_NOT_FOUND)
 
     def get_object(self, id_obj):
         obj = OrdersFullfilment.objects.filter(external_id = id_obj)
@@ -77,5 +80,7 @@ class OrderInfo(APIView):
         'Authorization': TOKEN_ENVIA
         }
         response = requests.request("GET", url, headers=headers, data=payload)
+        print("Respuesta Envia")
+        print(response)
         return response.json()
 
