@@ -90,7 +90,7 @@ def create_orders(request):
         sodi.set_kits()
         df = sodi.get_orders()
         invoices = df.loc[df['ESTADO_OC']=='4-ESTADO FINAL']
-        invoices_values = pd.DataFrame(SodimacOrders.objects.filter(novelty__contains = 'The total payments must be equal to the total invoice. The total invoice calculated is ').values())
+        invoices_values = pd.DataFrame(SodimacOrders.objects.filter(novelty__contains = 'The total payments must be equal to the total invoice. The total invoice calculated is ', factura__isnull=True).values())
         if not invoices_values.empty :
             invoices_values['novelty'] = invoices_values['novelty'].apply(lambda x :x.replace('The total payments must be equal to the total invoice. The total invoice calculated is ', ''))
             invoices_values['id'] = invoices_values['id'].astype(int)
