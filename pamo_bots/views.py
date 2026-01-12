@@ -99,6 +99,8 @@ def create_orders(request):
         invoices.drop_duplicates(inplace=True)
         taxes = [{'id':16104}, {'id': 13456 }]
         conn_sigo = SigoConnection()
+        id_invoices = [ int(i.id) for i in  SodimacOrders.objects.filter(id__in=invoices['ORDEN_COMPRA'].unique(), factura__isnull=True )]
+        invoices.loc[invoices['ORDEN_COMPRA'].isin(id_invoices)]
         responses = conn_sigo.create_invoice(invoices, taxes)
         for i in responses:
             item = SodimacOrders.objects.get(id = i)
@@ -182,6 +184,3 @@ def save_review(response):
     df = df.merge(products, how= 'left', on = ['ean'] )
     df = df[['sku_sodimac', 'sku_pamo', 'ean', 'message']]
     df.to_excel(os.path.join(settings.MEDIA_ROOT, 'final_review.xlsx'),index=False)
-
-
-('14611583','14586213','14625267','14633883','14634992','14645515','14646496','14647872','14649860','14653154','14655726','14659933','14622008','14645272','14645330','14647319','14647871','14652854','14654624','14615395','14625968','14646909','14650417')

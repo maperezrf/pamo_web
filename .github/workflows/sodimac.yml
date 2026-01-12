@@ -20,4 +20,3 @@ jobs:
 
       - name: Enviar solicitud GET
         run: python sodimac.pyp
-            
