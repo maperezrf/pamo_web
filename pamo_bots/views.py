@@ -100,6 +100,7 @@ def create_orders(request):
         taxes = [{'id':16104}, {'id': 13456 }]
         conn_sigo = SigoConnection()
         id_invoices = [ int(i.id) for i in  SodimacOrders.objects.filter(id__in=invoices['ORDEN_COMPRA'].unique(), factura__isnull=True )]
+        print([ i.factura for i in  SodimacOrders.objects.filter(id__in=invoices['ORDEN_COMPRA'].unique(), factura__isnull=True )])
         invoices.loc[invoices['ORDEN_COMPRA'].isin(id_invoices)]
         responses = conn_sigo.create_invoice(invoices, taxes)
         for i in responses:

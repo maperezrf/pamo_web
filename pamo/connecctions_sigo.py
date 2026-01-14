@@ -89,8 +89,6 @@ class SigoConnection():
             retencion = total_cost * 0.025
             items.append(item)    
             value_api = row.get('novelty', None)
-            if (row.ORDEN_COMPRA == '13925879') | (row.ORDEN_COMPRA == '13932204') | (row.ORDEN_COMPRA == '13932443'):
-                print(row.ORDEN_COMPRA)
         return items, total_cost, reteica, row.ORDEN_COMPRA, reteiva, retencion, value_api
 
     def create_invoice(self, df, taxes):
