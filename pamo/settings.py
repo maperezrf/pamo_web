@@ -16,7 +16,7 @@ from pamo.constants import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_URL =  "https://pamoweb-production.up.railway.app" 
+BASE_URL = "https://pamoweb-production.up.railway.app"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -27,82 +27,104 @@ SECRET_KEY = SECRET_KEY_DJANGO
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DEBUG_VAR
 
-ALLOWED_HOSTS = ['https://pamoweb-production.up.railway.app/','127.0.0.1','localhost','pamoweb-production.up.railway.app', 'https://app.vambeai.com']
-CSRF_TRUSTED_ORIGINS = ['https://*.pamoweb-production.up.railway.app/','https://*.127.0.0.1','http://*.pamoweb-production.up.railway.app/', 'https://app.vambeai.com']
-CORS_ALLOWED_ORIGINS = ['https://app.vambeai.com']
+ALLOWED_HOSTS = [
+    "https://pamoweb-production.up.railway.app/",
+    "127.0.0.1",
+    "localhost",
+    "pamoweb-production.up.railway.app",
+    "https://app.vambeai.com",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.pamoweb-production.up.railway.app/",
+    "https://*.127.0.0.1",
+    "http://*.pamoweb-production.up.railway.app/",
+    "https://app.vambeai.com",
+]
+CORS_ALLOWED_ORIGINS = ["https://app.vambeai.com"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'quote_print',
-    'corsheaders',
-    'products',
-    'pamo_bots',
-    'api_core',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "quote_print",
+    "corsheaders",
+    "products",
+    "pamo_bots",
+    "api_core",
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
-ROOT_URLCONF = 'pamo.urls'
+ROOT_URLCONF = "pamo.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, "pamo" ,"templates"),
-                os.path.join(BASE_DIR, "quote_print", "templates"),
-                os.path.join(BASE_DIR, "products", "templates"),
-                os.path.join(BASE_DIR, "pamo_bots", "templates")],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            os.path.join(BASE_DIR, "pamo", "templates"),
+            os.path.join(BASE_DIR, "quote_print", "templates"),
+            os.path.join(BASE_DIR, "products", "templates"),
+            os.path.join(BASE_DIR, "pamo_bots", "templates"),
+        ],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
-        'libraries':{
-            'utils': 'pamo.templatetags.utils',
-            }
+            "libraries": {
+                "utils": "pamo.templatetags.utils",
+            },
         },
     },
 ]
 print(os.path.join(BASE_DIR, "pamo_bots", "templates"))
 
-WSGI_APPLICATION = 'pamo.wsgi.application'
+WSGI_APPLICATION = "pamo.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': NAME_VAR,
-        'USER': USER_VAR,
-        'PASSWORD':PASSWORD_VAR,
-        'HOST': HOST_VAR,
-        'PORT': PORT_VAR,
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": NAME_VAR,
+        "USER": USER_VAR,
+        "PASSWORD": PASSWORD_VAR,
+        "HOST": HOST_VAR,
+        "PORT": PORT_VAR,
     }
 }
+
+# Email configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # Cambia según el proveedor (ej: smtp-mail.outlook.com para Outlook)
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = EMAIL_HOST_USER 
+EMAIL_HOST_PASSWORD = PASSWORD_MAIL
+DEFAULT_FROM_EMAIL = 'noreply@pamo@gmail.com'
 
 # if DEBUG:
 #     try :
@@ -115,34 +137,34 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'pamo/log.log',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": "pamo/log.log",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-            'propagate': True,
+    "loggers": {
+        "django": {
+            "handlers": ["file"],
+            "level": "ERROR",
+            "propagate": True,
         },
     },
 }
@@ -151,9 +173,9 @@ LOGGING = {
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'es-co'
+LANGUAGE_CODE = "es-co"
 
-TIME_ZONE = 'America/Bogota'
+TIME_ZONE = "America/Bogota"
 
 USE_I18N = True
 
@@ -164,9 +186,12 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'pamo', 'static'), os.path.join(BASE_DIR, 'products', 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "pamo", "static"),
+    os.path.join(BASE_DIR, "products", "static"),
+]
 
 print(os.path.join(BASE_DIR, "pamo", "media"))
 MEDIA_ROOT = os.path.join(BASE_DIR, "pamo/media")
@@ -175,6 +200,6 @@ MEDIA_URL = "/media/"
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

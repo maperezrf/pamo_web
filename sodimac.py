@@ -2,7 +2,7 @@ import requests
 
 print('se incia desde el bot')
 
-url = 'https://pamoweb-production.up.railway.app/pamo_bots/sodimac' # Reemplaza con la URL real
+url = 'https://pamoweb-production.up.railway.app/pamo_bots/sodimac'
 response = requests.get(url)
 
 if response.status_code == 200:

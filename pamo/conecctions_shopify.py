@@ -13,12 +13,14 @@ class ConnectionsShopify:
 
     headers_shopify = {}
     orders = pd.DataFrame()
+    not_found_skus = []
 
     def __init__(self) -> None:
         self.headers_shopify = {
             "X-Shopify-Access-Token": ACCES_TOKEN,
             "Content-Type": "application/json",
         }
+        self.not_found_skus = []
 
     def set_orders_df(self, orders):
         self.orders = orders
@@ -34,10 +36,10 @@ class ConnectionsShopify:
         return requests.get(url, headers=self.headers_shopify)
 
     def get_variant_id(self):
-        sku_un = self.orders["SKU"].unique()
         self.orders["variant_id"] = None
-        for i in sku_un:
-            query = GET_VARIANT_ID.format(skus=str(i).strip())
+        self.not_found_skus = []  # Reset list
+        for i, row in self.orders.iterrows():
+            query = GET_VARIANT_ID.format(skus=str(row["SKU"]).strip())
             response = requests.post(
                 URL_GRAPHQL,
                 headers=self.headers_shopify,
@@ -55,14 +57,23 @@ class ConnectionsShopify:
                     variant_id = str(variant_id).replace(
                         "gid://shopify/ProductVariant/", ""
                     )
-                    self.orders.loc[self.orders["SKU"] == i, "variant_id"] = variant_id
+                    self.orders.loc[self.orders["SKU"] == row['SKU'], "variant_id"] = variant_id
                 else:
-                    print(f"No se encontro el SKU en shopify: {i}")
-                    self.add_novelty(i)
+                    print(f"No se encontro el SKU en shopify: {row['SKU']}")
+                    self.not_found_skus.append(
+                        {"ORDEN_COMPRA": row["ORDEN_COMPRA"], "SKU": row["SKU"]}
+                    )
+                    self.add_novelty(row["SKU"])
             else:
                 print(f"No se encontro el SKU en shopify: {i}")
-                self.add_novelty(i)
+                self.not_found_skus.append(
+                    {"ORDEN_COMPRA": row["ORDEN_COMPRA"], "SKU": row["SKU"]}
+                )
+                self.add_novelty(row["SKU"])
         return self.orders.loc[self.orders["variant_id"].notna()]
+
+    def get_not_found_skus(self):
+        return self.not_found_skus
 
     def add_novelty(self, sku):
         for i in self.orders.loc[self.orders["SKU"] == sku]["ORDEN_COMPRA"].unique():
