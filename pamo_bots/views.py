@@ -245,7 +245,7 @@ def create_orders(request):
         log_item.save()
 
         # Manejar facturas
-        # handle_invoices_and_billing()
+        handle_invoices_and_billing()
 
         # Enviar notificación por email
         send_notification_email(data_log, not_found_skus)
@@ -327,3 +327,7 @@ def save_review(response):
     df = df.merge(products, how="left", on=["ean"])
     df = df[["sku_sodimac", "sku_pamo", "ean", "message"]]
     df.to_excel(os.path.join(settings.MEDIA_ROOT, "final_review.xlsx"), index=False)
+
+
+
+

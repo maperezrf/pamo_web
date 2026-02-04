@@ -74,7 +74,8 @@ class SigoConnection():
     def get_data(self, df, oc, taxes):
         items = []
         total_cost = 0
-        for index, row in df.loc[df['ORDEN_COMPRA']== oc].iterrows():
+        df['created'] = False
+        for index, row in df.loc[(df['ORDEN_COMPRA']== oc) & (df['created']== False)].iterrows():
             item = {}
             item["code"] = row.SKU
             item["quantity"] =row.CANTIDAD_SKU
@@ -89,6 +90,7 @@ class SigoConnection():
             retencion = total_cost * 0.025
             items.append(item)    
             value_api = row.get('novelty', None)
+            df.loc[df['ORDEN_COMPRA']== oc, 'created'] = True
         return items, total_cost, reteica, row.ORDEN_COMPRA, reteiva, retencion, value_api
 
     def create_invoice(self, df, taxes):
