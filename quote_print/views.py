@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from pamo.conecctions_shopify import ConnectionsShopify
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from pamo.constants import *
 from pamo.queries import *
 from datetime import timedelta, datetime
@@ -93,7 +93,7 @@ def print_drafr(request,id):
             i['node']['title'] = i['node']['title'].replace('"','~')
         if str(i['node']['title']).__contains__("'"): 
             i['node']['title'] = i['node']['title'].replace("'",'~')    
-    data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num, 'url':f"https://api.whatsapp.com/send?phone={SALES_PHONE}&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}"}
+    data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num, 'url':f"https://api.whatsapp.com/send?phone={SALES_PHONE}&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}", 'quote_id': id}
     print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'print.html', data)
 
@@ -152,3 +152,54 @@ def get_info_customer(request, id_siigo):
     except Exception as e:
         print(e)
         return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
+
+
+@login_required
+def generate_pdf(request, id):
+    from playwright.sync_api import sync_playwright
+
+    print_url = request.build_absolute_uri(f'/quoteprint/{id}/print/')
+    session_cookie = request.COOKIES.get('sessionid')
+    csrftoken = request.COOKIES.get('csrftoken')
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        context = browser.new_context()
+
+        cookies = []
+        if session_cookie:
+            cookies.append({
+                'name': 'sessionid',
+                'value': session_cookie,
+                'domain': request.get_host().split(':')[0],
+                'path': '/'
+            })
+        if csrftoken:
+            cookies.append({
+                'name': 'csrftoken',
+                'value': csrftoken,
+                'domain': request.get_host().split(':')[0],
+                'path': '/'
+            })
+        if cookies:
+            context.add_cookies(cookies)
+
+        page = context.new_page()
+        page.goto(print_url, wait_until='networkidle', timeout=30000)
+
+        # Wait for JavaScript to finish building the table
+        page.wait_for_function("document.querySelector('#product-table tbody tr') !== null", timeout=15000)
+
+        pdf_bytes = page.pdf(
+            format='A4',
+            print_background=True,
+            margin={'top': '0mm', 'bottom': '0mm', 'left': '0mm', 'right': '0mm'}
+        )
+        browser.close()
+
+    quote_name = Quote.objects.filter(id=id).values_list('name', flat=True).first() or str(id)
+    filename = f"cotizacion_{quote_name.lstrip('#')}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response

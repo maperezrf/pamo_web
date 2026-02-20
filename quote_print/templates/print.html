@@ -126,9 +126,13 @@
                                     Consulta nuestra politica de Privacidad
                                 </span>
                             </p>
-                            <a href="#" class='boton-imagen' id="botonImprimir">
+                            {% comment %} <a href="#" class='boton-imagen' id="botonImprimir">
                                 <img src="{% static 'images/descarga.png' %}" width="50" alt="Imprimir">
                                 <span>Imprimir</span>
+                            </a> {% endcomment %}
+                            <a href="{% url 'quote_print:pdf' quote_id %}" class='boton-imagen' target="_blank">
+                                <img src="{% static 'images/descarga.png' %}" width="50" alt="PDF">
+                                <span>Descargar PDF</span>
                             </a>
                         </div>
                     </div>
@@ -140,9 +144,9 @@
 <script>
 
     window.onload = function() {
-    document.getElementById('botonImprimir').addEventListener('click', function() {
-        window.print();
-        });
+    //document.getElementById('botonImprimir').addEventListener('click', function() {
+    //   window.print();
+    //    });
 
       var elemento = document.getElementById("cotizacion");
       if (elemento) {
