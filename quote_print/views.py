@@ -176,9 +176,10 @@ def generate_pdf(request, id):
         browser = p.chromium.launch()
         context = browser.new_context(base_url=base_url)
         page = context.new_page()
-        page.set_content(html_content, wait_until='networkidle')
-        # Wait for JavaScript to finish building the product table
-        page.wait_for_function("document.querySelector('#product-table tbody tr') !== null", timeout=15000)
+        # 'load' waits for window.onload (JS builds the table), then networkidle
+        # waits for dynamic images (Shopify CDN) to finish loading
+        page.set_content(html_content, wait_until='load')
+        page.wait_for_load_state('networkidle', timeout=25000)
         pdf_bytes = page.pdf(
             format='A4',
             print_background=True,
