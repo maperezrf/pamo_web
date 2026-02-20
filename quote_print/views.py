@@ -63,9 +63,8 @@ def list(request):
     print(f'*** finaliza lista cotizaciones {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'table_draft_orders.html', data)
 
-@login_required
-def print_drafr(request,id):
-    print(f'*** inicia impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+def _get_draft_data(id):
+    """Fetch and prepare draft order data from Shopify for the given quote id."""
     ConnectionsShopify()
     shopify = ConnectionsShopify()
     query = GET_DRAFT_ORDER.format(id)
@@ -79,7 +78,7 @@ def print_drafr(request,id):
     except:
         pass
     try:
-        res = re.search(r'\[(\d+)\]' ,[i['node']['value'] for i in draft['customer']['metafields']['edges'] if i['node']['key'] == 'numero_documento_identificaci_n'][0])
+        res = re.search(r'\[(\d+)\]', [i['node']['value'] for i in draft['customer']['metafields']['edges'] if i['node']['key'] == 'numero_documento_identificaci_n'][0])
         num = res.group(1)
     except:
         num = None
@@ -89,11 +88,19 @@ def print_drafr(request,id):
             i['scr'] = i['node']['product']['images']['edges'][0]['node']['originalSrc']
         except:
             pass
-        if str(i['node']['title']).__contains__('"'): 
-            i['node']['title'] = i['node']['title'].replace('"','~')
-        if str(i['node']['title']).__contains__("'"): 
-            i['node']['title'] = i['node']['title'].replace("'",'~')    
-    data = {'info':draft, 'plazo':plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit':num, 'url':f"https://api.whatsapp.com/send?phone={SALES_PHONE}&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}", 'quote_id': id}
+        if str(i['node']['title']).__contains__('"'):
+            i['node']['title'] = i['node']['title'].replace('"', '~')
+        if str(i['node']['title']).__contains__("'"):
+            i['node']['title'] = i['node']['title'].replace("'", '~')
+    return {'info': draft, 'plazo': plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit': num,
+            'url': f"https://api.whatsapp.com/send?phone={SALES_PHONE}&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}",
+            'quote_id': id}
+
+
+@login_required
+def print_drafr(request, id):
+    print(f'*** inicia impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
+    data = _get_draft_data(id)
     print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'print.html', data)
 
@@ -157,39 +164,20 @@ def get_info_customer(request, id_siigo):
 @login_required
 def generate_pdf(request, id):
     from playwright.sync_api import sync_playwright
+    from django.template.loader import render_to_string
 
-    print_url = request.build_absolute_uri(f'/quoteprint/{id}/print/')
-    session_cookie = request.COOKIES.get('sessionid')
-    csrftoken = request.COOKIES.get('csrftoken')
+    data = _get_draft_data(id)
+    # Render the template to an HTML string — no HTTP request needed
+    html_content = render_to_string('print.html', data, request=request)
+    # Base URL so Playwright resolves static files (CSS, images, JS) correctly
+    base_url = request.build_absolute_uri('/')
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        context = browser.new_context()
-
-        cookies = []
-        if session_cookie:
-            cookies.append({
-                'name': 'sessionid',
-                'value': session_cookie,
-                'domain': request.get_host().split(':')[0],
-                'path': '/'
-            })
-        if csrftoken:
-            cookies.append({
-                'name': 'csrftoken',
-                'value': csrftoken,
-                'domain': request.get_host().split(':')[0],
-                'path': '/'
-            })
-        if cookies:
-            context.add_cookies(cookies)
-
-        page = context.new_page()
-        page.goto(print_url, wait_until='networkidle', timeout=30000)
-
-        # Wait for JavaScript to finish building the table
+        page = browser.new_page()
+        page.set_content(html_content, base_url=base_url, wait_until='networkidle')
+        # Wait for JavaScript to finish building the product table
         page.wait_for_function("document.querySelector('#product-table tbody tr') !== null", timeout=15000)
-
         pdf_bytes = page.pdf(
             format='A4',
             print_background=True,
