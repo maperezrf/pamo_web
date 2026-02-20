@@ -174,8 +174,9 @@ def generate_pdf(request, id):
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page()
-        page.set_content(html_content, base_url=base_url, wait_until='networkidle')
+        context = browser.new_context(base_url=base_url)
+        page = context.new_page()
+        page.set_content(html_content, wait_until='networkidle')
         # Wait for JavaScript to finish building the product table
         page.wait_for_function("document.querySelector('#product-table tbody tr') !== null", timeout=15000)
         pdf_bytes = page.pdf(
