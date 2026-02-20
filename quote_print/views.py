@@ -169,13 +169,13 @@ def generate_pdf(request, id):
     data = _get_draft_data(id)
     # Render the template to an HTML string — no HTTP request needed
     html_content = render_to_string('print.html', data, request=request)
-    # Base URL so Playwright resolves static files (CSS, images, JS) correctly
+    # Inject <base> tag so Playwright resolves /static/... URLs correctly
     base_url = request.build_absolute_uri('/')
+    html_content = html_content.replace('<head>', f'<head><base href="{base_url}">', 1)
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        context = browser.new_context(base_url=base_url)
-        page = context.new_page()
+        page = browser.new_page()
         # 'load' waits for window.onload (JS builds the table), then networkidle
         # waits for dynamic images (Shopify CDN) to finish loading
         page.set_content(html_content, wait_until='load')
