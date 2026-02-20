@@ -191,5 +191,5 @@ def generate_pdf(request, id):
     filename = f"cotizacion_{quote_name.lstrip('#')}.pdf"
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
