@@ -176,10 +176,10 @@ def generate_pdf(request, id):
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
-        # 'load' waits for window.onload (JS builds the table), then networkidle
-        # waits for dynamic images (Shopify CDN) to finish loading
-        page.set_content(html_content, wait_until='load')
-        page.wait_for_load_state('networkidle', timeout=25000)
+        # domcontentloaded is instant (just HTML parsed, no waiting for every image)
+        # networkidle then waits for CSS/JS/images to finish (500ms of inactivity)
+        page.set_content(html_content, wait_until='domcontentloaded', timeout=10000)
+        page.wait_for_load_state('networkidle', timeout=30000)
         pdf_bytes = page.pdf(
             format='A4',
             print_background=True,
