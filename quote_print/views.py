@@ -163,29 +163,10 @@ def get_info_customer(request, id_siigo):
 
 @login_required
 def generate_pdf(request, id):
-    from playwright.sync_api import sync_playwright
-    from django.template.loader import render_to_string
+    from quote_print.pdf_generator import create_pdf
 
     data = _get_draft_data(id)
-    # Render the template to an HTML string — no HTTP request needed
-    html_content = render_to_string('print.html', data, request=request)
-    # Inject <base> tag so Playwright resolves /static/... URLs correctly
-    base_url = request.build_absolute_uri('/')
-    html_content = html_content.replace('<head>', f'<head><base href="{base_url}">', 1)
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
-        # domcontentloaded is instant (just HTML parsed, no waiting for every image)
-        # networkidle then waits for CSS/JS/images to finish (500ms of inactivity)
-        page.set_content(html_content, wait_until='domcontentloaded', timeout=10000)
-        page.wait_for_load_state('networkidle', timeout=30000)
-        pdf_bytes = page.pdf(
-            format='A4',
-            print_background=True,
-            margin={'top': '0mm', 'bottom': '0mm', 'left': '0mm', 'right': '0mm'}
-        )
-        browser.close()
+    pdf_bytes = create_pdf(data)
 
     quote_name = Quote.objects.filter(id=id).values_list('name', flat=True).first() or str(id)
     filename = f"cotizacion_{quote_name.lstrip('#')}.pdf"

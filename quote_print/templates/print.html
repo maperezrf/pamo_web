@@ -279,5 +279,24 @@
       politics = footer.getElementsByClassName('politics')[0];
       politics.style.marginTop = "60px";
       container.appendChild(politics);}
+
+      // Responsive scaling — runs after the table is fully built
+      function scaleForMobile() {
+        var BASE_W = 880;
+        var vw = window.innerWidth;
+        var scale = vw < BASE_W ? vw / BASE_W : 1;
+        if (scale < 1) {
+          document.body.style.transformOrigin = '0 0';
+          document.body.style.transform = 'scale(' + scale + ')';
+          document.body.style.width = BASE_W + 'px';
+          document.documentElement.style.height = Math.ceil(document.body.offsetHeight * scale) + 'px';
+        } else {
+          document.body.style.transform = '';
+          document.body.style.width = '';
+          document.documentElement.style.height = '';
+        }
+      }
+      scaleForMobile();
+      window.addEventListener('resize', scaleForMobile);
     };
 </script>
