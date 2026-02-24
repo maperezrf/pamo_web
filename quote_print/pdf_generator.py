@@ -271,10 +271,29 @@ def create_pdf(data):
                 ty = total_row(f'Descuento {pct_desc}%', _fmt_cop(descuento), ty)
             ty = total_row('Subtotal', _fmt_cop(subtotal), ty)
             ty = total_row('IVA', _fmt_cop(iva), ty)
-            total_row('Total', _fmt_cop(total), ty, bold_val=True)
+            ty = total_row('Total', _fmt_cop(total), ty, bold_val=True)
 
-            # — Policies
-            pol_y = py - 20
+            # — Links (below both payment and totals blocks)
+            # min() picks the lower y on the page (ReportLab origin is bottom-left)
+            links_y = min(py, ty) - 14
+            link_color = colors.HexColor('#0066cc')
+            lx = LEFT_X
+            for label, url in [
+                ('WhatsApp',                    data.get('url', '')),
+                ('Pagar en línea (MercadoPago)', 'http://link.mercadopago.com.co/pamocolombia'),
+                ('RUT FEPRIN SAS',              'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/RUT_COMPLETO_FEPRIN_SAS.pdf?v=1713496670'),
+                ('Certificación Bancaria',      'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/CERTIFICACION_FEPRIN_BANCOLOMBIA.pdf?v=1713496669'),
+            ]:
+                c.setFont('Helvetica', 7)
+                c.setFillColor(link_color)
+                c.drawString(lx, links_y, label)
+                w = c.stringWidth(label, 'Helvetica', 7)
+                c.linkURL(url, (lx, links_y - 2, lx + w, links_y + 7), thickness=0)
+                lx += w + 18
+            c.setFillColor(colors.black)
+
+            # — Policies (below links)
+            pol_y = links_y - 18
             c.setStrokeColor(colors.HexColor('#aaaaaa'))
             c.line(LEFT_X, pol_y + 8, RIGHT_X, pol_y + 8)
             c.setStrokeColor(colors.black)
