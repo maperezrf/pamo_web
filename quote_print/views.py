@@ -105,7 +105,6 @@ def print_drafr(request, id):
     print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'print.html', data)
 
-@login_required
 def update_draft (request,id_sho):
     print(f'*** inicia actualizacion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     print('esta entrando')
