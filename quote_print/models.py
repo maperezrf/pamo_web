@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 
 class Quote(models.Model):
@@ -8,6 +9,7 @@ class Quote(models.Model):
     cursor = models.CharField(max_length=80, null=True, blank=True)
     total = models.IntegerField(False, null=False, blank=False ,default= 0 )
     nit = models.CharField(max_length=25, null=True, blank=True)
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
 
     def __str__(self) -> str:
         return self.name

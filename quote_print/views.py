@@ -161,16 +161,22 @@ def get_info_customer(request, id_siigo):
         return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
 
 
-@login_required
 def generate_pdf(request, id):
     from quote_print.pdf_generator import create_pdf
+
+    token = request.GET.get('token')
+    try:
+        quote = Quote.objects.get(id=id)
+    except Quote.DoesNotExist:
+        return HttpResponse('Cotización no encontrada.', status=404)
+
+    if str(quote.token) != token:
+        return HttpResponse('Enlace no válido.', status=403)
 
     data = _get_draft_data(id)
     pdf_bytes = create_pdf(data)
 
-    quote_name = Quote.objects.filter(id=id).values_list('name', flat=True).first() or str(id)
-    filename = f"cotizacion_{quote_name.lstrip('#')}.pdf"
-
+    filename = f"cotizacion_{quote.name.lstrip('#')}.pdf"
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
