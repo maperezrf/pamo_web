@@ -101,6 +101,7 @@ def _get_draft_data(id):
 def print_drafr(request, id):
     print(f'*** inicia impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     data = _get_draft_data(id)
+    data['token'] = Quote.objects.filter(id=id).values_list('token', flat=True).first()
     print(f'*** finaliza impresion de cotizacion {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}***')
     return render(request, 'print.html', data)
 
