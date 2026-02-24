@@ -21,3 +21,4 @@ djangorestframework==3.16.1
 django-cors-headers==4.9.0
 playwright==1.49.0
 reportlab==4.2.5
+svglib==1.5.1

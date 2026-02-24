@@ -13,6 +13,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
+from reportlab.graphics import renderPDF
+from svglib.svglib import svg2rlg
 from django.conf import settings
 
 PAGE_W, PAGE_H = A4  # 595.27 x 841.89
@@ -273,24 +275,36 @@ def create_pdf(data):
             ty = total_row('IVA', _fmt_cop(iva), ty)
             ty = total_row('Total', _fmt_cop(total), ty, bold_val=True)
 
-            # — Links (below both payment and totals blocks)
+            # — Icon links (below both payment and totals blocks)
             # min() picks the lower y on the page (ReportLab origin is bottom-left)
-            links_y = min(py, ty) - 14
-            link_color = colors.HexColor('#0066cc')
+            ICON_SIZE = 22  # pt
+            links_y = min(py, ty) - ICON_SIZE - 10
             lx = LEFT_X
-            for label, url in [
-                ('WhatsApp',                    data.get('url', '')),
-                ('Pagar en línea (MercadoPago)', 'http://link.mercadopago.com.co/pamocolombia'),
-                ('RUT FEPRIN SAS',              'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/RUT_COMPLETO_FEPRIN_SAS.pdf?v=1713496670'),
-                ('Certificación Bancaria',      'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/CERTIFICACION_FEPRIN_BANCOLOMBIA.pdf?v=1713496669'),
+            for img_name, url in [
+                ('Bot-pago.png', 'http://link.mercadopago.com.co/pamocolombia'),
+                ('wp.svg',       data.get('url', '')),
+                ('rut.svg',      'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/RUT_COMPLETO_FEPRIN_SAS.pdf?v=1713496670'),
+                ('certificacion.svg', 'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/CERTIFICACION_FEPRIN_BANCOLOMBIA.pdf?v=1713496669'),
             ]:
-                c.setFont('Helvetica', 7)
-                c.setFillColor(link_color)
-                c.drawString(lx, links_y, label)
-                w = c.stringWidth(label, 'Helvetica', 7)
-                c.linkURL(url, (lx, links_y - 2, lx + w, links_y + 7), thickness=0)
-                lx += w + 18
-            c.setFillColor(colors.black)
+                icon_path = _img_path(img_name)
+                try:
+                    if img_name.endswith('.svg'):
+                        drawing = svg2rlg(icon_path)
+                        if drawing:
+                            sx = ICON_SIZE / drawing.width
+                            sy = ICON_SIZE / drawing.height
+                            drawing.width  = ICON_SIZE
+                            drawing.height = ICON_SIZE
+                            drawing.transform = (sx, 0, 0, sy, 0, 0)
+                            renderPDF.draw(drawing, c, lx, links_y)
+                    else:
+                        c.drawImage(ImageReader(icon_path), lx, links_y,
+                                    width=ICON_SIZE, height=ICON_SIZE,
+                                    preserveAspectRatio=True, mask='auto')
+                    c.linkURL(url, (lx, links_y, lx + ICON_SIZE, links_y + ICON_SIZE), thickness=0)
+                except Exception:
+                    pass
+                lx += ICON_SIZE + 10
 
             # — Policies (below links)
             pol_y = links_y - 18
