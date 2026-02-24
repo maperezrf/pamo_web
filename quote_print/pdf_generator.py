@@ -114,11 +114,15 @@ def create_pdf(data):
     groups = [items[i:i + 7] for i in range(0, max(len(items), 1), 7)]
 
     # ── Page 1 – Cover ───────────────────────────────────────────────────────
-    c.drawImage(_img_path('Pg1.png'), 0, 0, width=PAGE_W, height=PAGE_H)
+    c.setFillColor(colors.white)
+    c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+    c.drawImage(_img_path('Pg1.png'), 0, 0, width=PAGE_W, height=PAGE_H, mask='auto')
     c.showPage()
 
     # ── Page 2 – ¿Por qué Pamo? ──────────────────────────────────────────────
-    c.drawImage(_img_path('Pg2.png'), 0, 0, width=PAGE_W, height=PAGE_H)
+    c.setFillColor(colors.white)
+    c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+    c.drawImage(_img_path('Pg2.png'), 0, 0, width=PAGE_W, height=PAGE_H, mask='auto')
     c.showPage()
 
     # ── Content pages ────────────────────────────────────────────────────────
@@ -126,7 +130,9 @@ def create_pdf(data):
         is_first = page_idx == 0
         is_last  = page_idx == len(groups) - 1
 
-        c.drawImage(_img_path('Pg3.png'), 0, 0, width=PAGE_W, height=PAGE_H)
+        c.setFillColor(colors.white)
+        c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+        c.drawImage(_img_path('Pg3.png'), 0, 0, width=PAGE_W, height=PAGE_H, mask='auto')
 
         # ── Company info block (top-right, right-aligned) ─────────────────
         company_lines = [
