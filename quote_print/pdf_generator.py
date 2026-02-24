@@ -291,11 +291,10 @@ def create_pdf(data):
                     if img_name.endswith('.svg'):
                         drawing = svg2rlg(icon_path)
                         if drawing:
-                            sx = ICON_SIZE / drawing.width
-                            sy = ICON_SIZE / drawing.height
-                            drawing.width  = ICON_SIZE
-                            drawing.height = ICON_SIZE
-                            drawing.transform = (sx, 0, 0, sy, 0, 0)
+                            scale = min(ICON_SIZE / drawing.width, ICON_SIZE / drawing.height)
+                            drawing.width  = drawing.width * scale
+                            drawing.height = drawing.height * scale
+                            drawing.transform = (scale, 0, 0, scale, 0, 0)
                             renderPDF.draw(drawing, c, lx, links_y)
                     else:
                         c.drawImage(ImageReader(icon_path), lx, links_y,
