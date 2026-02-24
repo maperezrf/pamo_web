@@ -106,6 +106,13 @@
          <!-- Navbar -->
          <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
             <div class="container-fluid py-1 px-3">
+               <a href="javascript:;" class="d-xl-none text-body p-0 me-3 d-flex align-items-center" id="sidenavToggleBtn" aria-label="Abrir menú">
+                  <div class="sidenav-toggler-inner">
+                     <i class="sidenav-toggler-line"></i>
+                     <i class="sidenav-toggler-line"></i>
+                     <i class="sidenav-toggler-line"></i>
+                  </div>
+               </a>
                <nav aria-label="breadcrumb">
                   <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                      <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">{% block page_name %} {% endblock %}</a></li>
@@ -155,5 +162,24 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
       <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc --><script src="{% static 'assets/js/material-dashboard.min.js?v=3.1.0' %}"></script>
+      <script>
+         (function () {
+            var btn     = document.getElementById('sidenavToggleBtn');
+            var sidenav = document.getElementById('sidenav-main');
+            var iconX   = document.getElementById('iconSidenav');
+            if (!btn || !sidenav) return;
+            btn.addEventListener('click', function (e) {
+               e.preventDefault();
+               var pinned = document.body.classList.toggle('g-sidenav-pinned');
+               if (pinned) {
+                  sidenav.classList.add('bg-white');
+                  if (iconX) iconX.classList.remove('d-none');
+               } else {
+                  sidenav.classList.remove('bg-white');
+                  if (iconX) iconX.classList.add('d-none');
+               }
+            });
+         })();
+      </script>
    </body>
 </html>

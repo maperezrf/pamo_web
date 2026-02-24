@@ -103,7 +103,7 @@ Listado cotizaciones
   const botonesImprimir = document.querySelectorAll('.imprimir-btn');
   botonesImprimir.forEach((boton) => {
     boton.addEventListener('click', function() {
-      const popup = window.open('/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/print/', '', 'width=1200,height=700'); 
+      window.open('/quoteprint/'+ this.getAttribute('id_draft').replace('gid://shopify/DraftOrder/','') +'/pdf/');
     })
   })
 

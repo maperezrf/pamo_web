@@ -277,10 +277,10 @@ def create_pdf(data):
 
             # — Icon links (below both payment and totals blocks)
             # min() picks the lower y on the page (ReportLab origin is bottom-left)
-            MAX_ICON_H = 28   # alto máximo de cada ícono
-            MAX_ICON_W = 100  # ancho máximo (evita que los badges SVG se expandan)
+            ICON_H   = 28    # altura exacta para todos los íconos
+            MAX_ICON_W = 110  # ancho máximo (limita badges muy anchos)
             ICON_GAP   = 12   # separación horizontal entre íconos
-            links_y = min(py, ty) - MAX_ICON_H - 14
+            links_y = min(py, ty) - ICON_H - 14
             lx = LEFT_X
             for img_name, url in [
                 ('Bot-pago.png', 'http://link.mercadopago.com.co/pamocolombia'),
@@ -293,25 +293,23 @@ def create_pdf(data):
                     if img_name.endswith('.svg'):
                         drawing = svg2rlg(icon_path)
                         if drawing:
-                            # escala para caber en MAX_ICON_H x MAX_ICON_W manteniendo proporción
-                            scale = min(MAX_ICON_H / drawing.height, MAX_ICON_W / drawing.width)
+                            # escalar por altura exacta; cap de ancho para badges muy anchos
+                            scale = min(ICON_H / drawing.height, MAX_ICON_W / drawing.width)
                             iw = drawing.width  * scale
-                            ih = drawing.height * scale
                             drawing.width  = iw
-                            drawing.height = ih
+                            drawing.height = ICON_H
                             drawing.transform = (scale, 0, 0, scale, 0, 0)
                             renderPDF.draw(drawing, c, lx, links_y)
-                            c.linkURL(url, (lx, links_y, lx + iw, links_y + ih), thickness=0)
+                            c.linkURL(url, (lx, links_y, lx + iw, links_y + ICON_H), thickness=0)
                             lx += iw + ICON_GAP
                     else:
-                        # PNG: escalar para caber en la misma caja
+                        # PNG: escala exacta por altura, ancho proporcional con cap
                         reader = ImageReader(icon_path)
                         nat_w, nat_h = reader.getSize()
-                        scale = min(MAX_ICON_H / nat_h, MAX_ICON_W / nat_w)
+                        scale = min(ICON_H / nat_h, MAX_ICON_W / nat_w)
                         iw = nat_w * scale
-                        ih = nat_h * scale
-                        c.drawImage(reader, lx, links_y, width=iw, height=ih, mask='auto')
-                        c.linkURL(url, (lx, links_y, lx + iw, links_y + ih), thickness=0)
+                        c.drawImage(reader, lx, links_y, width=iw, height=ICON_H, mask='auto')
+                        c.linkURL(url, (lx, links_y, lx + iw, links_y + ICON_H), thickness=0)
                         lx += iw + ICON_GAP
                 except Exception:
                     pass
