@@ -165,15 +165,15 @@ def get_info_customer(request, id_siigo):
 def generate_pdf(request, id):
     from quote_print.pdf_generator import create_pdf
 
-    try:
-        quote = Quote.objects.get(id=id)
-    except Quote.DoesNotExist:
-        return HttpResponse('Cotización no encontrada.', status=404)
+    # try:
+    #     quote = Quote.objects.get(id=id)
+    # except Quote.DoesNotExist:
+    #     return HttpResponse('Cotización no encontrada.', status=404)
 
     data = _get_draft_data(id)
     pdf_bytes = create_pdf(data)
 
-    filename = f"cotizacion_{quote.name.lstrip('#')}.pdf"
+    filename = f"cotizacion_{data['info']['name'].lstrip('#')}.pdf"
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
