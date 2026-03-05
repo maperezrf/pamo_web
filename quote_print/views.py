@@ -161,7 +161,6 @@ def get_info_customer(request, id_siigo):
         return JsonResponse({'success':False, 'message': f'No se completó la carga {str(e)}'})
 
 
-@login_required
 def generate_pdf(request, id):
     from quote_print.pdf_generator import create_pdf
 
