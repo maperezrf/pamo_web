@@ -47,7 +47,9 @@ def process_orders_and_create_in_shopify(sodi):
     }
     not_found_skus = []
     data_log["len_orders"] = 0
-    if sodi.get_orders_api():
+    resultado_1 = sodi.get_orders_api(tipo_orden="1")
+    resultado_4 = sodi.get_orders_api(tipo_orden="4")
+    if resultado_1 or resultado_4:
         print("Haciendo cruces de SKUS")
         sodi.make_merge()
         orders = sodi.get_orders()
@@ -106,7 +108,8 @@ def handle_invoices_and_billing():
     ]
     sodi = ConnectionsSodimac()
     sodi.reinyectar_oc(orders)
-    sodi.get_orders_api()
+    sodi.get_orders_api(tipo_orden="1")
+    sodi.get_orders_api(tipo_orden="4")
     sodi.make_merge()
     sodi.set_kits()
     df = sodi.get_orders()

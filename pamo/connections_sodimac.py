@@ -15,22 +15,23 @@ class ConnectionsSodimac():
     def __init__(self) -> None:
         self.headers = {"Ocp-Apim-Subscription-Key": SUBSCRIPTION_KEY,"Content-Type": "application/json"}
     
-    def get_orders_api(self):
+    def get_orders_api(self, tipo_orden="1"):
         data = {
         "ReferenciaProveedor": REFERENCIA_FPRN,
-        "TipoOrden":"1"
+        "TipoOrden": tipo_orden
         }
         response = requests.post(URL_SODIMAC, headers = self.headers, json=data)
         if response.json()['Mensaje'] == 'No hay datos para esta sentencia.':
             return False
         elif response.json()['Mensaje'] == 'Sentencia ejecutada con éxito.':
-            print(f"se encontraron {len(response.json()['Value'])} ordenes")
+            print(f"se encontraron {len(response.json()['Value'])} ordenes (TipoOrden={tipo_orden})")
             ordenes = []
             for orden in response.json()['Value']:
                 for producto in orden['PRODUCTOS']:
                     ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
-            self.orders = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC','FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])
-            self.orders['COSTO_SKU_IVA'] = self.orders['COSTO_SKU'] * 1.19
+            df_nuevas = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC','FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])
+            df_nuevas['COSTO_SKU_IVA'] = df_nuevas['COSTO_SKU'] * 1.19
+            self.orders = pd.concat([self.orders, df_nuevas], ignore_index=True)
             print(self.orders)
             return True
             
