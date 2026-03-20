@@ -175,8 +175,7 @@ def create_pdf(data):
                 y = cust_field('Teléfono:', phone, y)
             _text(c, LEFT_X + 33, y, f'Plazo: 10 días   Fecha de Vencimiento: {plazo}', size=8)
             y -= 14
-            _text(c, LEFT_X + 33, y, f'Teléfono: {(customer.get("defaultAddress", {}).get("phone", "") if customer.get("defaultAddress", {}).get("phone", "") else '').replace("+57", "")}', size=8)
-
+            _text(c, LEFT_X + 33, y, f'Teléfono: {(customer.get("defaultAddress", {}).get("phone", "") if customer.get("defaultAddress", {}).get("phone", "") else "").replace("+57", "")}', size=8)
             # Right side: date and quote number
             _text_right(c, RIGHT_X, Y_CUSTOMER_TOP,      f'Fecha: {date_str}', size=8)
             _text_right(c, RIGHT_X, Y_CUSTOMER_TOP - 14, f"Cotización No. {draft['name'][1:]}", size=8)
