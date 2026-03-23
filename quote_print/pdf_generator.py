@@ -282,10 +282,10 @@ def create_pdf(data):
             links_y = min(py, ty) - ICON_H - 14
             lx = LEFT_X
             for img_name, url in [
-                ('Bot-pago.png', 'http://link.mercadopago.com.co/pamocolombia'),
+                ('Bot-pago.png', draft.get('invoiceUrl', '')),
                 ('wp.svg',       data.get('url', '')),
-                ('rut.svg',      'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/RUT_COMPLETO_FEPRIN_SAS.pdf?v=1713496670'),
-                ('certificacion.svg', 'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/CERTIFICACION_FEPRIN_BANCOLOMBIA.pdf?v=1713496669'),
+                ('rut.svg',      'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/RUT_FEPRIN_2026.pdf?v=1774303720'),
+                ('certificacion.svg', 'https://cdn.shopify.com/s/files/1/0617/8507/9974/files/Certificado_Bancolombia_Feprin_2026.pdf?v=1774303817'),
             ]:
                 icon_path = _img_path(img_name)
                 try:

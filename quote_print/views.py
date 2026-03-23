@@ -93,7 +93,7 @@ def _get_draft_data(id):
         if str(i['node']['title']).__contains__("'"):
             i['node']['title'] = i['node']['title'].replace("'", '~')
     return {'info': draft, 'plazo': plazo, 'update': date_update.strftime('%d/%m/%Y'), 'nit': num,
-            'url': f"https://api.whatsapp.com/send?phone={SALES_PHONE}&text=Hola,%20deseo%20revisar%20mi%20cotización%20{draft['name'][1]}",
+            'url': f"https://api.whatsapp.com/send?phone={SALES_PHONE}&text=Hola,%20estoy%20viendo%20mi%20cotizaci%C3%B3n%20{draft['name'][1:]}%20y%20tengo%20una%20consulta.%20%C2%BFMe%20podr%C3%ADan%20ayudar,%20por%20favor%3F",
             'quote_id': id}
 
 
