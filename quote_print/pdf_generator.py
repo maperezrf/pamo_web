@@ -141,7 +141,7 @@ def create_pdf(data):
             ('FEPRIN SAS / PAMO.CO',                                     True),
             ('NIT: 900.382.733-3  Régimen Común',                       False),
             ('Actividad Económica 4752  Tarifa Renta 0,40%',            False),
-            ('Teléfonos: (601)9168880  6019179988',                     False),
+            ('Teléfono: (601)9166355',                     False),
             ('',                                                         False),
             ('No somos Autoretenedores - No somos Grandes Contribuyentes', False),
             ('Régimen IVA: COMÚN  Actividad ICA: 47521  6,90x mil',    False),
