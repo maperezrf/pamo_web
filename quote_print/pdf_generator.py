@@ -361,10 +361,6 @@ def create_pdf(data):
         breb_y = links_y - breb_h - 10
         c.drawImage(breb_reader, TABLE_LEFT_X, breb_y,
                     width=breb_w, height=breb_h, mask='auto')
-        js = "app.setClipboardContents('0091439530'); app.alert('Llave copiada: 0091439530', 3);"
-        c.linkURL(f'javascript:{js}',
-                  (TABLE_LEFT_X, breb_y, RIGHT_X, breb_y + breb_h),
-                  thickness=0)
     except Exception:
         pass
 
