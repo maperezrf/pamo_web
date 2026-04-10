@@ -32,6 +32,7 @@ class SodimacOrders(models.Model):
     oc_shopify = models.CharField(max_length=100, null=True, blank=True, unique=False)
  
 class SodimacKits(models.Model):
-    kitnumber = models.CharField(max_length=50,null=False, blank=False)
-    sku = models.CharField(max_length=50,null=False, blank=False)
-    quantity = models.IntegerField(null=False, blank=False ,default= 0 )
+    kitnumber = models.CharField(max_length=50, null=False, blank=False)
+    sku = models.CharField(max_length=50, null=False, blank=False)
+    quantity = models.IntegerField(null=False, blank=False, default=0)
+    ean = models.CharField(max_length=15, null=True, blank=True)

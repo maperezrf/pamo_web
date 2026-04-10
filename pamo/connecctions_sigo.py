@@ -1,11 +1,14 @@
 from decouple import config
 from datetime import datetime, timedelta
 from quote_print.models import SigoToken, SigoCostumers
+from pamo_bots.models import InvoicesSiigo
+from django.db.models import Count
 import math
 import requests
 import json
 from datetime import datetime
 import math
+from pamo.constants import NIT_SODIMAC
 
 class SigoConnection():
     headers = {
@@ -246,3 +249,128 @@ class SigoConnection():
         return responses
 
 
+    def get_monthly_invoices(self):
+        """
+        Trae las facturas del mes y filtra por Sodimac.
+        No sabe nada de la base de datos.
+        """
+        today = datetime.now()
+        date_start = today.replace(day=1).strftime('%Y-%m-%d')
+        date_end = today.strftime('%Y-%m-%d')
+        page_size = 100
+        base_url = (
+            f"https://api.siigo.com/v1/invoices?"
+            f"date_start={date_start}&"
+            f"date_end={date_end}&"
+            f"page_size={page_size}"
+        )
+        
+        all_results = []
+        
+        try:
+            first_response = requests.get(f"{base_url}&page=1", headers=self.headers)
+            if first_response.status_code != 200:
+                return []
+            
+            first_data = first_response.json()
+            total_results = first_data.get('pagination', {}).get('total_results', 0)
+            all_results.extend(first_data.get('results', [])) # Corregido el extend
+            
+            total_pages = math.ceil(total_results / page_size)
+            
+            for page in range(2, total_pages + 1):
+                response = requests.get(f"{base_url}&page={page}", headers=self.headers)
+                if response.status_code == 200:
+                    all_results.extend(response.json().get('results', []))
+            
+            invoices_sodimac = [i for i in all_results if i.get("customer", {}).get('identification') == NIT_SODIMAC]
+            return invoices_sodimac
+            
+        except Exception as e:
+            raise(f"Error en la consulta: {e}")
+
+    def process_and_save_invoices(self, invoices_list):
+        """
+        procesa los datos complejos 
+        (costos, OC) y guarda en la base de datos.
+        """
+
+        db_invoices = [i['name'] for i in list(InvoicesSiigo.objects.all().values('name'))]
+        invoices_list = [ i for i in  invoices_list if i.get('name') not in db_invoices]
+        stats = {'created': 0, 'skipped': 0}
+
+        for invoice_json in invoices_list:
+            try:
+               
+                invoice_id = invoice_json.get('id')
+                if not invoice_id:
+                    continue
+                items = invoice_json.get('items', [])
+                total_items_cost = sum([float(item.get('price', 0) * item.get('quantity', 0)) for item in items])
+                additional_fields = invoice_json.get('additional_fields', {})
+                purchase_order_data = additional_fields.get('purchase_order', {})
+                oc_number = purchase_order_data.get('number', None)
+                obj, created = InvoicesSiigo.objects.update_or_create(
+                    id=invoice_id,
+                    defaults={
+                        'name': invoice_json.get('name'),
+                        'date': invoice_json.get('date'),
+                        'total': invoice_json.get('total', 0),
+                        'items_cost': total_items_cost,
+                        'oc': oc_number
+                    }
+                )
+                if created:
+                    stats['created'] += 1
+            except Exception as e:
+                print(f"Error procesando factura {invoice_json.get('id')}: {e}")
+                stats['skipped'] += 1
+        print(f"Sincronización completada: {stats}")
+        return [ i.get('oc') for i in  InvoicesSiigo.objects.exclude(oc__isnull=True).values('oc')]
+    
+    
+    def check_invoice_novelties(self, costo_por_oc=None):
+        """
+        Revisa las facturas en DB y setea la columna novelty según las novedades encontradas:
+        1. Factura sin OC relacionada (oc vacía o nula)
+        2. OC duplicada (mismo número de OC en facturas con diferente name)
+        3. Costo diferente al reportado por Sodimac — requiere costo_por_oc: {oc_str: costo_total}
+        """
+        costos = {item['oc']: item['costo_total'] for item in costo_por_oc} if costo_por_oc else {}
+
+        ocs_duplicadas = set(
+            InvoicesSiigo.objects
+            .exclude(oc__isnull=True).exclude(oc='')
+            .values('oc')
+            .annotate(total=Count('id'))
+            .filter(total__gt=1)
+            .values_list('oc', flat=True)
+        )
+
+        sin_oc_ids, oc_duplicada_ids, costo_diferente_ids = [], [], []
+        for inv in InvoicesSiigo.objects.all():
+            if not inv.oc:
+                sin_oc_ids.append(inv.id)
+            elif inv.oc in ocs_duplicadas:
+                oc_duplicada_ids.append(inv.id)
+            elif costo_por_oc and inv.oc in costos:
+                if round(float(inv.items_cost), 0) != round(costos[inv.oc], 0):
+                    costo_diferente_ids.append(inv.id)
+        InvoicesSiigo.objects.update(novelty=None)
+        if sin_oc_ids:
+            InvoicesSiigo.objects.filter(id__in=sin_oc_ids).update(novelty='factura sin oc relacionada')
+        if oc_duplicada_ids:
+            InvoicesSiigo.objects.filter(id__in=oc_duplicada_ids).update(novelty='oc duplicada')
+        if costo_diferente_ids:
+            InvoicesSiigo.objects.filter(id__in=costo_diferente_ids).update(novelty='costo diferente')
+        InvoicesSiigo.objects.filter(novelty__isnull=True).update(novelty='Sin Novedad')
+
+    def sync_siigo_to_db(self):
+        print("Iniciando sincronización con Siigo...")
+
+        invoices = self.get_monthly_invoices()
+
+        if not invoices:
+            print("No se encontraron facturas nuevas para procesar.")
+            return
+        return self.process_and_save_invoices(invoices)

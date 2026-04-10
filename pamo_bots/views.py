@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from pamo.conecctions_shopify import ConnectionsShopify
 from pamo.connections_sodimac import ConnectionsSodimac
 from pamo.connections_airtable import connAirtable
@@ -9,7 +9,7 @@ import datetime
 from pamo.functions import create_file_products
 from products.forms import fileForm
 from pamo_bots.models import LogBotOrders, ProductsSodimac
-from quote_print.models import SodimacOrders
+from quote_print.models import SodimacOrders, SodimacKits
 import pandas as pd
 from pamo_bots.core_df import Core
 import json
@@ -32,8 +32,119 @@ def get_orders(request):
 
 def manager_database(request):
     products = ProductsSodimac.objects.all()
-    data = {"table": products}
+
+    # Agrupar SodimacKits por kitnumber
+    kits_qs = SodimacKits.objects.all().order_by('kitnumber', 'sku')
+    kits_grouped = {}
+    for kit in kits_qs:
+        kn = kit.kitnumber
+        if kn not in kits_grouped:
+            kits_grouped[kn] = {'kitnumber': kn, 'ean': kit.ean, 'items': []}
+        kits_grouped[kn]['items'].append({
+            'id': kit.id,
+            'sku': kit.sku,
+            'quantity': kit.quantity,
+            'ean': kit.ean,
+        })
+
+    data = {
+        'table': products,
+        'kits': list(kits_grouped.values()),
+    }
     return render(request, "manager_database.html", context=data)
+
+
+@login_required
+def edit_product_sodimac(request, id):
+    try:
+        product = ProductsSodimac.objects.get(id=id)
+    except ProductsSodimac.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Registro no encontrado'}, status=404)
+
+    if request.method == 'PATCH':
+        body = json.loads(request.body)
+        field = body.get('field')
+        value = body.get('value')
+        allowed_fields = {'sku_sodimac', 'sku_pamo', 'ean'}
+        if field not in allowed_fields:
+            return JsonResponse({'success': False, 'message': 'Campo no permitido'}, status=400)
+        setattr(product, field, value)
+        product.save()
+        return JsonResponse({'success': True})
+
+    if request.method == 'DELETE':
+        product.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+
+@login_required
+def create_product_sodimac(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    body = json.loads(request.body)
+    product = ProductsSodimac.objects.create(
+        sku_sodimac=body.get('sku_sodimac') or None,
+        sku_pamo=body.get('sku_pamo') or None,
+        ean=body.get('ean') or None,
+    )
+    return JsonResponse({'success': True, 'id': product.id})
+
+
+@login_required
+def edit_sodimac_kit(request, id):
+    try:
+        kit = SodimacKits.objects.get(id=id)
+    except SodimacKits.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Registro no encontrado'}, status=404)
+
+    if request.method == 'PATCH':
+        body = json.loads(request.body)
+        field = body.get('field')
+        value = body.get('value')
+        allowed_fields = {'kitnumber', 'sku', 'quantity', 'ean'}
+        if field not in allowed_fields:
+            return JsonResponse({'success': False, 'message': 'Campo no permitido'}, status=400)
+        if field == 'quantity':
+            value = int(value)
+        setattr(kit, field, value)
+        kit.save()
+        return JsonResponse({'success': True})
+
+    if request.method == 'DELETE':
+        kit.delete()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+
+@login_required
+def create_sodimac_kit(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    body = json.loads(request.body)
+    kit = SodimacKits.objects.create(
+        kitnumber=body.get('kitnumber', ''),
+        sku=body.get('sku', ''),
+        quantity=int(body.get('quantity', 0)),
+        ean=body.get('ean') or None,
+    )
+    return JsonResponse({'success': True, 'id': kit.id})
+
+
+@login_required
+def get_monthly_invoices(request):
+    try:
+        sigo = SigoConnection()
+        sodi = ConnectionsSodimac()
+        ocs = sigo.sync_siigo_to_db()
+        costs = sodi.get_oc_costs(ocs)
+        sigo.check_invoice_novelties(costo_por_oc=costs)
+        return JsonResponse({'success': True, 'message': 'todo bien'}, status=200) 
+    except Exception as e:
+        print(e)
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
 def process_orders_and_create_in_shopify(sodi):
@@ -290,28 +401,28 @@ def set_inventory(request):
             )
 
 
-def get_inventory_view(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        ean_list = data.get("products")
-        sodi = ConnectionsSodimac()
-        return JsonResponse(sodi.get_inventario(ean_list)[0])
+# def get_inventory_view(request):
+#     if request.method == "POST":
+#         data = json.loads(request.body)
+#         ean_list = data.get("products")
+#         sodi = ConnectionsSodimac()
+#         return JsonResponse(sodi.get_inventario(ean_list)[0])
 
 
-def set_inventory_view(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        sku = data.get("sku")
-        product = data.get("product")
-        stock = data.get("stock")
-        columnas = ["sku", "ean", "stock"]
-        data = [[sku, product, stock]]
-        df = pd.DataFrame(data, columns=columnas)
-        sodi = ConnectionsSodimac()
-        data = sodi.set_inventory(df)
-        core = Core()
-        core.update_database_item(sku, product, stock)
-        return JsonResponse(data)
+# def set_inventory_view(request):
+#     if request.method == "POST":
+#         data = json.loads(request.body)
+#         sku = data.get("sku")
+#         product = data.get("product")
+#         stock = data.get("stock")
+#         columnas = ["sku", "ean", "stock"]
+#         data = [[sku, product, stock]]
+#         df = pd.DataFrame(data, columns=columnas)
+#         sodi = ConnectionsSodimac()
+#         data = sodi.set_inventory(df)
+#         core = Core()
+#         core.update_database_item(sku, product, stock)
+#         return JsonResponse(data)
 
 
 def update_base(request):
@@ -323,6 +434,33 @@ def update_base(request):
     return JsonResponse({"success": True, "message": ""})
 
 
+@login_required
+def download_products_excel(request):
+    import io
+    products = ProductsSodimac.objects.values('sku_sodimac', 'sku_pamo', 'ean')
+    df = pd.DataFrame(list(products))
+    output = io.BytesIO()
+    df.to_excel(output, index=False, sheet_name='Productos Sodimac')
+    output.seek(0)
+    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="productos_sodimac.xlsx"'
+    return response
+
+
+@login_required
+def download_kits_excel(request):
+    import io
+    from quote_print.models import SodimacKits
+    kits = SodimacKits.objects.values('kitnumber', 'ean', 'sku', 'quantity')
+    df = pd.DataFrame(list(kits))
+    output = io.BytesIO()
+    df.to_excel(output, index=False, sheet_name='Kits Sodimac')
+    output.seek(0)
+    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="kits_sodimac.xlsx"'
+    return response
+
+
 def save_review(response):
     products = ProductsSodimac.objects.all()
     products = pd.DataFrame(products.values())
@@ -330,7 +468,3 @@ def save_review(response):
     df = df.merge(products, how="left", on=["ean"])
     df = df[["sku_sodimac", "sku_pamo", "ean", "message"]]
     df.to_excel(os.path.join(settings.MEDIA_ROOT, "final_review.xlsx"), index=False)
-
-
-
-

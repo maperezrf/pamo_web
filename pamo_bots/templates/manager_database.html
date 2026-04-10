@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
 
 {% block title %}
-  Automatizaciones
+  Gestionar Base
 {% endblock %}
 
 {% block page_name %}
@@ -18,59 +18,114 @@
 
 {% block content %}
   {% load static %}
-  <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" />
+  <!-- <link rel="stylesheet" type="text/css" href="{% static 'css/upload_file.css' %}" /> -->
   <link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}" />
-  <h1 class="container text-center space">Sodimac</h1>
 
-  <div class="card">
-    <div class="table">
-      <table class="table table-striped dataTable" id="dbSodimac">
-        <thead>
-          <tr>
-            <th scope="col" class="h4 text-center">SKU Sodimac</th>
-            <th scope="col" class="h5 text-center column-1">SKU shopify</th>
-            <th scope="col" class="h5 text-center column-1">EAN</th>
-            <th scope="col" class="h5 text-center">Stock base</th>
-            <th scope="col" class="h5 text-center">Stock api</th>
-            <th scope="col" class="h5 text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for i in table %}
-            <tr>
-              <td class="celda text-center sku">
-                <a href="https://www.homecenter.com.co/homecenter-co/product/{{ i.sku_sodimac }}" target="_blank">{{ i.sku_sodimac }}</a>
-              </td>
-              <td class="celda text-center">{{ i.sku_pamo }}</td>
-              <td class="celda text-center">{{ i.ean }}</td>
-              <td class="celda text-center stock-to-set" ondblclick="hanldeDBClick(this)">{{ i.stock }}</td>
-              <td class="celda text-center">{{ i.stock_sodi }}</td>
-              <td id="{{ i.ean }}">
-                <a><img class="img mx-1 set-inventory-link" src="{% static 'images/cargar.png' %}" alt="Not found" /></a>
-                <a><img class="img mx-1 get-inventory-link" src="{% static 'images/sincronizar.png' %}" alt="Not found" /></a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- TABLA 1: Products Sodimac -->
+  <div class="card mb-4">
+    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Productos Sodimac</h5>
+      <button class="btn btn-sm btn-success" id="add-product-btn">+ Agregar</button>
     </div>
-    <div class="container d-flex justify-content-center">
-      <a href="#" id="update-base"><button class="btn btn-success btn-upload mx-4">Actualizar base</button></a>
-      <a href="/pamo_bots/upload"><button class="btn btn-info btn-upload mx-4">Cargar plantilla</button></a>
+    <div class="card-body px-0 pb-0">
+      <div class="table-responsive">
+        <table class="table table-striped dataTable" id="dbSodimac">
+          <thead>
+            <tr>
+              <th class="text-center">SKU Sodimac</th>
+              <th class="text-center">SKU Shopify</th>
+              <th class="text-center">EAN</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="products-tbody">
+            {% for i in table %}
+              <tr data-id="{{ i.id }}" data-type="product">
+                <td class="text-center editable" data-field="sku_sodimac">{{ i.sku_sodimac }}</td>
+                <td class="text-center editable text-input" data-field="sku_pamo">{{ i.sku_pamo }}</td>
+                <td class="text-center editable" data-field="ean">{{ i.ean }}</td>
+                <td class="text-center">
+                  <img class="img mx-1 delete-btn" src="{% static 'images/eliminar.png' %}" alt="Eliminar" style="cursor:pointer;width:20px;" />
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer">
+      <a href="{% url 'pamo_bots:download_products' %}"><button class="btn btn-success btn-sm">Descargar Excel</button></a>
     </div>
   </div>
-  <script src="{% static 'js/manager_database.js' %}"></script>
+
+  <!-- TABLA 2: Sodimac Kits -->
+  <div class="card mb-4">
+    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Kits Sodimac</h5>
+      <button class="btn btn-sm btn-success" id="add-kit-btn">+ Agregar</button>
+    </div>
+    <div class="card-body px-0 pb-0">
+      <div class="table-responsive">
+        <table class="table dataTable" id="dbKits">
+          <thead>
+            <tr>
+              <th style="width:30px;"></th>
+              <th class="text-center">Kit Number</th>
+              <th class="text-center">EAN</th>
+              <th class="text-center">SKU</th>
+              <th class="text-center">Cantidad</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="kits-tbody">
+            {% for kit in kits %}
+              <tr class="kit-header" data-kitnumber="{{ kit.kitnumber }}">
+                <td class="text-center">
+                  <span class="accordion-toggle" style="cursor:pointer;font-weight:bold;">&#9654;</span>
+                </td>
+                <td class="text-center fw-bold">{{ kit.kitnumber }} ({{ kit.items|length }} SKUs)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-success add-kit-item-btn" data-kitnumber="{{ kit.kitnumber }}" style="display:none;">+ Item</button>
+                </td>
+              </tr>
+              {% for item in kit.items %}
+                <tr class="kit-row" data-id="{{ item.id }}" data-type="kit" data-kitnumber="{{ kit.kitnumber }}" style="display:none;">
+                  <td></td>
+                  <td class="text-center editable" data-field="kitnumber">{{ kit.kitnumber }}</td>
+                  <td class="text-center editable" data-field="ean">{{ item.ean }}</td>
+                  <td class="text-center editable text-input" data-field="sku">{{ item.sku }}</td>
+                  <td class="text-center editable" data-field="quantity">{{ item.quantity }}</td>
+                  <td class="text-center">
+                    <img class="img mx-1 delete-btn" src="{% static 'images/eliminar.png' %}" alt="Eliminar" style="cursor:pointer;width:20px;" />
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer">
+      <a href="{% url 'pamo_bots:download_kits' %}"><button class="btn btn-success btn-sm">Descargar Excel</button></a>
+    </div>
+  </div>
+
+  <script>window.DELETE_IMG_SRC = "{% static 'images/eliminar.png' %}";</script>
   <script src="{% static 'js/functions.js' %}"></script>
+  <script src="{% static 'js/manager_database.js' %}"></script>
 
   <script>
     let dataTable
     let dataTableIsInitialized = false
-    
+
     const dataTableOptions = {
       pageLength: 25,
       destroy: true,
-      order: [[0, 'desc']],
-      columnDefs: [{ className: 'text-center', targets: [0, 1, 2, 3, 4, 5] }],
+      order: [[0, 'asc']],
+      columnDefs: [{ className: 'text-center', targets: '_all' }],
       language: {
         sProcessing: 'Procesando...',
         sLengthMenu: 'Mostrar _MENU_ registros por página',
@@ -79,32 +134,65 @@
         sInfo: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
         sInfoEmpty: 'Mostrando 0 a 0 de 0 registros',
         sInfoFiltered: '(filtrado de _MAX_ registros en total)',
-        sInfoPostFix: '',
         sSearch: 'Buscar:',
-        sUrl: '',
-        sInfoThousands: ',',
         sLoadingRecords: 'Cargando...',
-        oPaginate: {
-          sFirst: 'Primero',
-          sLast: 'Último',
-          sNext: '>>',
-          sPrevious: '<<'
-        }
+        oPaginate: { sFirst: 'Primero', sLast: 'Último', sNext: '>>', sPrevious: '<<' }
       },
-      scrollX: true, // Activa el desplazamiento horizontal
-      fixedHeader: true // Fija los encabezados mientras se desplaza
+      scrollX: true,
+      fixedHeader: true
     }
-    
-    const initDataTable = async () => {
-      if (dataTableIsInitialized) {
-        dataTable.destroy()
+
+    const kitsTableOptions = {
+      pageLength: 50,
+      ordering: false,
+      columnDefs: [
+        { className: 'text-center', targets: '_all' },
+        { orderable: false, targets: '_all' },
+      ],
+      language: {
+        sProcessing: 'Procesando...',
+        sLengthMenu: 'Mostrar _MENU_ registros por página',
+        sZeroRecords: 'No se encontraron resultados',
+        sEmptyTable: 'Ningún dato disponible en esta tabla',
+        sInfo: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+        sInfoEmpty: 'Mostrando 0 a 0 de 0 registros',
+        sInfoFiltered: '(filtrado de _MAX_ registros en total)',
+        sSearch: 'Buscar:',
+        sLoadingRecords: 'Cargando...',
+        oPaginate: { sFirst: 'Primero', sLast: 'Último', sNext: '>>', sPrevious: '<<' }
+      },
+      scrollX: true,
+      drawCallback: function () {
+        // Restaurar estado del acordeón después de cada cambio de página
+        document.querySelectorAll('#kits-tbody .kit-row').forEach(row => {
+          const kitnumber = row.dataset.kitnumber
+          const toggle = document.querySelector(`.kit-header[data-kitnumber="${CSS.escape(kitnumber)}"] .accordion-toggle`)
+          const expanded = toggle && toggle.dataset.expanded === 'true'
+          row.style.display = expanded ? '' : 'none'
+        })
       }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
       dataTable = $('#dbSodimac').DataTable(dataTableOptions)
       dataTableIsInitialized = true
-    }
-    
-    window.addEventListener('load', async () => {
-      await initDataTable()
+
+      $('#dbKits').DataTable(kitsTableOptions)
+
+      // Acordeón kits
+      document.querySelectorAll('.accordion-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function () {
+          const headerRow = this.closest('tr')
+          const kitNumber = headerRow.dataset.kitnumber
+          const kitRows = document.querySelectorAll(`.kit-row[data-kitnumber="${kitNumber}"]`)
+          const expanded = this.dataset.expanded === 'true'
+          kitRows.forEach(row => { row.style.display = expanded ? 'none' : '' })
+          this.dataset.expanded = !expanded
+          this.innerHTML = expanded ? '&#9654;' : '&#9660;'
+          const addBtn = headerRow.querySelector('.add-kit-item-btn')
+          if (addBtn) addBtn.style.display = expanded ? 'none' : ''
+        })
+      })
     })
   </script>
 {% endblock %}

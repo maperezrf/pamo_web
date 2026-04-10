@@ -15,25 +15,42 @@ class ConnectionsSodimac():
     def __init__(self) -> None:
         self.headers = {"Ocp-Apim-Subscription-Key": SUBSCRIPTION_KEY,"Content-Type": "application/json"}
     
-    def get_orders_api(self, tipo_orden="1"):
-        data = {
-        "ReferenciaProveedor": REFERENCIA_FPRN,
-        "TipoOrden": tipo_orden
-        }
-        response = requests.post(URL_SODIMAC, headers = self.headers, json=data)
-        if response.json()['Mensaje'] == 'No hay datos para esta sentencia.':
-            return False
-        elif response.json()['Mensaje'] == 'Sentencia ejecutada con éxito.':
+    def _fetch_raw_orders(self, tipo_orden="1"):
+        """Helper: llama al API y retorna la lista cruda de órdenes, o [] si no hay datos."""
+        data = {"ReferenciaProveedor": REFERENCIA_FPRN, "TipoOrden": tipo_orden}
+        response = requests.post(URL_SODIMAC, headers=self.headers, json=data)
+        msg = response.json().get('Mensaje', '')
+        if msg == 'Sentencia ejecutada con éxito.':
             print(f"se encontraron {len(response.json()['Value'])} ordenes (TipoOrden={tipo_orden})")
-            ordenes = []
-            for orden in response.json()['Value']:
-                for producto in orden['PRODUCTOS']:
-                    ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
-            df_nuevas = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC','FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])
-            df_nuevas['COSTO_SKU_IVA'] = df_nuevas['COSTO_SKU'] * 1.19
-            self.orders = pd.concat([self.orders, df_nuevas], ignore_index=True)
-            print(self.orders)
-            return True
+            return response.json()['Value']
+        return []
+
+    def get_orders_api(self, tipo_orden="1"):
+        raw = self._fetch_raw_orders(tipo_orden)
+        if not raw:
+            return False
+        ordenes = []
+        for orden in raw:
+            for producto in orden['PRODUCTOS']:
+                ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
+        df_nuevas = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC', 'FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])
+        df_nuevas['COSTO_SKU_IVA'] = df_nuevas['COSTO_SKU'] * 1.19
+        self.orders = pd.concat([self.orders, df_nuevas], ignore_index=True)
+        print(self.orders)
+        return True
+
+    def get_oc_costs(self, ocs):
+        """Reinyecta OCs y retorna [{oc, costo_total}] con el COSTO_TOT_OC directo del API."""
+        if ocs:
+            self.reinyectar_oc(ocs)
+        costs = []
+        for tipo in ["1", "4"]:
+            for orden in self._fetch_raw_orders(tipo):
+                costs.append({
+                    'oc': str(orden['ORDEN_COMPRA']),
+                    'costo_total': orden['COSTO_TOT_OC']
+                })
+        return costs
             
     def make_merge(self):
         skus_objects = ProductsSodimac.objects.all()
@@ -46,7 +63,7 @@ class ConnectionsSodimac():
     def set_kits(self):
         skus_kits = pd.DataFrame(SodimacKits.objects.all().values())
         self.orders = self.orders.merge(skus_kits, how='left', left_on='SKU',right_on='kitnumber')
-        self.orders.loc[self.orders['kitnumber'].notna(), ['SKU', 'CANTIDAD_SKU']] = self.orders.loc[self.orders['kitnumber'].notna(), ['sku','quantity']].values
+        self.orders.loc[self.orders['kitnumber'].notna(), ['SKU', 'CANTIDAD_SKU']] = self.orders.loc[self.orders['kitnumber'].notna(), ['sku','quantity']]
         gb = self.orders.groupby(['ORDEN_COMPRA','kitnumber', 'COSTO_SKU']).agg({'quantity':'sum'}).reset_index()
         gb['COSTO_SKU'] = gb['COSTO_SKU'] / gb['quantity']
         self.orders = self.orders.merge(gb, how='left', on='ORDEN_COMPRA')
