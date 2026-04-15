@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from io import StringIO
 from pamo_bots.models import ProductsSodimac
-from quote_print.models import SodimacKits
+from quote_print.models import SodimacKits, SodimacOrders
 import time
 
 class ConnectionsSodimac():
@@ -31,6 +31,10 @@ class ConnectionsSodimac():
             return False
         ordenes = []
         for orden in raw:
+            obj, _ = SodimacOrders.objects.get_or_create(id=str(orden['ORDEN_COMPRA']))
+            obj.total_cost = orden.get('COSTO_TOT_OC')
+            obj.last_status = orden.get('ESTADO_OC')
+            obj.save()
             for producto in orden['PRODUCTOS']:
                 ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
         df_nuevas = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC', 'FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])

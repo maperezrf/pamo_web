@@ -179,19 +179,18 @@
 
       $('#dbKits').DataTable(kitsTableOptions)
 
-      // Acordeón kits
-      document.querySelectorAll('.accordion-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function () {
-          const headerRow = this.closest('tr')
-          const kitNumber = headerRow.dataset.kitnumber
-          const kitRows = document.querySelectorAll(`.kit-row[data-kitnumber="${kitNumber}"]`)
-          const expanded = this.dataset.expanded === 'true'
-          kitRows.forEach(row => { row.style.display = expanded ? 'none' : '' })
-          this.dataset.expanded = !expanded
-          this.innerHTML = expanded ? '&#9654;' : '&#9660;'
-          const addBtn = headerRow.querySelector('.add-kit-item-btn')
-          if (addBtn) addBtn.style.display = expanded ? 'none' : ''
-        })
+      document.querySelector('#dbKits tbody').addEventListener('click', function (e) {
+        const toggle = e.target.closest('.accordion-toggle')
+        if (!toggle) return
+        const headerRow = toggle.closest('tr')
+        const kitNumber = headerRow.dataset.kitnumber
+        const kitRows = document.querySelectorAll(`.kit-row[data-kitnumber="${kitNumber}"]`)
+        const expanded = toggle.dataset.expanded === 'true'
+        kitRows.forEach(row => { row.style.display = expanded ? 'none' : '' })
+        toggle.dataset.expanded = !expanded
+        toggle.innerHTML = expanded ? '&#9654;' : '&#9660;'
+        const addBtn = headerRow.querySelector('.add-kit-item-btn')
+        if (addBtn) addBtn.style.display = expanded ? 'none' : ''
       })
     })
   </script>

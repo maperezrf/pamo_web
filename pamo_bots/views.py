@@ -27,7 +27,8 @@ def sodimac_view(request):
 
 def get_orders(request):
     logs = LogBotOrders.objects.all().order_by("-date")[:20]
-    return render(request, "get_orders.html", context={"logs": logs})
+    sodimac_orders = SodimacOrders.objects.all().order_by("-id")
+    return render(request, "get_orders.html", context={"logs": logs, "sodimac_orders": sodimac_orders})
 
 
 def manager_database(request):
