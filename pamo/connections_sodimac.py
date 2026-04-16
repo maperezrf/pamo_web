@@ -6,6 +6,7 @@ from io import StringIO
 from pamo_bots.models import ProductsSodimac
 from quote_print.models import SodimacKits, SodimacOrders
 import time
+from dateutil import parser as dateutil_parser
 
 class ConnectionsSodimac():
 
@@ -34,6 +35,8 @@ class ConnectionsSodimac():
             obj, _ = SodimacOrders.objects.get_or_create(id=str(orden['ORDEN_COMPRA']))
             obj.total_cost = orden.get('COSTO_TOT_OC')
             obj.last_status = orden.get('ESTADO_OC')
+            fecha_raw = orden.get('FECHA_TRANSMISION')
+            obj.fecha_transmision = dateutil_parser.parse(fecha_raw, dayfirst=True).date()
             obj.save()
             for producto in orden['PRODUCTOS']:
                 ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
@@ -72,6 +75,7 @@ class ConnectionsSodimac():
         gb['COSTO_SKU'] = gb['COSTO_SKU'] / gb['quantity']
         self.orders = self.orders.merge(gb, how='left', on='ORDEN_COMPRA')
         self.orders.loc[self.orders['COSTO_SKU_y'].notna(),'COSTO_SKU_x'] = self.orders.loc[self.orders['COSTO_SKU_y'].notna(),'COSTO_SKU_y'].values
+        self.orders.rename(columns= {'COSTO_SKU_x':'COSTO_SKU'}, inplace=True)
         print(self.orders)
 
     def get_orders(self):

@@ -329,14 +329,18 @@ class SigoConnection():
         return [ i.get('oc') for i in  InvoicesSiigo.objects.exclude(oc__isnull=True).values('oc')]
     
     
-    def check_invoice_novelties(self, costo_por_oc=None):
+    def check_invoice_novelties(self):
         """
         Revisa las facturas en DB y setea la columna novelty según las novedades encontradas:
         1. Factura sin OC relacionada (oc vacía o nula)
         2. OC duplicada (mismo número de OC en facturas con diferente name)
-        3. Costo diferente al reportado por Sodimac — requiere costo_por_oc: {oc_str: costo_total}
+        3. Costo diferente al total_cost almacenado en SodimacOrders
         """
-        costos = {item['oc']: item['costo_total'] for item in costo_por_oc} if costo_por_oc else {}
+        from quote_print.models import SodimacOrders
+        costos = {
+            str(o.id): float(o.total_cost)
+            for o in SodimacOrders.objects.exclude(total_cost__isnull=True)
+        }
 
         ocs_duplicadas = set(
             InvoicesSiigo.objects
@@ -353,7 +357,7 @@ class SigoConnection():
                 sin_oc_ids.append(inv.id)
             elif inv.oc in ocs_duplicadas:
                 oc_duplicada_ids.append(inv.id)
-            elif costo_por_oc and inv.oc in costos:
+            elif inv.oc in costos:
                 if round(float(inv.items_cost), 0) != round(costos[inv.oc], 0):
                     costo_diferente_ids.append(inv.id)
         InvoicesSiigo.objects.update(novelty=None)

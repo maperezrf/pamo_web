@@ -32,8 +32,9 @@ class SodimacOrders(models.Model):
     oc_shopify = models.CharField(max_length=100, null=True, blank=True, unique=False)
     total_cost = models.DecimalField(max_digits=15, decimal_places=2,blank=True, null=True, unique=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)  
-    last_status = models.CharField(max_length=20, null=True, blank=True, unique=False) 
+    update_at = models.DateTimeField(auto_now=True)
+    last_status = models.CharField(max_length=20, null=True, blank=True, unique=False)
+    fecha_transmision = models.DateField(null=True, blank=True)
 
 class SodimacKits(models.Model):
     kitnumber = models.CharField(max_length=50, null=False, blank=False)

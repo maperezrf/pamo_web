@@ -47,8 +47,7 @@
                 <th scope="col">Valor</th>
                 <th scope="col">OC Shopify</th>
                 <th scope="col">Novedad</th>
-                <th scope="col">Creación</th>
-                <th scope="col">Actualización</th>
+                <th scope="col">Fecha Transmisión</th>
               </tr>
             </thead>
             <tbody>
@@ -61,8 +60,7 @@
                   <td>{{ order.value|default:"-" }}</td>
                   <td>{{ order.oc_shopify|default:"-" }}</td>
                   <td>{{ order.novelty|default:"-" }}</td>
-                  <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
-                  <td>{{ order.update_at|date:"d/m/Y H:i" }}</td>
+                  <td data-order="{{ order.fecha_transmision|date:'Y-m-d'|default:'0000-00-00' }}">{{ order.fecha_transmision|date:"d/m/Y"|default:"-" }}</td>
                 </tr>
               {% empty %}
                 <tr>

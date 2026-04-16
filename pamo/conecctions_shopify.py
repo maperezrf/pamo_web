@@ -65,7 +65,7 @@ class ConnectionsShopify:
                     )
                     self.add_novelty(row["SKU"])
             else:
-                print(f"No se encontro el SKU en shopify: {i}")
+                print(f"No se encontro el SKU en shopify: {row['SKU']}")
                 self.not_found_skus.append(
                     {"ORDEN_COMPRA": row["ORDEN_COMPRA"], "SKU": row["SKU"]}
                 )

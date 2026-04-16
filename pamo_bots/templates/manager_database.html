@@ -53,8 +53,13 @@
         </table>
       </div>
     </div>
-    <div class="card-footer">
+    <div class="card-footer d-flex align-items-center gap-2">
       <a href="{% url 'pamo_bots:download_products' %}"><button class="btn btn-success btn-sm">Descargar Excel</button></a>
+      <input type="file" id="upload-products-input" accept=".xlsx,.xls" style="display:none;" />
+      <button class="btn btn-primary btn-sm" id="upload-products-btn">
+        <span id="upload-products-spinner" class="spinner-border spinner-border-sm me-1" role="status" style="display:none;"></span>
+        Cargar Excel
+      </button>
     </div>
   </div>
 
@@ -108,8 +113,23 @@
         </table>
       </div>
     </div>
-    <div class="card-footer">
+    <div class="card-footer d-flex align-items-center gap-2">
       <a href="{% url 'pamo_bots:download_kits' %}"><button class="btn btn-success btn-sm">Descargar Excel</button></a>
+      <input type="file" id="upload-kits-input" accept=".xlsx,.xls" style="display:none;" />
+      <button class="btn btn-primary btn-sm" id="upload-kits-btn">
+        <span id="upload-kits-spinner" class="spinner-border spinner-border-sm me-1" role="status" style="display:none;"></span>
+        Cargar Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast de notificación -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+    <div id="upload-toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="upload-toast-body"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
     </div>
   </div>
 
@@ -191,6 +211,83 @@
         toggle.innerHTML = expanded ? '&#9654;' : '&#9660;'
         const addBtn = headerRow.querySelector('.add-kit-item-btn')
         if (addBtn) addBtn.style.display = expanded ? 'none' : ''
+      })
+
+      // --- Carga masiva Excel ---
+      function showToast(message, type) {
+        const toast = document.getElementById('upload-toast')
+        const body = document.getElementById('upload-toast-body')
+        toast.classList.remove('bg-success', 'bg-danger', 'bg-warning')
+        toast.classList.add(type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning' : 'bg-danger')
+        body.textContent = message
+        bootstrap.Toast.getOrCreateInstance(toast, { delay: 5000 }).show()
+      }
+
+      function uploadExcel({ inputId, btnId, spinnerId, url, label }) {
+        const input = document.getElementById(inputId)
+        const btn = document.getElementById(btnId)
+        const spinner = document.getElementById(spinnerId)
+
+        btn.addEventListener('click', () => input.click())
+
+        input.addEventListener('change', async () => {
+          const file = input.files[0]
+          if (!file) return
+          input.value = ''
+
+          const formData = new FormData()
+          formData.append('file', file)
+
+          btn.disabled = true
+          spinner.style.display = 'inline-block'
+
+          try {
+            const resp = await fetch(url, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': getCookie('csrftoken') },
+              body: formData,
+            })
+            const data = await resp.json()
+
+            if (!resp.ok || !data.success) {
+              showToast(`Error al cargar ${label}: ${data.message || 'Error desconocido'}`, 'error')
+              return
+            }
+
+            let msg = `${label}: ${data.creados} creados, ${data.actualizados} actualizados.`
+            if (data.errores && data.errores.length > 0) {
+              msg += ` ${data.errores.length} filas con error.`
+              showToast(msg, 'warning')
+            } else {
+              showToast(msg, 'success')
+            }
+
+            // Recargar la página para reflejar los cambios en la tabla
+            setTimeout(() => location.reload(), 1500)
+
+          } catch (err) {
+            showToast(`Error de red al cargar ${label}.`, 'error')
+          } finally {
+            btn.disabled = false
+            spinner.style.display = 'none'
+          }
+        })
+      }
+
+      uploadExcel({
+        inputId: 'upload-products-input',
+        btnId: 'upload-products-btn',
+        spinnerId: 'upload-products-spinner',
+        url: '{% url "pamo_bots:upload_products_excel" %}',
+        label: 'Productos',
+      })
+
+      uploadExcel({
+        inputId: 'upload-kits-input',
+        btnId: 'upload-kits-btn',
+        spinnerId: 'upload-kits-spinner',
+        url: '{% url "pamo_bots:upload_kits_excel" %}',
+        label: 'Kits',
       })
     })
   </script>

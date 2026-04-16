@@ -17,7 +17,8 @@ from pamo.constants import NOTIFICATIONS_RECIPENTS
 import os
 from django.contrib.auth.decorators import login_required
 from pamo.connecctions_sigo import SigoConnection
-from pamo.email_sender import EmailSender  # Importar la clase de email
+from pamo.email_sender import EmailSender
+from django.db.models import Q
 
 
 @login_required
@@ -30,11 +31,29 @@ def get_orders(request):
     sodimac_orders = SodimacOrders.objects.all().order_by("-id")
     return render(request, "get_orders.html", context={"logs": logs, "sodimac_orders": sodimac_orders})
 
+def report_invoices_view(request):
+    from pamo_bots.models import InvoicesSiigo
+    today = datetime.date.today()
+    first_day_current = today.replace(day=1)
+    first_day_previous = (first_day_current - datetime.timedelta(days=1)).replace(day=1)
+    orders = SodimacOrders.objects.filter(
+        fecha_transmision__gte=first_day_previous
+    ).order_by('-id')
+    invoices_map = {inv.oc: inv for inv in InvoicesSiigo.objects.exclude(oc__isnull=True)}
+    report = []
+    for order in orders:
+        invoice = invoices_map.get(str(order.id))
+        alerta_sin_factura = (order.last_status == '4-ESTADO FINAL' and not order.factura)
+        report.append({
+            'order': order,
+            'invoice': invoice,
+            'alerta_sin_factura': alerta_sin_factura,
+        })
+    return render(request, "report_invoices.html", context={'report': report})
+
 
 def manager_database(request):
     products = ProductsSodimac.objects.all()
-
-    # Agrupar SodimacKits por kitnumber
     kits_qs = SodimacKits.objects.all().order_by('kitnumber', 'sku')
     kits_grouped = {}
     for kit in kits_qs:
@@ -138,11 +157,9 @@ def create_sodimac_kit(request):
 def get_monthly_invoices(request):
     try:
         sigo = SigoConnection()
-        sodi = ConnectionsSodimac()
-        ocs = sigo.sync_siigo_to_db()
-        costs = sodi.get_oc_costs(ocs)
-        sigo.check_invoice_novelties(costo_por_oc=costs)
-        return JsonResponse({'success': True, 'message': 'todo bien'}, status=200) 
+        sigo.sync_siigo_to_db()
+        sigo.check_invoice_novelties()
+        return JsonResponse({'success': True, 'message': 'todo bien'}, status=200)
     except Exception as e:
         print(e)
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
@@ -164,13 +181,15 @@ def process_orders_and_create_in_shopify(sodi):
     if resultado_1 or resultado_4:
         print("Haciendo cruces de SKUS")
         sodi.make_merge()
+        sodi.set_kits()
         orders = sodi.get_orders()
         orders_generated = [
             int(i.id)
             for i in SodimacOrders.objects.filter(
                 id__in=orders.ORDEN_COMPRA.unique()
-            ).exclude(oc_shopify__icontains="No se encontro el SKU")
+            ).exclude(oc_shopify__regex=r'^\d+$', factura = None)
         ]
+        orders_generated = [ i.id for i in  SodimacOrders.objects.filter(factura__isnull=True).filter(Q(oc_shopify__isnull=True) | ~Q(oc_shopify__regex=r'^\d+$')).exclude(status__icontains='4-ESTADO FINAL')]
         orders = orders.loc[~orders["ORDEN_COMPRA"].isin(orders_generated)]
         if not orders.empty:
             shopi = ConnectionsShopify()
@@ -272,7 +291,10 @@ def handle_invoices_and_billing():
             item.novelty = ""
             item.value = responses[i].json()["total"]
         else:
-            item.novelty = responses[i].json()["Errors"][0]["Message"]
+            raw_novelty = responses[i].json()["Errors"][0]["Message"]
+            if "The field code only allows a maximum length of 30 characters" in raw_novelty or "Invalid data type: code" in raw_novelty:
+                raw_novelty = "sku no valido"
+            item.novelty = raw_novelty
             if (
                 item.novelty
                 == "The document already exists. This occurs if you are making duplicate requests simultaneously."
@@ -373,7 +395,6 @@ def create_orders(request):
 
 
 def set_inventory(request):
-    # se recibe un archivo en excel, actualiza los registros que se encuentran en la base y los que no los crea
     if request.method == "GET":
         form = fileForm()
         data = {"form": form}
@@ -462,6 +483,162 @@ def download_kits_excel(request):
     return response
 
 
+@login_required
+def upload_products_excel(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+    file = request.FILES.get('file')
+    if not file:
+        return JsonResponse({'success': False, 'message': 'No se recibió ningún archivo'}, status=400)
+
+    try:
+        df = pd.read_excel(file)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error leyendo el archivo: {e}'}, status=400)
+
+    required_cols = {'sku_sodimac', 'sku_pamo', 'ean'}
+    missing = required_cols - set(df.columns)
+    if missing:
+        return JsonResponse({'success': False, 'message': f'Columnas faltantes: {", ".join(missing)}'}, status=400)
+
+    created_count = 0
+    updated_count = 0
+    errors = []
+
+    for idx, row in df.iterrows():
+        sku_sodimac = str(row['sku_sodimac']).strip() if pd.notna(row['sku_sodimac']) else None
+        if not sku_sodimac:
+            errors.append({'fila': idx + 2, 'error': 'sku_sodimac vacío, se omite la fila'})
+            continue
+        sku_pamo = str(row['sku_pamo']).strip() if pd.notna(row['sku_pamo']) else None
+        ean = str(row['ean']).strip() if pd.notna(row['ean']) else None
+        try:
+            _, created = ProductsSodimac.objects.update_or_create(
+                sku_sodimac=sku_sodimac,
+                defaults={'sku_pamo': sku_pamo, 'ean': ean},
+            )
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+        except Exception as e:
+            errors.append({'fila': idx + 2, 'sku_sodimac': sku_sodimac, 'error': str(e)})
+
+    return JsonResponse({
+        'success': True,
+        'creados': created_count,
+        'actualizados': updated_count,
+        'errores': errors,
+    })
+
+
+@login_required
+def upload_kits_excel(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
+    file = request.FILES.get('file')
+    if not file:
+        return JsonResponse({'success': False, 'message': 'No se recibió ningún archivo'}, status=400)
+
+    try:
+        df = pd.read_excel(file)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error leyendo el archivo: {e}'}, status=400)
+
+    required_cols = {'kitnumber', 'sku', 'quantity', 'ean'}
+    missing = required_cols - set(df.columns)
+    if missing:
+        return JsonResponse({'success': False, 'message': f'Columnas faltantes: {", ".join(missing)}'}, status=400)
+
+    created_count = 0
+    updated_count = 0
+    errors = []
+
+    for idx, row in df.iterrows():
+        kitnumber = str(row['kitnumber']).strip() if pd.notna(row['kitnumber']) else None
+        sku = str(row['sku']).strip() if pd.notna(row['sku']) else None
+        if not kitnumber or not sku:
+            errors.append({'fila': idx + 2, 'error': 'kitnumber o sku vacíos, se omite la fila'})
+            continue
+        ean = str(row['ean']).strip() if pd.notna(row['ean']) else None
+        try:
+            quantity = int(row['quantity']) if pd.notna(row['quantity']) else 0
+        except (ValueError, TypeError):
+            errors.append({'fila': idx + 2, 'kitnumber': kitnumber, 'sku': sku, 'error': 'quantity no es un número'})
+            continue
+        try:
+            from quote_print.models import SodimacKits
+            _, created = SodimacKits.objects.update_or_create(
+                kitnumber=kitnumber,
+                sku=sku,
+                defaults={'quantity': quantity, 'ean': ean},
+            )
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+        except Exception as e:
+            errors.append({'fila': idx + 2, 'kitnumber': kitnumber, 'sku': sku, 'error': str(e)})
+
+    return JsonResponse({
+        'success': True,
+        'creados': created_count,
+        'actualizados': updated_count,
+        'errores': errors,
+    })
+
+
+@login_required
+def download_report_invoices(request):
+    import io
+    from pamo_bots.models import InvoicesSiigo
+
+    today = datetime.date.today()
+    first_day_current = today.replace(day=1)
+    first_day_previous = (first_day_current - datetime.timedelta(days=1)).replace(day=1)
+    orders = SodimacOrders.objects.filter(fecha_transmision__gte=first_day_previous).order_by('-id')
+    invoices_map = {inv.oc: inv for inv in InvoicesSiigo.objects.exclude(oc__isnull=True)}
+
+    rows = []
+    for order in orders:
+        invoice = invoices_map.get(str(order.id))
+        alerta_sin_factura = (order.last_status == '4-ESTADO FINAL' and not order.factura)
+
+        if invoice:
+            novelty = invoice.novelty or '-'
+        elif alerta_sin_factura:
+            novelty = 'Sin factura'
+        else:
+            novelty = 'Esperando entrega'
+
+        rows.append({
+            '# OC': order.id,
+            'Estado': order.status or '-',
+            'Último Estado': order.last_status or '-',
+            'Factura PAMO': order.factura or '-',
+            'Fecha Factura': order.date_invoice or '-',
+            'Costo OC': order.total_cost,
+            'Valor Liquidado': order.value,
+            'Novedad OC': order.novelty or '-',
+            'Factura Siigo': invoice.name if invoice else '-',
+            'Fecha Siigo': invoice.date if invoice else '-',
+            'Total Siigo': invoice.total if invoice else '-',
+            'Costo Items Siigo': invoice.items_cost if invoice else '-',
+            'Novedad': novelty,
+        })
+
+    df = pd.DataFrame(rows)
+    output = io.BytesIO()
+    df.to_excel(output, index=False, sheet_name='Reporte Facturas')
+    output.seek(0)
+    filename = f"reporte_facturas_{today.strftime('%Y_%m')}.xlsx"
+    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 def save_review(response):
     products = ProductsSodimac.objects.all()
     products = pd.DataFrame(products.values())
@@ -469,3 +646,7 @@ def save_review(response):
     df = df.merge(products, how="left", on=["ean"])
     df = df[["sku_sodimac", "sku_pamo", "ean", "message"]]
     df.to_excel(os.path.join(settings.MEDIA_ROOT, "final_review.xlsx"), index=False)
+
+
+
+    

@@ -1,55 +1,73 @@
 {% extends 'index.html' %}
 
 {% block title %}
-  Automatizaciones
+Automatizaciones
 {% endblock %}
 
 {% block page_name %}
-  Automatizaciones
+Automatizaciones
 {% endblock %}
 
 {% block subpage_name %}
-  Sodimac
+Sodimac
 {% endblock %}
 
 {% block name_now %}
-  Automatizacion Sodimac
+Automatizacion Sodimac
 {% endblock %}
 
 {% block content %}
-  {% load static %}
-  <link rel="stylesheet" type="text/css" href="{% static 'css/bots.css' %}" />
-  <script src="{% static 'js/bots.js' %}"></script>
-  <div class="container">
-    <div class="row text-center">
-      <div class="col">
-        <a href="/pamo_bots/get_orders">
-          <div class="container-fluid">
-            <div class="card">
-              <div>
-                <img src="{% static 'images/importacion.png' %}" class="imagen pt-4" />
-              </div>
-              <div class="card-body text-center pt-">
-                <h3>Cargar ordenes</h3>
-              </div>
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/bots.css' %}" />
+<script src="{% static 'js/bots.js' %}"></script>
+<div class="container">
+  <div class="row text-center">
+    <div class="col">
+      <a href="/pamo_bots/get_orders">
+        <div class="container-fluid">
+          <div class="card">
+            <div>
+              <img src="{% static 'images/importacion.png' %}" class="imagen pt-4" />
+            </div>
+            <div class="card-body text-center pt-">
+              <h3>Cargar ordenes</h3>
             </div>
           </div>
-        </a>
-      </div>
-      <div class="col">
-        <a href="/pamo_bots/manager_database">
-          <div class="container-fluid">
-            <div class="card">
-              <div>
-                <img src="{% static 'images/gestion_base.png' %}" class="imagen pt-4" />
-              </div>
-              <div class="card-body text-center pt-">
-                <h3>Gestionar base</h3>
-              </div>
+        </div>
+      </a>
+    </div>
+    <div class="col">
+      <a href="/pamo_bots/manager_database">
+        <div class="container-fluid">
+          <div class="card">
+            <div>
+              <img src="{% static 'images/gestion_base.png' %}" class="imagen pt-4" />
+            </div>
+            <div class="card-body text-center pt-">
+              <h3>Gestionar base</h3>
             </div>
           </div>
-        </a>
-      </div>
+        </div>
+      </a>
     </div>
   </div>
+  <div class="row text-center">
+    <div class="col">
+      <a href="/pamo_bots/report_invoices_view">
+        <div class="container-fluid">
+          <div class="card mt-5">
+            <div>
+              <img src="{% static 'images/facturacion.png' %}" class="imagen pt-4" />
+            </div>
+            <div class="card-body text-center pt-">
+              <h3>Informe de facturacion</h3>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col">
+    </div>
+  </div>
+</div>
 {% endblock %}
