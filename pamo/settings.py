@@ -191,6 +191,7 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "pamo", "static"),
     os.path.join(BASE_DIR, "products", "static"),
+    os.path.join(BASE_DIR, "pamo_bots", "static"),
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "pamo/media")

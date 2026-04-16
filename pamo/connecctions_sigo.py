@@ -256,7 +256,7 @@ class SigoConnection():
         """
         today = datetime.now()
         date_start = today.replace(day=1).strftime('%Y-%m-%d')
-        date_end = today.strftime('%Y-%m-%d')
+        date_end =  (today + timedelta(days=1)).strftime('%Y-%m-%d')
         page_size = 100
         base_url = (
             f"https://api.siigo.com/v1/invoices?"

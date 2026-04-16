@@ -23,9 +23,12 @@
   <div class="card mb-4">
     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Reporte de Órdenes y Facturas Sodimac</h5>
-      <a href="{% url 'pamo_bots:download_report_invoices' %}">
-        <button class="btn btn-success btn-sm">Descargar informe</button>
-      </a>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" id="sync-invoices-btn" data-url="{% url 'pamo_bots:monthly_invoices' %}">Sincronizar facturas</button>
+        <a href="{% url 'pamo_bots:download_report_invoices' %}">
+          <button class="btn btn-success btn-sm">Descargar informe</button>
+        </a>
+      </div>
     </div>
     <div class="card-body px-0 pb-0">
       <div class="table-responsive">
@@ -38,13 +41,9 @@
               <th class="text-center">Factura Siigo</th>
               <th class="text-center">Fecha Factura</th>
               <th class="text-center">Costo OC</th>
-              <!-- <th class="text-center">Valor Total Factura</th> -->
-              <!-- <th class="text-center">Novedad Creación Factura</th> -->
               <th class="text-center">Costo Siigo</th>
               <th class="text-center">Total Siigo</th>
               <th class="text-center">Novedad Siigo</th>
-              <!-- <th class="text-center">Costo Items Siigo</th> -->
-              <!-- <th class="text-center">Novedad OC</th> -->
             </tr>
           </thead>
           <tbody>
@@ -58,14 +57,10 @@
                 <td class="text-center" data-order="{{ row.order.fecha_transmision|date:'Y-m-d'|default:'0000-00-00' }}">{{ row.order.fecha_transmision|date:"d/m/Y"|default:"-" }}</td>
                 <td class="text-center">{{ row.order.factura|default:"-" }}</td>
                 <td class="text-center">{{ row.order.date_invoice|default:"-" }}</td>
-                <!-- <td class="text-center">{{ row.order.total_cost|default:"-" }}</td> -->
-                <!-- <td class="text-center">{{ row.order.novelty|default:"-" }}</td> -->
                 <td class="text-center">{{ row.order.total_cost|default:"-" }}</td>
                 {% if row.invoice %}
                   <td class="text-center">{{ row.invoice.items_cost }}</td>
                   <td class="text-center">{{ row.invoice.total }}</td>
-                  <!-- <td class="text-center">{{ row.invoice.name }}</td> -->
-                  <!-- <td class="text-center">{{ row.invoice.date }}</td> -->
                   <td class="text-center">
                     {% if row.invoice.novelty == 'Sin Novedad' %}
                       <span class="badge bg-success">Sin Novedad</span>
@@ -82,8 +77,6 @@
                 {% else %}
                   <td class="text-center text-muted">-</td>
                   <td class="text-center text-muted">-</td>
-                  <!-- <td class="text-center text-muted">-</td> -->
-                  <!-- <td class="text-center text-muted">-</td> -->
                   <td class="text-center">
                     {% if row.alerta_sin_factura %}
                       <span class="badge bg-danger">Sin factura</span>
@@ -126,4 +119,5 @@
       })
     })
   </script>
+  <script src="{% static 'js/report_invoices.js' %}"></script>
 {% endblock %}
