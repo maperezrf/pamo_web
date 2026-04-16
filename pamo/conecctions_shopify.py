@@ -87,7 +87,7 @@ class ConnectionsShopify:
         print(response.json())
         res = response.json()["data"][datatype]["edges"]
         print(res)
-        daft_orders = make_json(res)
+        daft_orders = make_json(res) 
         print(daft_orders)
         has_next = response.json()["data"][datatype]["pageInfo"]["hasNextPage"]
         while has_next:
