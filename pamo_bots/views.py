@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from pamo.connecctions_sigo import SigoConnection
 from pamo.email_sender import EmailSender
 from django.db.models import Q
-
+from pamo_bots.models import InvoicesSiigo
 
 @login_required
 def sodimac_view(request):
@@ -32,7 +32,6 @@ def get_orders(request):
     return render(request, "get_orders.html", context={"logs": logs, "sodimac_orders": sodimac_orders})
 
 def report_invoices_view(request):
-    from pamo_bots.models import InvoicesSiigo
     today = datetime.date.today()
     first_day_current = today.replace(day=1)
     first_day_previous = (first_day_current - datetime.timedelta(days=1)).replace(day=1)
@@ -615,8 +614,8 @@ def download_report_invoices(request):
 
         rows.append({
             '# OC': order.id,
-            'Estado': order.status or '-',
             'Último Estado': order.last_status or '-',
+            'Fecha Transmisión': order.fecha_transmision or '-',
             'Factura PAMO': order.factura or '-',
             'Fecha Factura': order.date_invoice or '-',
             'Costo OC': order.total_cost,

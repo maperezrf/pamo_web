@@ -33,18 +33,18 @@
           <thead>
             <tr>
               <th class="text-center"># OC</th>
-              <th class="text-center">Estado</th>
               <th class="text-center">Último Estado</th>
-              <th class="text-center">Factura PAMO</th>
+              <th class="text-center">Fecha Transmisión</th>
+              <th class="text-center">Factura Siigo</th>
               <th class="text-center">Fecha Factura</th>
               <th class="text-center">Costo OC</th>
-              <th class="text-center">Valor Liquidado</th>
-              <th class="text-center">Factura Siigo</th>
-              <th class="text-center">Fecha Siigo</th>
+              <!-- <th class="text-center">Valor Total Factura</th> -->
+              <!-- <th class="text-center">Novedad Creación Factura</th> -->
+              <th class="text-center">Costo Siigo</th>
               <th class="text-center">Total Siigo</th>
-              <th class="text-center">Costo Items Siigo</th>
-              <th class="text-center">Novedad OC</th>
               <th class="text-center">Novedad Siigo</th>
+              <!-- <th class="text-center">Costo Items Siigo</th> -->
+              <!-- <th class="text-center">Novedad OC</th> -->
             </tr>
           </thead>
           <tbody>
@@ -54,18 +54,18 @@
                 data-filter="{% if row.alerta_sin_factura %}sin-factura{% elif row.invoice.novelty == 'costo diferente' %}costo-diferente{% elif row.invoice.novelty == 'oc duplicada' %}oc-duplicada{% elif row.invoice.novelty == 'Sin Novedad' %}sin-novedad{% else %}esperando-entrega{% endif %}"
               >
                 <td class="text-center fw-bold">{{ row.order.id }}</td>
-                <td class="text-center">{{ row.order.status|default:"-" }}</td>
                 <td class="text-center">{{ row.order.last_status|default:"-" }}</td>
+                <td class="text-center" data-order="{{ row.order.fecha_transmision|date:'Y-m-d'|default:'0000-00-00' }}">{{ row.order.fecha_transmision|date:"d/m/Y"|default:"-" }}</td>
                 <td class="text-center">{{ row.order.factura|default:"-" }}</td>
                 <td class="text-center">{{ row.order.date_invoice|default:"-" }}</td>
+                <!-- <td class="text-center">{{ row.order.total_cost|default:"-" }}</td> -->
+                <!-- <td class="text-center">{{ row.order.novelty|default:"-" }}</td> -->
                 <td class="text-center">{{ row.order.total_cost|default:"-" }}</td>
-                <td class="text-center">{{ row.order.value|default:"-" }}</td>
-                <td class="text-center">{{ row.order.novelty|default:"-" }}</td>
                 {% if row.invoice %}
-                  <td class="text-center">{{ row.invoice.name }}</td>
-                  <td class="text-center">{{ row.invoice.date }}</td>
-                  <td class="text-center">{{ row.invoice.total }}</td>
                   <td class="text-center">{{ row.invoice.items_cost }}</td>
+                  <td class="text-center">{{ row.invoice.total }}</td>
+                  <!-- <td class="text-center">{{ row.invoice.name }}</td> -->
+                  <!-- <td class="text-center">{{ row.invoice.date }}</td> -->
                   <td class="text-center">
                     {% if row.invoice.novelty == 'Sin Novedad' %}
                       <span class="badge bg-success">Sin Novedad</span>
@@ -82,8 +82,8 @@
                 {% else %}
                   <td class="text-center text-muted">-</td>
                   <td class="text-center text-muted">-</td>
-                  <td class="text-center text-muted">-</td>
-                  <td class="text-center text-muted">-</td>
+                  <!-- <td class="text-center text-muted">-</td> -->
+                  <!-- <td class="text-center text-muted">-</td> -->
                   <td class="text-center">
                     {% if row.alerta_sin_factura %}
                       <span class="badge bg-danger">Sin factura</span>
