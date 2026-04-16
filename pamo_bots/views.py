@@ -50,7 +50,7 @@ def report_invoices_view(request):
         })
     return render(request, "report_invoices.html", context={'report': report})
 
-
+@login_required
 def manager_database(request):
     products = ProductsSodimac.objects.all()
     kits_qs = SodimacKits.objects.all().order_by('kitnumber', 'sku')
@@ -175,21 +175,17 @@ def process_orders_and_create_in_shopify(sodi):
     }
     not_found_skus = []
     data_log["len_orders"] = 0
+    orders_to_retry = [ i.id for i in  SodimacOrders.objects.filter(factura__isnull=True).filter(Q(oc_shopify__isnull=True) | ~Q(oc_shopify__regex=r'^\d+$')).exclude(status__icontains='4-ESTADO FINAL')]
+    sodi.reinyectar_oc(orders_to_retry)
     resultado_1 = sodi.get_orders_api(tipo_orden="1")
     resultado_4 = sodi.get_orders_api(tipo_orden="4")
     if resultado_1 or resultado_4:
         print("Haciendo cruces de SKUS")
+        sodi.insert_orders_not_creates()
         sodi.make_merge()
         sodi.set_kits()
+        sodi.normalice_kits()
         orders = sodi.get_orders()
-        orders_generated = [
-            int(i.id)
-            for i in SodimacOrders.objects.filter(
-                id__in=orders.ORDEN_COMPRA.unique()
-            ).exclude(oc_shopify__regex=r'^\d+$', factura = None)
-        ]
-        orders_generated = [ i.id for i in  SodimacOrders.objects.filter(factura__isnull=True).filter(Q(oc_shopify__isnull=True) | ~Q(oc_shopify__regex=r'^\d+$')).exclude(status__icontains='4-ESTADO FINAL')]
-        orders = orders.loc[~orders["ORDEN_COMPRA"].isin(orders_generated)]
         if not orders.empty:
             shopi = ConnectionsShopify()
             shopi.set_orders_df(orders)

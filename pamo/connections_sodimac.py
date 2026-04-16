@@ -75,9 +75,13 @@ class ConnectionsSodimac():
         gb['COSTO_SKU'] = gb['COSTO_SKU'] / gb['quantity']
         self.orders = self.orders.merge(gb, how='left', on='ORDEN_COMPRA')
         self.orders.loc[self.orders['COSTO_SKU_y'].notna(),'COSTO_SKU_x'] = self.orders.loc[self.orders['COSTO_SKU_y'].notna(),'COSTO_SKU_y'].values
-        self.orders.rename(columns= {'COSTO_SKU_x':'COSTO_SKU'}, inplace=True)
         print(self.orders)
-
+    
+    def normalice_kits(self):
+        self.orders.loc[(self.orders['SKU'].isna()) & (self.orders['sku'].notna()), 'CANTIDAD_SKU'] = self.orders.loc[(self.orders['SKU'].isna()) & (self.orders['sku'].notna()), 'quantity_x']
+        self.orders.loc[(self.orders['SKU'].isna()) & (self.orders['sku'].notna()), 'SKU'] = self.orders.loc[(self.orders['SKU'].isna()) & (self.orders['sku'].notna()), 'sku']
+        self.orders.rename(columns = {'COSTO_SKU_x':'COSTO_SKU'}, inplace = True)
+    
     def get_orders(self):
         return self.orders
     
@@ -164,4 +168,5 @@ class ConnectionsSodimac():
                     print(f"error al reinyectar orden {i}")
         except:
             print('Ocurrio un error')
+        
         

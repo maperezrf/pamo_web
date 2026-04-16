@@ -119,42 +119,44 @@ class ConnectionsShopify:
             costo = orders_gb.iloc[i]["COSTO_SKU"]
             variant_id = orders_gb.iloc[i]["variant_id"]
             products = []
+            if None in variant_id:
+                continue
             for i in range(len(variant_id)):
                 if variant_id[i]:
                     products.append(
                         {
                             "variant_id": variant_id[i],
-                            "quantity": cantidad[i],
+                            "quantity": int(cantidad[i]),
                             "price": costo[i],
                         }
                     )
-                    data = {
-                        "order": {
-                            "line_items": products,
-                            "customer": {"id": 7247084421397},
-                            "financial_status": "pending",
-                            "note": f"orden de compra: {oc}",
-                            "tags": "SODIMAC",
-                        }
-                    }
-                    try:
-                        obj, _ = SodimacOrders.objects.get_or_create(id=oc)
-                        response = requests.post(
-                            URL_CREATE_ORDERS, headers=self.headers_shopify, json=data
-                        )
-                        if response.status_code == 201:
-                            obj.oc_shopify = (
-                                response.json().get("order", {}).get("order_number", {})
-                            )
-                            obj.save()
-                            data_log["success"].append(oc)
-                        else:
-                            obj.oc_shopify = "Error al crear la orden"
-                            obj.save()
-                    except:
-                        obj.oc_shopify = "Error al crear la orden"
-                        obj.save()
-                        data_log["error"].append(oc)
+            data = {
+                "order": {
+                    "line_items": products,
+                    "customer": {"id": 7247084421397},
+                    "financial_status": "pending",
+                    "note": f"orden de compra: {oc}",
+                    "tags": "SODIMAC",
+                }
+            }
+            try:
+                obj, _ = SodimacOrders.objects.get_or_create(id=oc)
+                response = requests.post(
+                    URL_CREATE_ORDERS, headers=self.headers_shopify, json=data
+                )
+                if response.status_code == 201:
+                    obj.oc_shopify = (
+                        response.json().get("order", {}).get("order_number", {})
+                    )
+                    obj.save()
+                    data_log["success"].append(oc)
+                else:
+                    obj.oc_shopify = "Error al crear la orden"
+                    obj.save()
+            except:
+                obj.oc_shopify = "Error al crear la orden"
+                obj.save()
+                data_log["error"].append(oc)
         return data_log
 
     def get_orders(self):
