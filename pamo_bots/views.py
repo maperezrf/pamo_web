@@ -181,7 +181,6 @@ def process_orders_and_create_in_shopify(sodi):
     resultado_4 = sodi.get_orders_api(tipo_orden="4")
     if resultado_1 or resultado_4:
         print("Haciendo cruces de SKUS")
-        sodi.insert_orders_not_creates()
         sodi.make_merge()
         sodi.set_kits()
         sodi.normalice_kits()
