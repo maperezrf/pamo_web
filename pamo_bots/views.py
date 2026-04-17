@@ -228,15 +228,16 @@ def process_orders_and_create_in_shopify(sodi):
 
 def handle_invoices_and_billing():
     """Maneja la reinyección de OCs y creación de facturas."""
-    orders = [
-        i["id"] for i in SodimacOrders.objects.filter(status="1-PENDIENTE").values()
-    ]
+    today = datetime.date.today()
+    first_day_current = today.replace(day=1)
+    orders = [ i.id for i in SodimacOrders.objects.filter(fecha_transmision__gte=first_day_current, status='1-PENDIENTE')]
     sodi = ConnectionsSodimac()
     sodi.reinyectar_oc(orders)
     sodi.get_orders_api(tipo_orden="1")
     sodi.get_orders_api(tipo_orden="4")
     sodi.make_merge()
     sodi.set_kits()
+    sodi.normalice_kits()
     df = sodi.get_orders()
     invoices = df.loc[df["ESTADO_OC"] == "4-ESTADO FINAL"]
     invoices_values = pd.DataFrame(
