@@ -233,8 +233,8 @@ def handle_invoices_and_billing():
     orders = [ i.id for i in SodimacOrders.objects.filter(fecha_transmision__gte=first_day_current, status='1-PENDIENTE')]
     sodi = ConnectionsSodimac()
     sodi.reinyectar_oc(orders)
-    sodi.get_orders_api(tipo_orden="1")
-    sodi.get_orders_api(tipo_orden="4")
+    sodi.get_orders_api(tipo_orden="1", only_pending=False)
+    sodi.get_orders_api(tipo_orden="4", only_pending=False)
     sodi.make_merge()
     sodi.set_kits()
     sodi.normalice_kits()

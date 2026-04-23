@@ -26,24 +26,36 @@ class ConnectionsSodimac():
             return response.json()['Value']
         return []
 
-    def get_orders_api(self, tipo_orden="1"):
+    _ORDER_COLS = ['ORDEN_COMPRA', 'ESTADO_OC', 'FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU']
+
+    def _save_order(self, orden):
+        obj, _ = SodimacOrders.objects.get_or_create(id=str(orden['ORDEN_COMPRA']))
+        obj.total_cost = orden.get('COSTO_TOT_OC')
+        obj.last_status = orden.get('ESTADO_OC')
+        obj.fecha_transmision = dateutil_parser.parse(orden['FECHA_TRANSMISION'], dayfirst=True).date()
+        obj.save()
+        return obj
+
+    def _needs_shopify_order(self, obj):
+        return not obj.oc_shopify or not str(obj.oc_shopify).isdigit()
+
+    def get_orders_api(self, tipo_orden="1", only_pending=True):
         raw = self._fetch_raw_orders(tipo_orden)
         if not raw:
             return False
-        ordenes = []
+        rows = []
         for orden in raw:
-            obj, _ = SodimacOrders.objects.get_or_create(id=str(orden['ORDEN_COMPRA']))
-            obj.total_cost = orden.get('COSTO_TOT_OC')
-            obj.last_status = orden.get('ESTADO_OC')
-            fecha_raw = orden.get('FECHA_TRANSMISION')
-            obj.fecha_transmision = dateutil_parser.parse(fecha_raw, dayfirst=True).date()
-            obj.save()
-            for producto in orden['PRODUCTOS']:
-                ordenes.append([orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'], producto['SKU'], producto['CANTIDAD_SKU'], producto['COSTO_SKU']])
-        df_nuevas = pd.DataFrame(ordenes, columns=['ORDEN_COMPRA', 'ESTADO_OC', 'FECHA_TRANSMISION', 'SKU', 'CANTIDAD_SKU', 'COSTO_SKU'])
-        df_nuevas['COSTO_SKU_IVA'] = df_nuevas['COSTO_SKU'] * 1.19
-        self.orders = pd.concat([self.orders, df_nuevas], ignore_index=True)
-        print(self.orders)
+            obj = self._save_order(orden)
+            if only_pending and not self._needs_shopify_order(obj):
+                continue
+            rows.extend(
+                [orden['ORDEN_COMPRA'], orden['ESTADO_OC'], orden['FECHA_TRANSMISION'],
+                 p['SKU'], p['CANTIDAD_SKU'], p['COSTO_SKU']]
+                for p in orden['PRODUCTOS']
+            )
+        df = pd.DataFrame(rows, columns=self._ORDER_COLS)
+        df['COSTO_SKU_IVA'] = df['COSTO_SKU'] * 1.19
+        self.orders = pd.concat([self.orders, df], ignore_index=True)
         return True
 
     def get_oc_costs(self, ocs):
