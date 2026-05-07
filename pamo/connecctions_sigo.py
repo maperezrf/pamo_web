@@ -219,7 +219,7 @@ class SigoConnection():
                 "send":True
             },
             "mail":{
-                "send":False
+                "send":True
             },
             "observations":"Para pagos por bancos a nombre de FEPRIN S.A.S. tenga en cuenta la siguiente información:\nDAVIVIENDA Cuenta de Ahorros 457600102745\nBANCOLOMBIA Cuenta de Ahorros 17400002178\nRevisa nuestras políticas de cambios y garantías: www.pamo.co.",
             "items":items,

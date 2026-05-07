@@ -634,6 +634,22 @@ def download_report_invoices(request):
     return response
 
 
+@login_required
+def reinyectar_oc_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    body = json.loads(request.body)
+    oc = str(body.get('oc', '')).strip()
+    if not oc:
+        return JsonResponse({'success': False, 'message': 'Número de orden requerido'}, status=400)
+    try:
+        sodi = ConnectionsSodimac()
+        sodi.reinyectar_oc([oc])
+        return JsonResponse({'success': True, 'message': f'Orden {oc} reinyectada exitosamente'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
 def save_review(response):
     products = ProductsSodimac.objects.all()
     products = pd.DataFrame(products.values())

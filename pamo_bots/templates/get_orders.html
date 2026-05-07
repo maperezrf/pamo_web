@@ -28,6 +28,11 @@
           <h3>Cargar ordenes Sodimac</h3>
           <a href="sodimac"><button class="btn btn-success text-center">Importar ordenes</button></a>
         </div>
+        <div class="d-flex justify-content-center gap-2 mt-1">
+          <input type="text" id="oc-input" class="form-control w-auto" placeholder="  Número de orden" style="min-width:220px;height: 40px;border: 1px solid gray">
+          <button class="btn btn-success" id="btn-reinyectar">Reinyectar</button>
+        </div>
+        <div id="reinyectar-msg" class="text-center mt-2"></div>
       </div>
     </div>
   </a>
@@ -76,6 +81,30 @@
 
 
 <script>
+  document.getElementById("btn-reinyectar").addEventListener("click", function () {
+    const oc = document.getElementById("oc-input").value.trim();
+    const msgEl = document.getElementById("reinyectar-msg");
+    if (!oc) {
+      msgEl.innerHTML = '<span class="text-danger">Ingresa un número de orden.</span>';
+      return;
+    }
+    this.disabled = true;
+    msgEl.innerHTML = '<span class="text-secondary">Reinyectando...</span>';
+    fetch("{% url 'pamo_bots:reinyectar_oc' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+      body: JSON.stringify({ oc }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        msgEl.innerHTML = data.success
+          ? `<span class="text-success">${data.message}</span>`
+          : `<span class="text-danger">${data.message}</span>`;
+      })
+      .catch(() => { msgEl.innerHTML = '<span class="text-danger">Error de conexión.</span>'; })
+      .finally(() => { document.getElementById("btn-reinyectar").disabled = false; });
+  });
+
     window.addEventListener("load", function () {
       $("#sodimac-orders-table").DataTable({
         pageLength: 25,

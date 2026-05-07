@@ -23,4 +23,5 @@ urlpatterns = [
     path("upload/products/", views.upload_products_excel, name="upload_products_excel"),
     path("upload/kits/", views.upload_kits_excel, name="upload_kits_excel"),
     path("download/report/", views.download_report_invoices, name="download_report_invoices"),
+    path("reinyectar_oc/", views.reinyectar_oc_view, name="reinyectar_oc"),
 ]
