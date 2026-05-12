@@ -229,7 +229,7 @@ def process_orders_and_create_in_shopify(sodi):
 def handle_invoices_and_billing():
     """Maneja la reinyección de OCs y creación de facturas."""
     today = datetime.date.today()
-    first_day_current = today.replace(day=1)
+    first_day_current = datetime.date(2026, 4, 1)
     orders = [ i.id for i in SodimacOrders.objects.filter(fecha_transmision__gte=first_day_current, status='1-PENDIENTE')]
     sodi = ConnectionsSodimac()
     sodi.reinyectar_oc(orders)

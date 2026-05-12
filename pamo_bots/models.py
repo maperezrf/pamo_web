@@ -22,4 +22,5 @@ class InvoicesSiigo(models.Model):
     oc = models.CharField(max_length=50, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     novelty = models.CharField(max_length=100, null=True, blank=True)
+    seller = models.CharField(max_length=50, null=True, blank=True)
 

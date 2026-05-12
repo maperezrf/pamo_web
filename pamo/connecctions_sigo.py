@@ -7,8 +7,9 @@ import math
 import requests
 import json
 from datetime import datetime
-import math
+import pandas as pd
 from pamo.constants import NIT_SODIMAC
+import re
 
 class SigoConnection():
     headers = {
@@ -100,7 +101,7 @@ class SigoConnection():
         responses = {}
         for i in df['ORDEN_COMPRA'].unique():
             items, total_cost, reteica, oc, reteiva, retencion, value_api  = self.get_data(df, i, taxes)
-            if ((value_api == '0') or (value_api == None)) :
+            if ((value_api == '0') or pd.isna(value_api)) :
                 value = round(total_cost + round((total_cost *0.19),2) - round(reteiva,2) - round(reteica,2) - round(retencion,2),2)
             else:
                 value = value_api
@@ -282,9 +283,7 @@ class SigoConnection():
                 response = requests.get(f"{base_url}&page={page}", headers=self.headers)
                 if response.status_code == 200:
                     all_results.extend(response.json().get('results', []))
-            
-            invoices_sodimac = [i for i in all_results if i.get("customer", {}).get('identification') == NIT_SODIMAC]
-            return invoices_sodimac
+            return all_results
             
         except Exception as e:
             raise(f"Error en la consulta: {e}")
@@ -307,9 +306,14 @@ class SigoConnection():
                     continue
                 items = invoice_json.get('items', [])
                 total_items_cost = sum([float(item.get('price', 0) * item.get('quantity', 0)) for item in items])
-                additional_fields = invoice_json.get('additional_fields', {})
-                purchase_order_data = additional_fields.get('purchase_order', {})
-                oc_number = purchase_order_data.get('number', None)
+                if invoice_json.get('customer',{}).get('identification',{}) == NIT_SODIMAC:
+                    additional_fields = invoice_json.get('additional_fields', {})
+                    purchase_order_data = additional_fields.get('purchase_order', {})
+                    oc_number = purchase_order_data.get('number', None)
+                    seller = 'Sodimac'
+                else:
+                    oc_number = re.search(r"\d+", invoice_json.get('observations')).group()
+                    seller= 'Shopify'
                 obj, created = InvoicesSiigo.objects.update_or_create(
                     id=invoice_id,
                     defaults={
@@ -317,7 +321,8 @@ class SigoConnection():
                         'date': invoice_json.get('date'),
                         'total': invoice_json.get('total', 0),
                         'items_cost': total_items_cost,
-                        'oc': oc_number
+                        'oc': oc_number,
+                        'seller':seller
                     }
                 )
                 if created:
