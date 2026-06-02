@@ -276,6 +276,62 @@ query {{
 }}
   """
 
+GET_ORDERS = """
+{{
+  orders(
+    after:"{cursor}"
+    first: 250
+  ) {{
+    pageInfo {{
+      hasNextPage
+      endCursor
+    }}
+    edges {{
+      node {{
+        id
+        legacyResourceId
+        createdAt
+        paymentGatewayNames
+        name
+        transactions(first: 10) {{
+          status
+          gateway
+          amount
+        }}
+        tags
+        customer {{
+          email
+          displayName
+          phone
+          defaultAddress {{
+            company
+          }}
+        }}
+        lineItems(first: 250) {{
+          nodes {{
+            quantity
+            sku
+            originalTotalSet {{
+              presentmentMoney {{
+                amount
+              }}
+            }}
+            name
+          }}
+        }}
+        fulfillments(first: 10) {{
+          trackingInfo(first: 10) {{
+            company
+            number
+            url
+          }}
+        }}
+      }}
+    }}
+  }}
+}}
+"""
+
 GET_PRODUCTS_FULL = """{{
   products(first: 250, query: "sku:{sku}") {{
     edges {{

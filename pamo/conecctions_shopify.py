@@ -2,11 +2,12 @@ from pamo.constants import *
 import requests
 import pandas as pd
 import json
-
-# from pamo.functions import make_json
+from pamo_bots.models import OrdersShopify, ProductsOrders
+import time
 import os
 from quote_print.models import SodimacOrders
-from pamo.queries import GET_VARIANT_ID, GET_INVENTORY
+from pamo_bots.models import LastCursor
+from pamo.queries import GET_VARIANT_ID, GET_INVENTORY, GET_ORDERS
 
 
 class ConnectionsShopify:
@@ -161,6 +162,101 @@ class ConnectionsShopify:
 
     def get_orders(self):
         return self.orders
+
+    def fetch_orders_shopify(self):
+        last = LastCursor.objects.first()
+        cursor_str = last.cursor
+
+        all_nodes = []
+        response = self.request_graphql(GET_ORDERS.format(cursor=cursor_str))
+        data = response.json()["data"]["orders"]
+        all_nodes.extend([edge["node"] for edge in data["edges"]])
+
+        while data["pageInfo"]["hasNextPage"]:
+            time.sleep(20)
+            end_cursor = data["pageInfo"]["endCursor"]
+            response = self.request_graphql(GET_ORDERS.format(cursor={end_cursor}))
+            data = response.json()["data"]["orders"]
+            all_nodes.extend([edge["node"] for edge in data["edges"]])
+
+        end_cursor = data["pageInfo"]["endCursor"]
+        if end_cursor:
+            LastCursor.objects.update_or_create(pk=1, defaults={"cursor": end_cursor})
+
+        return all_nodes
+
+    def format_orders_response(self, raw_nodes):
+        formatted = []
+        for node in raw_nodes:
+            customer = node.get("customer") or {}
+            address = customer.get("defaultAddress") or {}
+            line_items = node.get("lineItems", {}).get("nodes", [])
+
+            products = []
+            total_order = 0.0
+            for item in line_items:
+                total_line = float(
+                    item.get("originalTotalSet", {})
+                    .get("presentmentMoney", {})
+                    .get("amount", 0)
+                )
+                quantity = item.get("quantity") or 1
+                unit_cost = round(total_line / quantity, 2)
+                total_order += total_line
+                products.append({
+                    "sku": item.get("sku"),
+                    "name": item.get("name", "")[0:99],
+                    "quantity": quantity,
+                    "unit_cost": unit_cost,
+                    "total_cost": total_line,
+                })
+            gateways = node.get("paymentGatewayNames") or []
+            gateways_name = None
+            if gateways:
+                gateways_name = ("Mercado Pago" if 'mercado' in gateways[0].lower() else 'Addi Payment' if 'astroselling' in gateways[0].lower() else gateways[0])
+
+            fulfillments = node.get("fulfillments") or []
+            shipping_company = None
+            tracking_number = None
+            url_traking = None
+            if fulfillments:
+                tracking_info = fulfillments[0].get("trackingInfo") or []
+                if tracking_info:
+                    shipping_company = tracking_info[0].get("company")
+                    tracking_number = tracking_info[0].get("number")
+                    url_traking = tracking_info[0].get("url")
+
+            formatted.append({
+                "id": node.get("legacyResourceId"),
+                "pedido": node.get("name", "").replace("#", ""),
+                "created_at": node.get("createdAt"),
+                "payment_method": gateways_name,
+                "customer_name": customer.get("displayName"),
+                "customer_id": address.get("company"),
+                "total_cost": round(total_order, 2),
+                "shipping_company": shipping_company,
+                "tracking_number": tracking_number,
+                "url_traking": url_traking,
+                "products": products,
+            })
+        return formatted
+
+    def save_orders_to_db(self, formatted_data):
+        
+        count = 0
+        for order_data in formatted_data:
+            products = order_data.pop("products")
+            order, created = OrdersShopify.objects.update_or_create(
+                id=order_data["id"],
+                defaults=order_data,
+            )
+            if not created:
+                order.products.all().delete()
+            ProductsOrders.objects.bulk_create([
+                ProductsOrders(order=order, **p) for p in products
+            ])
+            count += 1
+        return count
 
     def get_inventory(self, df):
         for i in range(10):  # udf.shape[0]):

@@ -8,7 +8,7 @@ from django.conf import settings
 import datetime
 from pamo.functions import create_file_products
 from products.forms import fileForm
-from pamo_bots.models import LogBotOrders, ProductsSodimac
+from pamo_bots.models import LogBotOrders, ProductsSodimac, OrdersShopify
 from quote_print.models import SodimacOrders, SodimacKits
 import pandas as pd
 from pamo_bots.core_df import Core
@@ -650,6 +650,19 @@ def reinyectar_oc_view(request):
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 
+@login_required
+def sync_shopify_orders(request):
+    try:
+        shopi = ConnectionsShopify()
+        raw_nodes = shopi.fetch_orders_shopify()
+        formatted = shopi.format_orders_response(raw_nodes)
+        count = shopi.save_orders_to_db(formatted)
+        return JsonResponse({'success': True, 'pedidos_guardados': count})
+    except Exception as e:
+        print(f"Error en sync_shopify_orders: {e}")
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
 def save_review(response):
     products = ProductsSodimac.objects.all()
     products = pd.DataFrame(products.values())
@@ -659,5 +672,44 @@ def save_review(response):
     df.to_excel(os.path.join(settings.MEDIA_ROOT, "final_review.xlsx"), index=False)
 
 
+@login_required
+def update_order_field(request, order_id):
+    if request.method != 'PATCH':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    try:
+        body = json.loads(request.body)
+        field = body.get('field')
+        value = body.get('value')
+        allowed = {'in_transit', 'comments'}
+        if field not in allowed:
+            return JsonResponse({'success': False, 'message': 'Campo no permitido'}, status=400)
+        order = OrdersShopify.objects.get(pk=order_id)
+        if field == 'in_transit':
+            order.in_transit = bool(value)
+        else:
+            order.comments = value[:100] if value else None
+        order.save(update_fields=[field])
+        return JsonResponse({'success': True})
+    except OrdersShopify.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Orden no encontrada'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
-    
+
+@login_required
+def order_tracking_view(request):
+    orders = OrdersShopify.objects.prefetch_related('products').order_by('-created_at')
+    return render(request, "order_tracking.html", {"orders": orders})
+
+
+def get_orders_Without_invoices():
+    ocs_con_factura = InvoicesSiigo.objects.exclude(oc__isnull=True).values_list('oc', flat=True)
+    return OrdersShopify.objects.exclude(pedido__in=ocs_con_factura)
+
+
+@login_required
+def orders_without_invoices_view(request):
+    orders = get_orders_Without_invoices().values(
+        'id', 'pedido', 'created_at', 'payment_method', 'customer_name', 'customer_id', 'total_cost'
+    )
+    return JsonResponse({'success': True, 'total': len(orders), 'orders': list(orders)})

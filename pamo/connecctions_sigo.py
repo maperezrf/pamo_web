@@ -10,6 +10,7 @@ from datetime import datetime
 import pandas as pd
 from pamo.constants import NIT_SODIMAC
 import re
+from quote_print.models import SodimacOrders
 
 class SigoConnection():
     headers = {
@@ -341,7 +342,6 @@ class SigoConnection():
         2. OC duplicada (mismo número de OC en facturas con diferente name)
         3. Costo diferente al total_cost almacenado en SodimacOrders
         """
-        from quote_print.models import SodimacOrders
         costos = {
             str(o.id): float(o.total_cost)
             for o in SodimacOrders.objects.exclude(total_cost__isnull=True)
@@ -349,7 +349,7 @@ class SigoConnection():
 
         ocs_duplicadas = set(
             InvoicesSiigo.objects
-            .exclude(oc__isnull=True).exclude(oc='')
+            .exclude(oc__isnull=True).exclude(oc='').exclude(seller='Sodimac')
             .values('oc')
             .annotate(total=Count('id'))
             .filter(total__gt=1)

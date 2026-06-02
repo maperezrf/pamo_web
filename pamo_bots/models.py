@@ -13,6 +13,32 @@ class LogBotOrders(models.Model):
     error = models.BooleanField(blank=False, null=False)
     log = models.CharField( max_length=700, blank=True, null=True)
 
+class LastCursor(models.Model):
+    cursor = models.CharField(max_length=100, null=True, blank=True)
+
+class OrdersShopify(models.Model):
+    id = models.CharField(max_length=50, primary_key=True)
+    pedido = models.CharField(max_length=20)
+    created_at = models.DateTimeField()
+    payment_method = models.CharField(max_length=100, null=True, blank=True)
+    customer_name = models.CharField(max_length=200, null=True, blank=True)
+    customer_id = models.CharField(max_length=50, null=True, blank=True)
+    total_cost = models.DecimalField(max_digits=15, decimal_places=2)
+    shipping_company = models.CharField(max_length=50, null=True, blank=True)
+    tracking_number = models.CharField(max_length=50, null=True, blank=True)
+    url_traking = models.CharField(max_length=150, null=True, blank=True)
+    tracking_status = models.CharField(max_length=10, null=True, blank=True)
+    in_transit = models.BooleanField(default=False)
+    comments = models.CharField(max_length=100, null=True, blank=True)
+
+class ProductsOrders(models.Model):
+    order = models.ForeignKey(OrdersShopify, on_delete=models.CASCADE, related_name='products')
+    sku = models.CharField(max_length=100, null=True, blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    unit_cost = models.DecimalField(max_digits=15, decimal_places=2)
+    quantity = models.IntegerField()
+    total_cost = models.DecimalField(max_digits=15, decimal_places=2)
+
 class InvoicesSiigo(models.Model):
     id = models.CharField(max_length=100, primary_key=True)
     name = models.CharField(max_length=100, unique=True)

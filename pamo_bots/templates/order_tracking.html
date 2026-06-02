@@ -1,0 +1,276 @@
+{% extends 'index.html' %}
+
+{% block title %}
+  Seguimiento de Pedidos
+{% endblock %}
+
+{% block page_name %}
+  Automatizaciones
+{% endblock %}
+
+{% block subpage_name %}
+  Pedidos
+{% endblock %}
+
+{% block name_now %}
+  Seguimiento de Pedidos
+{% endblock %}
+
+{% block content %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'css/datatable.css' %}" />
+  <style>
+    .transit-on  { background-color: #198754; color: #fff; }
+    .transit-off { background-color: #e0e0e0; color: #555; }
+    .transit-toggle:hover { opacity: .85; }
+    #order-tracking-table .editable { cursor: pointer; }
+    #order-tracking-table .editable:hover { background-color: #f0f4ff; }
+  </style>
+
+  <div class="card mb-4">
+    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Seguimiento de Pedidos</h5>
+      <button class="btn btn-primary btn-sm" id="btn-sync-orders">Sincronizar pedidos</button>
+    </div>
+    <div class="card-body px-0 pb-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-sm" id="order-tracking-table">
+          <thead>
+            <tr>
+              <th class="text-center"># Pedido</th>
+              <th class="text-center">Fecha</th>
+              <th class="text-center">Cliente</th>
+              <th class="text-center">Total</th>
+              <th class="text-center">Pago</th>
+              <th class="text-center">Transportadora</th>
+              <th class="text-center"># Guía</th>
+              <th class="text-center">Estado envío</th>
+              <th class="text-center">Rastreo</th>
+              <th class="text-center">En transporte</th>
+              <th class="text-center">Comentarios</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+              <tr data-id="{{ order.id }}">
+                <td class="text-center fw-bold">{{ order.pedido }}</td>
+                <td class="text-center" data-order="{{ order.created_at|date:'Y-m-d' }}">
+                  {{ order.created_at|date:"d/m/Y" }}
+                </td>
+                <td>{{ order.customer_name|default:"-" }}</td>
+                <td class="text-center total-col" data-order="{{ order.total_cost|floatformat:0 }}">{{ order.total_cost|floatformat:0 }}</td>
+                <td class="text-center">{{ order.payment_method|default:"-" }}</td>
+                <td class="text-center">{{ order.shipping_company|default:"-" }}</td>
+                <td class="text-center">{{ order.tracking_number|default:"-" }}</td>
+                <td class="text-center">
+                  {% if order.tracking_status == "delivered" %}
+                    <span class="badge bg-success">Entregado</span>
+                  {% elif order.tracking_status == "transit" %}
+                    <span class="badge bg-primary">En tránsito</span>
+                  {% elif order.tracking_status == "pending" %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                  {% elif order.tracking_status == "failure" %}
+                    <span class="badge bg-danger">Fallido</span>
+                  {% elif order.tracking_status %}
+                    <span class="badge bg-secondary">{{ order.tracking_status }}</span>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  {% if order.url_traking %}
+                    <a href="{{ order.url_traking }}" target="_blank" class="btn btn-outline-secondary btn-sm">Ver</a>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <span class="transit-toggle {% if order.in_transit %}transit-on{% else %}transit-off{% endif %}"
+                        style="cursor:pointer;display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;user-select:none;"
+                        data-value="{% if order.in_transit %}true{% else %}false{% endif %}">
+                    {% if order.in_transit %}En transporte{% else %}Sin despachar{% endif %}
+                  </span>
+                </td>
+                <td class="editable text-center" data-field="comments">{{ order.comments|default:"" }}</td>
+                <td class="text-center action-cell"></td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="12" class="text-center">No hay pedidos registrados.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const UPDATE_URL_BASE = "/pamo_bots/update_order_field/";
+
+    function getCookie(name) {
+      let val = null;
+      if (document.cookie) {
+        document.cookie.split(';').forEach(c => {
+          c = c.trim();
+          if (c.startsWith(name + '=')) val = decodeURIComponent(c.slice(name.length + 1));
+        });
+      }
+      return val;
+    }
+
+    let cancelCurrentEdit = null;
+
+    function handleDblClick(cell) {
+      if (cancelCurrentEdit) { cancelCurrentEdit(); cancelCurrentEdit = null; }
+      if (cell.querySelector('input')) return;
+
+      const row = cell.closest('tr');
+      const actionCell = row.querySelector('.action-cell');
+      const field = cell.dataset.field;
+      const originalValue = cell.innerText.trim();
+
+      cell.innerText = '';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = originalValue;
+      input.maxLength = 100;
+      input.className = 'form-control form-control-sm';
+      cell.appendChild(input);
+      input.focus();
+
+      const originalActionHTML = actionCell.innerHTML;
+      actionCell.innerHTML = `
+        <span class="action-confirm" style="cursor:pointer;color:green;font-size:1.4rem;margin-right:8px;" title="Guardar">&#10003;</span>
+        <span class="action-cancel" style="cursor:pointer;color:red;font-size:1.4rem;" title="Cancelar">&#10007;</span>
+      `;
+
+      function confirmEdit() {
+        const newValue = input.value.trim();
+        const orderId = row.dataset.id;
+        Swal.fire({ title: 'Guardando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+        fetch(UPDATE_URL_BASE + orderId + '/', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify({ field, value: newValue }),
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            cell.innerText = newValue;
+            actionCell.innerHTML = originalActionHTML;
+            cancelCurrentEdit = null;
+            Swal.fire({ icon: 'success', title: 'Guardado', timer: 1200, showConfirmButton: false });
+          } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, timer: 2000, showConfirmButton: false });
+          }
+        })
+        .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión', timer: 2000, showConfirmButton: false }));
+      }
+
+      function cancelEdit() {
+        cell.innerText = originalValue;
+        actionCell.innerHTML = originalActionHTML;
+        cancelCurrentEdit = null;
+      }
+
+      cancelCurrentEdit = cancelEdit;
+
+      actionCell.querySelector('.action-confirm').addEventListener('click', confirmEdit);
+      actionCell.querySelector('.action-cancel').addEventListener('click', cancelEdit);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') confirmEdit();
+        if (e.key === 'Escape') cancelEdit();
+      });
+    }
+
+    window.addEventListener('load', function () {
+      $('#order-tracking-table').DataTable({
+        pageLength: 25,
+        order: [[1, 'desc']],
+        columnDefs: [
+          { orderable: false, targets: [9, 10, 11] },
+        ],
+        language: {
+          sProcessing: 'Procesando...',
+          sLengthMenu: 'Mostrar _MENU_ registros por página',
+          sZeroRecords: 'No se encontraron resultados',
+          sEmptyTable: 'Ningún dato disponible en esta tabla',
+          sInfo: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+          sInfoEmpty: 'Mostrando 0 a 0 de 0 registros',
+          sInfoFiltered: '(filtrado de _MAX_ registros en total)',
+          sSearch: 'Buscar:',
+          oPaginate: { sFirst: 'Primero', sLast: 'Último', sNext: '>>', sPrevious: '<<' },
+        },
+      });
+
+      // Formatear columna Total como moneda colombiana
+      const currencyFmt = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      document.querySelectorAll('#order-tracking-table .total-col').forEach(td => {
+        const raw = parseFloat(td.dataset.order);
+        if (!isNaN(raw)) td.textContent = '$ ' + currencyFmt.format(raw);
+      });
+
+      // Doble click en comentarios
+      document.querySelectorAll('#order-tracking-table .editable').forEach(cell => {
+        cell.addEventListener('dblclick', function () { handleDblClick(this); });
+      });
+
+      // Toggle pill en transporte
+      document.querySelectorAll('#order-tracking-table .transit-toggle').forEach(pill => {
+        pill.addEventListener('click', function () {
+          const row = this.closest('tr');
+          const orderId = row.dataset.id;
+          const currentValue = this.dataset.value === 'true';
+          const newValue = !currentValue;
+          Swal.fire({ title: 'Guardando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+          fetch(UPDATE_URL_BASE + orderId + '/', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ field: 'in_transit', value: newValue }),
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.success) {
+              this.dataset.value = newValue ? 'true' : 'false';
+              this.textContent = newValue ? 'En transporte' : 'Sin despachar';
+              this.classList.toggle('transit-on', newValue);
+              this.classList.toggle('transit-off', !newValue);
+              Swal.fire({ icon: 'success', title: 'Guardado', timer: 1200, showConfirmButton: false });
+            } else {
+              Swal.fire({ icon: 'error', title: 'Error', text: data.message, timer: 2000, showConfirmButton: false });
+            }
+          })
+          .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión', timer: 2000, showConfirmButton: false }));
+        });
+      });
+    });
+
+    document.getElementById('btn-sync-orders').addEventListener('click', function () {
+      const btn = this;
+      btn.disabled = true;
+      Swal.fire({ title: 'Sincronizando pedidos...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+      fetch("{% url 'pamo_bots:sync_shopify_orders' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const count = data.pedidos_guardados;
+          Swal.fire({
+            icon: 'success',
+            title: 'Sincronización completada',
+            text: count > 0 ? `Se crearon ${count} pedido(s) nuevo(s).` : 'No hay pedidos nuevos por sincronizar.',
+            confirmButtonText: 'Aceptar',
+          }).then(() => { if (count > 0) location.reload(); });
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error al sincronizar', text: data.message });
+        }
+      })
+      .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo conectar con el servidor.' }))
+      .finally(() => { btn.disabled = false; });
+    });
+  </script>
+{% endblock %}

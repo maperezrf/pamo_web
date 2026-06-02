@@ -24,4 +24,8 @@ urlpatterns = [
     path("upload/kits/", views.upload_kits_excel, name="upload_kits_excel"),
     path("download/report/", views.download_report_invoices, name="download_report_invoices"),
     path("reinyectar_oc/", views.reinyectar_oc_view, name="reinyectar_oc"),
+    path("sync_shopify_orders/", views.sync_shopify_orders, name="sync_shopify_orders"),
+    path("orders_without_invoices/", views.orders_without_invoices_view, name="orders_without_invoices"),
+    path("order_tracking/", views.order_tracking_view, name="order_tracking"),
+    path("update_order_field/<str:order_id>/", views.update_order_field, name="update_order_field"),
 ]
