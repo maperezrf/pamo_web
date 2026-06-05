@@ -726,6 +726,7 @@ class WebhookReceiverViewEnvia(APIView):
         print(data)
         headers = request.headers
         print(headers)
+        return Response(status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
 
@@ -734,9 +735,7 @@ class WebhookReceiverViewEnvia(APIView):
         print(data)
         headers = request.headers
         print(headers)
-
-
-        return Response({"status": "received"}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
 class WebhookReceiverViewShopify(APIView):
     permission_classes = [AllowAny]
@@ -747,6 +746,7 @@ class WebhookReceiverViewShopify(APIView):
         print(data)
         headers = request.headers
         print(headers)
+        return Response(status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         print('##################### webhook recibido Shopify metodo POST ##################################')
@@ -754,3 +754,4 @@ class WebhookReceiverViewShopify(APIView):
         print(data)
         headers = request.headers
         print(headers)
+        return Response(status=status.HTTP_200_OK)
