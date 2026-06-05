@@ -720,10 +720,16 @@ def orders_without_invoices_view(request):
 
 class WebhookReceiverViewEnvia(APIView):
     permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        print('##################### webhook recibido Eniva metodo GET ##################################')
+        data = request.data
+        print(data)
+        headers = request.headers
+        print(headers)
 
     def post(self, request, *args, **kwargs):
 
-        print('##################### webhook recibido Shopify ##################################')
+        print('##################### webhook recibido Eniva metodo POST ##################################')
         data = request.data
         print(data)
         headers = request.headers
@@ -735,7 +741,16 @@ class WebhookReceiverViewEnvia(APIView):
 class WebhookReceiverViewShopify(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        print('##################### webhook recibido Shopify ##################################')
+    def get(self, request, *args, **kwargs):
+        print('##################### webhook recibido Shopify metodo GET ##################################')
         data = request.data
         print(data)
+        headers = request.headers
+        print(headers)
+
+    def post(self, request, *args, **kwargs):
+        print('##################### webhook recibido Shopify metodo POST ##################################')
+        data = request.data
+        print(data)
+        headers = request.headers
+        print(headers)
