@@ -28,4 +28,5 @@ urlpatterns = [
     path("orders_without_invoices/", views.orders_without_invoices_view, name="orders_without_invoices"),
     path("order_tracking/", views.order_tracking_view, name="order_tracking"),
     path("update_order_field/<str:order_id>/", views.update_order_field, name="update_order_field"),
+    path("webhooks/shipmentstatus/", views.WebhookReceiverView.as_view(), name='shipmentstatus')
 ]

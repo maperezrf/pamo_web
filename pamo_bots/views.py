@@ -20,6 +20,8 @@ from pamo.connecctions_sigo import SigoConnection
 from pamo.email_sender import EmailSender
 from django.db.models import Q
 from pamo_bots.models import InvoicesSiigo
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 
 @login_required
 def sodimac_view(request):
@@ -713,3 +715,11 @@ def orders_without_invoices_view(request):
         'id', 'pedido', 'created_at', 'payment_method', 'customer_name', 'customer_id', 'total_cost'
     )
     return JsonResponse({'success': True, 'total': len(orders), 'orders': list(orders)})
+
+class WebhookReceiverView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        print('##################### webhook recibido ##################################')
+        data = request.data
+        print(data)
