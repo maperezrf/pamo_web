@@ -24,6 +24,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from decouple import config
 
 @login_required
 def sodimac_view(request):
@@ -750,8 +751,10 @@ class WebhookReceiverViewShopify(APIView):
 
     def post(self, request, *args, **kwargs):
         print('##################### webhook recibido Shopify metodo POST ##################################')
-        data = request.data
-        print(data)
-        headers = request.headers
-        print(headers)
-        return Response(status=status.HTTP_200_OK)
+        store = request.headers.get('X-Shopify-Shop-Domain')
+        if (store == config('STORE_SHOPYFI')):
+            data = request.data
+            print(data)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
