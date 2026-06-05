@@ -723,24 +723,14 @@ class WebhookReceiverViewEnvia(APIView):
 
     def post(self, request, *args, **kwargs):
 
+        print('##################### webhook recibido Shopify ##################################')
         data = request.data
+        print(data)
+        headers = request.headers
+        print(headers)
 
-        signature = request.headers.get('X-Webhook-Signature')
-        print(signature)
-        if not self.is_valid_signature(signature, request.body):
-            return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
 
-        # 3. Procesar los datos (ej: disparar una tarea en segundo plano)
-        # Es recomendable usar Celery para no bloquear la respuesta.
-        # process_webhook_task.delay(data)
-        print(f"Webhook recibido: {data}")
-
-        # 4. Responder siempre con 200/202 para que el proveedor sepa que recibimos bien
         return Response({"status": "received"}, status=status.HTTP_200_OK)
-
-    def is_valid_signature(self, signature, payload):
-        # Implementa aquí la lógica de verificación HMAC
-        return True
 
 class WebhookReceiverViewShopify(APIView):
     permission_classes = [AllowAny]
