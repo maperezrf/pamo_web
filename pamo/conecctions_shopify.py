@@ -8,6 +8,7 @@ import os
 from quote_print.models import SodimacOrders
 from pamo_bots.models import LastCursor
 from pamo.queries import GET_VARIANT_ID, GET_INVENTORY, GET_ORDERS
+from dateutil import parser as dateutil_parser
 
 
 class ConnectionsShopify:
@@ -272,3 +273,45 @@ class ConnectionsShopify:
                 print(f"No se encontro el SKU: {df.iloc[i].sku}")
                 df.loc[i, "stock_shopyfi"] = "El SKU no se encontró"
         return df.loc[df["existencia"] != df["stock_shopyfi"]]
+
+    def create_order_from_webhook(self, data):
+        order_id = str(data.get('id'))
+        pedido   = data.get('name')
+        created_at = dateutil_parser.parse(data.get('created_at'))
+        gateways = data.get('payment_gateway_names') or []
+        gw = gateways[0].lower() if gateways else ''
+        payment_method = (
+            'Mercado Pago'  if 'mercado'      in gw else
+            'Addi Payment'  if 'astroselling'  in gw else
+            (gateways[0] if gateways else None)
+        )
+        customer_name = data.get('billing_address', {}).get('name')
+        customer_id   = str(data.get('customer', {}).get('id') or '')
+        line_items = data.get('line_items', [])
+        total_cost = sum(
+            round(float(i.get('quantity', 0)) * float(i.get('price', 0)))
+            for i in line_items
+        )
+        order, _ = OrdersShopify.objects.update_or_create(
+            id=order_id,
+            defaults={
+                'pedido':          pedido,
+                'created_at':      created_at,
+                'payment_method':  payment_method,
+                'customer_name':   customer_name,
+                'customer_id':     customer_id,
+                'total_cost':      total_cost,
+            }
+        )
+        ProductsOrders.objects.filter(order = order).delete()
+        ProductsOrders.objects.bulk_create([
+            ProductsOrders(
+                order=order,
+                sku=item.get('sku'),
+                name=(item.get('name') or '')[:99],
+                unit_cost=round(float(item.get('price', 0))),
+                quantity=item.get('quantity', 1),
+                total_cost=round(float(item.get('quantity', 0)) * float(item.get('price', 0))),
+            )
+            for item in line_items
+        ])
