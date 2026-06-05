@@ -752,9 +752,10 @@ class WebhookReceiverViewShopify(APIView):
     def post(self, request, *args, **kwargs):
         print('##################### webhook recibido Shopify metodo POST ##################################')
         store = request.headers.get('X-Shopify-Shop-Domain')
-        if store != config('STORE_SHOPYFI'):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
-        shopi = ConnectionsShopify()
-        shopi.create_order_from_webhook(data)
+        print(request.data)
+        # if store != config('STORE_SHOPYFI'):
+        #     return Response(status=status.HTTP_401_UNAUTHORIZED)
+        # data = request.data
+        # shopi = ConnectionsShopify()
+        # shopi.create_order_from_webhook(data)
         return Response(status=status.HTTP_200_OK)
