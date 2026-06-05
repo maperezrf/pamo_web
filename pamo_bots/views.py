@@ -716,10 +716,18 @@ def orders_without_invoices_view(request):
     )
     return JsonResponse({'success': True, 'total': len(orders), 'orders': list(orders)})
 
-class WebhookReceiverView(APIView):
+class WebhookReceiverViewEnvia(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        print('##################### webhook recibido ##################################')
+        print('##################### webhook recibido Envia ##################################')
+        data = request.data
+        print(data)
+
+class WebhookReceiverViewShopify(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        print('##################### webhook recibido Shopify ##################################')
         data = request.data
         print(data)
