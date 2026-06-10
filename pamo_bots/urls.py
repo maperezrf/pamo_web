@@ -29,5 +29,5 @@ urlpatterns = [
     path("order_tracking/", views.order_tracking_view, name="order_tracking"),
     path("update_order_field/<str:order_id>/", views.update_order_field, name="update_order_field"),
     path("webhooks/shipmentstatus/", views.WebhookReceiverViewEnvia.as_view(), name='shipmentstatus'),
-    path("webhooks/createdorder/", views.WebhookReceiverViewShopify.as_view(), name='shipmentstatus')
+    path("webhooks/shopify/", views.WebhookReceiverViewShopify.as_view(), name='shipmentstatus')
 ]
