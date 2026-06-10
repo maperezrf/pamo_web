@@ -732,10 +732,16 @@ class WebhookReceiverViewEnvia(APIView):
     def post(self, request, *args, **kwargs):
 
         print('##################### webhook recibido Eniva metodo POST ##################################')
-        data = request.data
-        print(data)
         headers = request.headers
-        print(headers)
+        if headers.get('Authorization') == config('AUTORIZATION_ENVIA'):
+            data = request.data
+            tracking_number = data.get('trackingNumber') 
+            order = OrdersShopify.objects.get(tracking_number = tracking_number)
+            order.tracking_status = data.get('status')
+            order.save()
+            print(data)
+        else:
+             return Response(status=status.HTTP_401_UNAUTHORIZED)
         return Response(status=status.HTTP_200_OK)
 
 class WebhookReceiverViewShopify(APIView):
@@ -752,10 +758,9 @@ class WebhookReceiverViewShopify(APIView):
     def post(self, request, *args, **kwargs):
         print('##################### webhook recibido Shopify metodo POST ##################################')
         store = request.headers.get('X-Shopify-Shop-Domain')
-        print(request.data)
-        # if store != config('STORE_SHOPYFI'):
-        #     return Response(status=status.HTTP_401_UNAUTHORIZED)
-        # data = request.data
-        # shopi = ConnectionsShopify()
-        # shopi.create_order_from_webhook(data)
+        if store != config('STORE_SHOPYFI'):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        shopi = ConnectionsShopify()
+        shopi.create_order_from_webhook(data)
         return Response(status=status.HTTP_200_OK)
