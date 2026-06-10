@@ -26,6 +26,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
+from pamo.connections_envia import EnviaConnection
 
 @login_required
 def sodimac_view(request):
@@ -808,3 +809,13 @@ class WebhookReceiverViewShopify(APIView):
             print(f'[webhook fulfillments/create] fulfillment orden {order_id} guardado')
         except Exception as e:
             print(f'[webhook fulfillments/create error] {e}')
+        
+class TrakingShippments(APIView):
+
+    def get(self, request):
+        envia = EnviaConnection()
+        traking_numbers = OrdersShopify.objects.filter(tracking_number__isnull=False, in_transit = False).values_list('tracking_number', flat=True)
+        response = envia.get_traking_status(traking_numbers)
+        return Response(data=response, status=status.HTTP_200_OK)
+
+    

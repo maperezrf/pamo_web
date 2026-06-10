@@ -27,7 +27,7 @@ class OrdersShopify(models.Model):
     shipping_company = models.CharField(max_length=50, null=True, blank=True)
     tracking_number = models.CharField(max_length=50, null=True, blank=True)
     url_traking = models.CharField(max_length=150, null=True, blank=True)
-    tracking_status = models.CharField(max_length=10, null=True, blank=True)
+    tracking_status = models.CharField(max_length=20, null=True, blank=True)
     in_transit = models.BooleanField(default=False)
     comments = models.CharField(max_length=100, null=True, blank=True)
 
