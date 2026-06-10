@@ -735,6 +735,7 @@ class WebhookReceiverViewEnvia(APIView):
         if request.headers.get('Authorization') != config('AUTORIZATION_ENVIA'):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = dict(request.data)
+        print(data)
         threading.Thread(target=self._process, args=(data,), daemon=True).start()
         return Response(status=status.HTTP_200_OK)
 
@@ -768,6 +769,7 @@ class WebhookReceiverViewShopify(APIView):
             return Response(status=status.HTTP_200_OK)
 
         data = dict(request.data)
+        print(data)
         threading.Thread(target=getattr(self, handler_name), args=(data,), daemon=True).start()
         return Response(status=status.HTTP_200_OK)
 
