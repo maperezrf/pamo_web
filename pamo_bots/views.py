@@ -13,6 +13,7 @@ from quote_print.models import SodimacOrders, SodimacKits
 import pandas as pd
 from pamo_bots.core_df import Core
 import json
+import threading
 from pamo.constants import NOTIFICATIONS_RECIPENTS
 import os
 from django.contrib.auth.decorators import login_required
@@ -730,37 +731,78 @@ class WebhookReceiverViewEnvia(APIView):
         return Response(status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-
         print('##################### webhook recibido Eniva metodo POST ##################################')
-        headers = request.headers
-        if headers.get('Authorization') == config('AUTORIZATION_ENVIA'):
-            data = request.data
-            tracking_number = data.get('trackingNumber') 
-            order = OrdersShopify.objects.get(tracking_number = tracking_number)
+        if request.headers.get('Authorization') != config('AUTORIZATION_ENVIA'):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        data = dict(request.data)
+        threading.Thread(target=self._process, args=(data,), daemon=True).start()
+        return Response(status=status.HTTP_200_OK)
+
+    def _process(self, data):
+        try:
+            tracking_number = data.get('trackingNumber')
+            order = OrdersShopify.objects.get(tracking_number=tracking_number)
             order.tracking_status = data.get('status')
             order.save()
-            print(data)
-        else:
-             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        return Response(status=status.HTTP_200_OK)
+            print(f'[webhook envia] orden {tracking_number} actualizada')
+        except Exception as e:
+            print(f'[webhook envia error] {e}')
 
 class WebhookReceiverViewShopify(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, *args, **kwargs):
-        print('##################### webhook recibido Shopify metodo GET ##################################')
-        data = request.data
-        print(data)
-        headers = request.headers
-        print(headers)
-        return Response(status=status.HTTP_200_OK)
+    _HANDLERS = {
+        'orders/create':       '_on_order_create',
+        'orders/updated':      '_on_order_updated',
+        'orders/cancelled':    '_on_order_cancelled',
+        'fulfillments/create': '_on_fulfillment_create',
+    }
 
     def post(self, request, *args, **kwargs):
-        print('##################### webhook recibido Shopify metodo POST ##################################')
-        store = request.headers.get('X-Shopify-Shop-Domain')
-        if store != config('STORE_SHOPYFI'):
+        if request.headers.get('X-Shopify-Shop-Domain') != config('STORE_SHOPYFI'):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
-        shopi = ConnectionsShopify()
-        shopi.create_order_from_webhook(data)
+
+        topic = request.headers.get('X-Shopify-Topic')
+        handler_name = self._HANDLERS.get(topic)
+        if not handler_name:
+            return Response(status=status.HTTP_200_OK)
+
+        data = dict(request.data)
+        threading.Thread(target=getattr(self, handler_name), args=(data,), daemon=True).start()
         return Response(status=status.HTTP_200_OK)
+
+    def _on_order_create(self, data):
+        try:
+            ConnectionsShopify().create_order_from_webhook(data)
+            print(f'[webhook orders/create] orden {data.get("name")} guardada')
+        except Exception as e:
+            print(f'[webhook orders/create error] {e}')
+
+    def _on_order_updated(self, data):
+        try:
+            ConnectionsShopify().create_order_from_webhook(data)
+            print(f'[webhook orders/updated] orden {data.get("name")} actualizada')
+        except Exception as e:
+            print(f'[webhook orders/updated error] {e}')
+
+    def _on_order_cancelled(self, data):
+        try:
+            order_id = str(data.get('id'))
+            OrdersShopify.objects.filter(id=order_id).update(tracking_status='cancelled')
+            print(f'[webhook orders/cancelled] orden {data.get("name")} cancelada')
+        except Exception as e:
+            print(f'[webhook orders/cancelled error] {e}')
+
+    def _on_fulfillment_create(self, data):
+        try:
+            order_id = str(data.get('order_id'))
+            tracking_numbers = data.get('tracking_numbers') or []
+            tracking_urls = data.get('tracking_urls') or []
+            OrdersShopify.objects.filter(id=order_id).update(
+                tracking_number=tracking_numbers[0] if tracking_numbers else None,
+                shipping_company=data.get('tracking_company'),
+                url_traking=tracking_urls[0] if tracking_urls else None,
+            )
+            print(f'[webhook fulfillments/create] fulfillment orden {order_id} guardado')
+        except Exception as e:
+            print(f'[webhook fulfillments/create error] {e}')
