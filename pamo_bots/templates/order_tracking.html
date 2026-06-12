@@ -61,38 +61,79 @@
                 <td>{{ order.customer_name|default:"-" }}</td>
                 <td class="text-center total-col" data-order="{{ order.total_cost|floatformat:0 }}">{{ order.total_cost|floatformat:0 }}</td>
                 <td class="text-center">{{ order.payment_method|default:"-" }}</td>
-                <td class="text-center">{{ order.shipping_company|default:"-" }}</td>
-                <td class="text-center">{{ order.tracking_number|default:"-" }}</td>
                 <td class="text-center">
-                  {% if order.tracking_status == "delivered" %}
-                    <span class="badge bg-success">Entregado</span>
-                  {% elif order.tracking_status == "transit" %}
-                    <span class="badge bg-primary">En tránsito</span>
-                  {% elif order.tracking_status == "pending" %}
-                    <span class="badge bg-warning text-dark">Pendiente</span>
-                  {% elif order.tracking_status == "failure" %}
-                    <span class="badge bg-danger">Fallido</span>
-                  {% elif order.tracking_status %}
-                    <span class="badge bg-secondary">{{ order.tracking_status }}</span>
-                  {% else %}
+                  {% for t in order.traking.all %}
+                    <div>{{ t.shipping_company|default:"-" }}</div>
+                    {% if not forloop.last %}<hr class="my-3">{% endif %}
+                  {% empty %}
                     <span class="text-muted">-</span>
-                  {% endif %}
+                  {% endfor %}
                 </td>
                 <td class="text-center">
-                  {% if order.url_traking %}
-                    <a href="{{ order.url_traking }}" target="_blank" class="btn btn-outline-secondary btn-sm">Ver</a>
-                  {% else %}
+                  {% for t in order.traking.all %}
+                    <div>{{ t.tracking_number|default:"-" }}</div>
+                    {% if not forloop.last %}<hr class="my-3">{% endif %}
+                  {% empty %}
                     <span class="text-muted">-</span>
-                  {% endif %}
+                  {% endfor %}
                 </td>
                 <td class="text-center">
-                  <span class="transit-toggle {% if order.in_transit %}transit-on{% else %}transit-off{% endif %}"
-                        style="cursor:pointer;display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;user-select:none;"
-                        data-value="{% if order.in_transit %}true{% else %}false{% endif %}">
-                    {% if order.in_transit %}En transporte{% else %}Sin despachar{% endif %}
-                  </span>
+                  {% for t in order.traking.all %}
+                    <div>
+                      {% if t.tracking_status == "delivered" %}
+                        <span class="badge bg-success">Entregado</span>
+                      {% elif t.tracking_status == "transit" %}
+                        <span class="badge bg-primary">En tránsito</span>
+                      {% elif t.tracking_status == "pending" %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                      {% elif t.tracking_status == "failure" %}
+                        <span class="badge bg-danger">Fallido</span>
+                      {% elif t.tracking_status %}
+                        <span class="badge bg-secondary">{{ t.tracking_status }}</span>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </div>
+                    {% if not forloop.last %}<hr class="my-3">{% endif %}
+                  {% empty %}
+                    <span class="text-muted">-</span>
+                  {% endfor %}
                 </td>
-                <td class="editable text-center" data-field="comments">{{ order.comments|default:"" }}</td>
+                <td class="text-center">
+                  {% for t in order.traking.all %}
+                    <div>
+                      {% if t.url_traking %}
+                        <a href="{{ t.url_traking }}" target="_blank" class="btn btn-outline-secondary btn-sm">Ver</a>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </div>
+                    {% if not forloop.last %}<hr class="my-1">{% endif %}
+                  {% empty %}
+                    <span class="text-muted">-</span>
+                  {% endfor %}
+                </td>
+                <td class="text-center">
+                  {% for t in order.traking.all %}
+                    <div class="{% if forloop.last and not forloop.first %}mb-2 my-4{% else %}mb-2 my-2{% endif %}">
+                      <span class="transit-toggle {% if t.in_transit %}transit-on{% else %}transit-off{% endif %}"
+                            style="cursor:pointer;display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;user-select:none;"
+                            data-tracking-id="{{ t.id }}"
+                            data-value="{% if t.in_transit %}true{% else %}false{% endif %}">
+                        {% if t.in_transit %}En transporte{% else %}Sin despachar{% endif %}
+                      </span>
+                    </div>
+                  {% empty %}
+                    <span class="text-muted">-</span>
+                  {% endfor %}
+                </td>
+                <td class="text-center">
+                  {% for t in order.traking.all %}
+                    <div class="editable {% if not forloop.last %}mb-2{% endif %}" data-field="comments" data-tracking-id="{{ t.id }}">{{ t.comments|default:"" }}</div>
+                  {% empty %}
+                    <span class="text-muted">-</span>
+                  {% endfor %}
+                </td>
                 <td class="text-center action-cell"></td>
               </tr>
             {% empty %}
@@ -107,7 +148,7 @@
   </div>
 
   <script>
-    const UPDATE_URL_BASE = "/pamo_bots/update_order_field/";
+    const TRACKING_URL_BASE = "/pamo_bots/update_tracking_field/";
 
     function getCookie(name) {
       let val = null;
@@ -129,6 +170,7 @@
       const row = cell.closest('tr');
       const actionCell = row.querySelector('.action-cell');
       const field = cell.dataset.field;
+      const trackingId = cell.dataset.trackingId;
       const originalValue = cell.innerText.trim();
 
       cell.innerText = '';
@@ -148,9 +190,8 @@
 
       function confirmEdit() {
         const newValue = input.value.trim();
-        const orderId = row.dataset.id;
         Swal.fire({ title: 'Guardando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
-        fetch(UPDATE_URL_BASE + orderId + '/', {
+        fetch(TRACKING_URL_BASE + trackingId + '/', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
           body: JSON.stringify({ field, value: newValue }),
@@ -220,12 +261,11 @@
       // Toggle pill en transporte
       document.querySelectorAll('#order-tracking-table .transit-toggle').forEach(pill => {
         pill.addEventListener('click', function () {
-          const row = this.closest('tr');
-          const orderId = row.dataset.id;
+          const trackingId = this.dataset.trackingId;
           const currentValue = this.dataset.value === 'true';
           const newValue = !currentValue;
           Swal.fire({ title: 'Guardando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
-          fetch(UPDATE_URL_BASE + orderId + '/', {
+          fetch(TRACKING_URL_BASE + trackingId + '/', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             body: JSON.stringify({ field: 'in_transit', value: newValue }),

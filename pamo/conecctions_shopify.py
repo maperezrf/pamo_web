@@ -2,7 +2,7 @@ from pamo.constants import *
 import requests
 import pandas as pd
 import json
-from pamo_bots.models import OrdersShopify, ProductsOrders
+from pamo_bots.models import OrdersShopify, ProductsOrders, TrakingOrders
 import time
 import os
 from quote_print.models import SodimacOrders
@@ -217,15 +217,14 @@ class ConnectionsShopify:
                 gateways_name = ("Mercado Pago" if 'mercado' in gateways[0].lower() else 'Addi Payment' if 'astroselling' in gateways[0].lower() else gateways[0])
 
             fulfillments = node.get("fulfillments") or []
-            shipping_company = None
-            tracking_number = None
-            url_traking = None
-            if fulfillments:
-                tracking_info = fulfillments[0].get("trackingInfo") or []
-                if tracking_info:
-                    shipping_company = tracking_info[0].get("company")
-                    tracking_number = tracking_info[0].get("number")
-                    url_traking = tracking_info[0].get("url")
+            trackings = []
+            for f in fulfillments:
+                for t in (f.get("trackingInfo") or []):
+                    trackings.append({
+                        "shipping_company": t.get("company"),
+                        "tracking_number": t.get("number"),
+                        "url_traking": t.get("url"),
+                    })
 
             formatted.append({
                 "id": node.get("legacyResourceId"),
@@ -235,26 +234,28 @@ class ConnectionsShopify:
                 "customer_name": customer.get("displayName"),
                 "customer_id": address.get("company"),
                 "total_cost": round(total_order, 2),
-                "shipping_company": shipping_company,
-                "tracking_number": tracking_number,
-                "url_traking": url_traking,
+                "trackings": trackings,
                 "products": products,
             })
         return formatted
 
     def save_orders_to_db(self, formatted_data):
-        
         count = 0
         for order_data in formatted_data:
             products = order_data.pop("products")
+            trackings = order_data.pop("trackings")
             order, created = OrdersShopify.objects.update_or_create(
                 id=order_data["id"],
                 defaults=order_data,
             )
             if not created:
                 order.products.all().delete()
+                order.traking.all().delete()
             ProductsOrders.objects.bulk_create([
                 ProductsOrders(order=order, **p) for p in products
+            ])
+            TrakingOrders.objects.bulk_create([
+                TrakingOrders(order=order, **t) for t in trackings
             ])
             count += 1
         return count

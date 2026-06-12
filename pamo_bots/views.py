@@ -8,7 +8,7 @@ from django.conf import settings
 import datetime
 from pamo.functions import create_file_products
 from products.forms import fileForm
-from pamo_bots.models import LogBotOrders, ProductsSodimac, OrdersShopify
+from pamo_bots.models import LogBotOrders, ProductsSodimac, OrdersShopify, TrakingOrders
 from quote_print.models import SodimacOrders, SodimacKits
 import pandas as pd
 from pamo_bots.core_df import Core
@@ -705,7 +705,7 @@ def update_order_field(request, order_id):
 
 @login_required
 def order_tracking_view(request):
-    orders = OrdersShopify.objects.prefetch_related('products').order_by('-created_at')
+    orders = OrdersShopify.objects.prefetch_related('products', 'traking').order_by('-created_at')
     return render(request, "order_tracking.html", {"orders": orders})
 
 
@@ -745,6 +745,8 @@ class WebhookReceiverViewEnvia(APIView):
             tracking_number = data.get('trackingNumber')
             order = OrdersShopify.objects.get(tracking_number=tracking_number)
             order.tracking_status = data.get('status')
+            if status in ['Delivered', 'Shipped']:
+              order.in_transit = True
             order.save()
             print(f'[webhook envia] orden {tracking_number} actualizada')
         except Exception as e:
@@ -799,14 +801,22 @@ class WebhookReceiverViewShopify(APIView):
     def _on_fulfillment_create(self, data):
         try:
             order_id = str(data.get('order_id'))
+            order = OrdersShopify.objects.get(id=order_id)
             tracking_numbers = data.get('tracking_numbers') or []
             tracking_urls = data.get('tracking_urls') or []
-            OrdersShopify.objects.filter(id=order_id).update(
-                tracking_number=tracking_numbers[0] if tracking_numbers else None,
-                shipping_company=data.get('tracking_company'),
-                url_traking=tracking_urls[0] if tracking_urls else None,
-            )
+            shipping_company = data.get('tracking_company')
+            for i, number in enumerate(tracking_numbers):
+                TrakingOrders.objects.update_or_create(
+                    order=order,
+                    tracking_number=number,
+                    defaults={
+                        'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,
+                        'shipping_company': shipping_company,
+                    },
+                )
             print(f'[webhook fulfillments/create] fulfillment orden {order_id} guardado')
+        except OrdersShopify.DoesNotExist:
+            print(f'[webhook fulfillments/create] orden {data.get("order_id")} no encontrada en DB, ignorando')
         except Exception as e:
             print(f'[webhook fulfillments/create error] {e}')
         
@@ -814,8 +824,6 @@ class TrakingShippments(APIView):
 
     def get(self, request):
         envia = EnviaConnection()
-        traking_numbers = OrdersShopify.objects.filter(tracking_number__isnull=False, in_transit = False).values_list('tracking_number', flat=True)
+        traking_numbers = TrakingOrders.objects.filter(tracking_number__isnull=False, in_transit = False, tracking_number__regex=r'^\d+$').exclude(order__customer_name='SODIMAC COLOMBIA S A').values_list('tracking_number', flat=True)
         response = envia.get_traking_status(traking_numbers)
         return Response(data=response, status=status.HTTP_200_OK)
-
-    
