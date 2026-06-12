@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import json
 from io import StringIO
-from pamo_bots.models import ProductsSodimac
+from pamo_bots.models import ProductsSodimac, TrakingOrders
 from quote_print.models import SodimacKits, SodimacOrders
 import time
 from dateutil import parser as dateutil_parser
@@ -165,6 +165,18 @@ class ConnectionsSodimac():
             }
             response = requests.post(URL_GET_INVENTARIO, headers = self.headers, json=data).json()
             return response
+
+    def update_tracking_status(self, df):
+        """df debe tener columnas: pedido, tracking_status"""
+        for _, row in df.iterrows():
+            pedido = str(row['ORDEN_COMPRA'])
+            status = row['ESTADO_OC']
+            in_transit = status in ['4-ESTADO FINAL', '3-EN TRANSPORTE']
+            order = SodimacOrders.objects.filter(id=pedido).first().oc_shopify
+            TrakingOrders.objects.filter(order__pedido=order).update(
+                tracking_status=status,
+                in_transit=in_transit,
+            )
 
     def reinyectar_oc(self, orders):
         try:

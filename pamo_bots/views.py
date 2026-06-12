@@ -246,6 +246,7 @@ def handle_invoices_and_billing():
     sodi.set_kits()
     sodi.normalice_kits()
     df = sodi.get_orders()
+    sodi.update_tracking_status(df.groupby('ORDEN_COMPRA').agg({'ESTADO_OC' : lambda x:x.unique()[0]}).reset_index())
     invoices = df.loc[df["ESTADO_OC"] == "4-ESTADO FINAL"]
     invoices_values = pd.DataFrame(
         SodimacOrders.objects.filter(
@@ -827,3 +828,4 @@ class TrakingShippments(APIView):
         traking_numbers = TrakingOrders.objects.filter(tracking_number__isnull=False, in_transit = False, tracking_number__regex=r'^\d+$').exclude(order__customer_name='SODIMAC COLOMBIA S A').values_list('tracking_number', flat=True)
         response = envia.get_traking_status(traking_numbers)
         return Response(data=response, status=status.HTTP_200_OK)
+    
