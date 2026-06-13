@@ -28,6 +28,7 @@ from rest_framework import status
 from decouple import config
 from pamo.connections_envia import EnviaConnection
 
+
 @login_required
 def sodimac_view(request):
     return render(request, "sodimac_view.html", context={})
@@ -38,24 +39,29 @@ def get_orders(request):
     sodimac_orders = SodimacOrders.objects.all().order_by("-id")
     return render(request, "get_orders.html", context={"logs": logs, "sodimac_orders": sodimac_orders})
 
+
 def report_invoices_view(request):
     today = datetime.date.today()
     first_day_current = today.replace(day=1)
-    first_day_previous = (first_day_current - datetime.timedelta(days=1)).replace(day=1)
+    first_day_previous = (first_day_current -
+                          datetime.timedelta(days=1)).replace(day=1)
     orders = SodimacOrders.objects.filter(
         fecha_transmision__gte=first_day_previous
     ).order_by('-id')
-    invoices_map = {inv.oc: inv for inv in InvoicesSiigo.objects.exclude(oc__isnull=True)}
+    invoices_map = {
+        inv.oc: inv for inv in InvoicesSiigo.objects.exclude(oc__isnull=True)}
     report = []
     for order in orders:
         invoice = invoices_map.get(str(order.id))
-        alerta_sin_factura = (order.last_status == '4-ESTADO FINAL' and not order.factura)
+        alerta_sin_factura = (order.last_status ==
+                              '4-ESTADO FINAL' and not order.factura)
         report.append({
             'order': order,
             'invoice': invoice,
             'alerta_sin_factura': alerta_sin_factura,
         })
     return render(request, "report_invoices.html", context={'report': report})
+
 
 @login_required
 def manager_database(request):
@@ -182,7 +188,8 @@ def process_orders_and_create_in_shopify(sodi):
     }
     not_found_skus = []
     data_log["len_orders"] = 0
-    orders_to_retry = [ i.id for i in  SodimacOrders.objects.filter(factura__isnull=True).filter(Q(oc_shopify__isnull=True) | ~Q(oc_shopify__regex=r'^\d+$')).exclude(status__icontains='4-ESTADO FINAL')]
+    orders_to_retry = [i.id for i in SodimacOrders.objects.filter(factura__isnull=True).filter(
+        Q(oc_shopify__isnull=True) | ~Q(oc_shopify__regex=r'^\d+$')).exclude(status__icontains='4-ESTADO FINAL')]
     sodi.reinyectar_oc(orders_to_retry)
     resultado_1 = sodi.get_orders_api(tipo_orden="1")
     resultado_4 = sodi.get_orders_api(tipo_orden="4")
@@ -237,7 +244,8 @@ def handle_invoices_and_billing():
     """Maneja la reinyección de OCs y creación de facturas."""
     today = datetime.date.today()
     first_day_current = datetime.date(2026, 4, 1)
-    orders = [ i.id for i in SodimacOrders.objects.filter(fecha_transmision__gte=first_day_current, status='1-PENDIENTE')]
+    orders = [i.id for i in SodimacOrders.objects.filter(
+        fecha_transmision__gte=first_day_current, status='1-PENDIENTE')]
     sodi = ConnectionsSodimac()
     sodi.reinyectar_oc(orders)
     sodi.get_orders_api(tipo_orden="1", only_pending=False)
@@ -246,7 +254,8 @@ def handle_invoices_and_billing():
     sodi.set_kits()
     sodi.normalice_kits()
     df = sodi.get_orders()
-    sodi.update_tracking_status(df.groupby('ORDEN_COMPRA').agg({'ESTADO_OC' : lambda x:x.unique()[0]}).reset_index())
+    sodi.update_tracking_status(df.groupby('ORDEN_COMPRA').agg(
+        {'ESTADO_OC': lambda x: x.unique()[0]}).reset_index())
     invoices = df.loc[df["ESTADO_OC"] == "4-ESTADO FINAL"]
     invoices_values = pd.DataFrame(
         SodimacOrders.objects.filter(
@@ -348,7 +357,7 @@ def send_notification_email(data_log, not_found_skus):
         <h2>Resumen de Ejecución del Bot Sodimac</h2>
         <p><strong>Fecha y Hora:</strong> {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <p><strong>Órdenes Encontradas:</strong> {data_log['len_orders']}</p>
-        <p><strong>Errores:</strong> {len(not_found_skus) + (len(data_log['error']) if data_log['error'] else 0) }</p>
+        <p><strong>Errores:</strong> {len(not_found_skus) + (len(data_log['error']) if data_log['error'] else 0)}</p>
         
         <h3>Órdenes Generadas Exitosamente</h3>
         {success_list}
@@ -467,7 +476,8 @@ def download_products_excel(request):
     output = io.BytesIO()
     df.to_excel(output, index=False, sheet_name='Productos Sodimac')
     output.seek(0)
-    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response = HttpResponse(
+        output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="productos_sodimac.xlsx"'
     return response
 
@@ -481,7 +491,8 @@ def download_kits_excel(request):
     output = io.BytesIO()
     df.to_excel(output, index=False, sheet_name='Kits Sodimac')
     output.seek(0)
-    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response = HttpResponse(
+        output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="kits_sodimac.xlsx"'
     return response
 
@@ -510,11 +521,14 @@ def upload_products_excel(request):
     errors = []
 
     for idx, row in df.iterrows():
-        sku_sodimac = str(row['sku_sodimac']).strip() if pd.notna(row['sku_sodimac']) else None
+        sku_sodimac = str(row['sku_sodimac']).strip(
+        ) if pd.notna(row['sku_sodimac']) else None
         if not sku_sodimac:
-            errors.append({'fila': idx + 2, 'error': 'sku_sodimac vacío, se omite la fila'})
+            errors.append(
+                {'fila': idx + 2, 'error': 'sku_sodimac vacío, se omite la fila'})
             continue
-        sku_pamo = str(row['sku_pamo']).strip() if pd.notna(row['sku_pamo']) else None
+        sku_pamo = str(row['sku_pamo']).strip(
+        ) if pd.notna(row['sku_pamo']) else None
         ean = str(row['ean']).strip() if pd.notna(row['ean']) else None
         try:
             _, created = ProductsSodimac.objects.update_or_create(
@@ -526,7 +540,8 @@ def upload_products_excel(request):
             else:
                 updated_count += 1
         except Exception as e:
-            errors.append({'fila': idx + 2, 'sku_sodimac': sku_sodimac, 'error': str(e)})
+            errors.append(
+                {'fila': idx + 2, 'sku_sodimac': sku_sodimac, 'error': str(e)})
 
     return JsonResponse({
         'success': True,
@@ -560,16 +575,19 @@ def upload_kits_excel(request):
     errors = []
 
     for idx, row in df.iterrows():
-        kitnumber = str(row['kitnumber']).strip() if pd.notna(row['kitnumber']) else None
+        kitnumber = str(row['kitnumber']).strip(
+        ) if pd.notna(row['kitnumber']) else None
         sku = str(row['sku']).strip() if pd.notna(row['sku']) else None
         if not kitnumber or not sku:
-            errors.append({'fila': idx + 2, 'error': 'kitnumber o sku vacíos, se omite la fila'})
+            errors.append(
+                {'fila': idx + 2, 'error': 'kitnumber o sku vacíos, se omite la fila'})
             continue
         ean = str(row['ean']).strip() if pd.notna(row['ean']) else None
         try:
             quantity = int(row['quantity']) if pd.notna(row['quantity']) else 0
         except (ValueError, TypeError):
-            errors.append({'fila': idx + 2, 'kitnumber': kitnumber, 'sku': sku, 'error': 'quantity no es un número'})
+            errors.append({'fila': idx + 2, 'kitnumber': kitnumber,
+                          'sku': sku, 'error': 'quantity no es un número'})
             continue
         try:
             from quote_print.models import SodimacKits
@@ -583,7 +601,8 @@ def upload_kits_excel(request):
             else:
                 updated_count += 1
         except Exception as e:
-            errors.append({'fila': idx + 2, 'kitnumber': kitnumber, 'sku': sku, 'error': str(e)})
+            errors.append(
+                {'fila': idx + 2, 'kitnumber': kitnumber, 'sku': sku, 'error': str(e)})
 
     return JsonResponse({
         'success': True,
@@ -600,14 +619,18 @@ def download_report_invoices(request):
 
     today = datetime.date.today()
     first_day_current = today.replace(day=1)
-    first_day_previous = (first_day_current - datetime.timedelta(days=1)).replace(day=1)
-    orders = SodimacOrders.objects.filter(fecha_transmision__gte=first_day_previous).order_by('-id')
-    invoices_map = {inv.oc: inv for inv in InvoicesSiigo.objects.exclude(oc__isnull=True)}
+    first_day_previous = (first_day_current -
+                          datetime.timedelta(days=1)).replace(day=1)
+    orders = SodimacOrders.objects.filter(
+        fecha_transmision__gte=first_day_previous).order_by('-id')
+    invoices_map = {
+        inv.oc: inv for inv in InvoicesSiigo.objects.exclude(oc__isnull=True)}
 
     rows = []
     for order in orders:
         invoice = invoices_map.get(str(order.id))
-        alerta_sin_factura = (order.last_status == '4-ESTADO FINAL' and not order.factura)
+        alerta_sin_factura = (order.last_status ==
+                              '4-ESTADO FINAL' and not order.factura)
 
         if invoice:
             novelty = invoice.novelty or '-'
@@ -637,7 +660,8 @@ def download_report_invoices(request):
     df.to_excel(output, index=False, sheet_name='Reporte Facturas')
     output.seek(0)
     filename = f"reporte_facturas_{today.strftime('%Y_%m')}.xlsx"
-    response = HttpResponse(output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response = HttpResponse(
+        output, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
@@ -677,7 +701,8 @@ def save_review(response):
     df = pd.DataFrame(response)
     df = df.merge(products, how="left", on=["ean"])
     df = df[["sku_sodimac", "sku_pamo", "ean", "message"]]
-    df.to_excel(os.path.join(settings.MEDIA_ROOT, "final_review.xlsx"), index=False)
+    df.to_excel(os.path.join(settings.MEDIA_ROOT,
+                "final_review.xlsx"), index=False)
 
 
 @login_required
@@ -706,12 +731,14 @@ def update_order_field(request, order_id):
 
 @login_required
 def order_tracking_view(request):
-    orders = OrdersShopify.objects.prefetch_related('products', 'traking').order_by('-created_at')
+    orders = OrdersShopify.objects.prefetch_related(
+        'products', 'traking').order_by('-created_at')
     return render(request, "order_tracking.html", {"orders": orders})
 
 
 def get_orders_Without_invoices():
-    ocs_con_factura = InvoicesSiigo.objects.exclude(oc__isnull=True).values_list('oc', flat=True)
+    ocs_con_factura = InvoicesSiigo.objects.exclude(
+        oc__isnull=True).values_list('oc', flat=True)
     return OrdersShopify.objects.exclude(pedido__in=ocs_con_factura)
 
 
@@ -722,8 +749,10 @@ def orders_without_invoices_view(request):
     )
     return JsonResponse({'success': True, 'total': len(orders), 'orders': list(orders)})
 
+
 class WebhookReceiverViewEnvia(APIView):
     permission_classes = [AllowAny]
+
     def get(self, request, *args, **kwargs):
         print('##################### webhook recibido Eniva metodo GET ##################################')
         data = request.data
@@ -738,20 +767,22 @@ class WebhookReceiverViewEnvia(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = dict(request.data)
         print(data)
-        threading.Thread(target=self._process, args=(data,), daemon=True).start()
+        threading.Thread(target=self._process,
+                         args=(data,), daemon=True).start()
         return Response(status=status.HTTP_200_OK)
 
     def _process(self, data):
         try:
             tracking_number = data.get('trackingNumber')
-            order = OrdersShopify.objects.get(tracking_number=tracking_number)
+            order = TrakingOrders.objects.get(tracking_number=tracking_number)
             order.tracking_status = data.get('status')
-            if status in ['Delivered', 'Shipped']:
-              order.in_transit = True
+            if order.tracking_status in ['Delivered', 'Shipped', 'Picked Up', 'Undeliverable', 'Delivery attempt', 'Information', 'Out for Delivery', 'Delivered at Origin']:
+                order.in_transit = True
             order.save()
             print(f'[webhook envia] orden {tracking_number} actualizada')
         except Exception as e:
             print(f'[webhook envia error] {e}')
+
 
 class WebhookReceiverViewShopify(APIView):
     permission_classes = [AllowAny]
@@ -774,7 +805,8 @@ class WebhookReceiverViewShopify(APIView):
 
         data = dict(request.data)
         print(data)
-        threading.Thread(target=getattr(self, handler_name), args=(data,), daemon=True).start()
+        threading.Thread(target=getattr(self, handler_name),
+                         args=(data,), daemon=True).start()
         return Response(status=status.HTTP_200_OK)
 
     def _on_order_create(self, data):
@@ -787,15 +819,18 @@ class WebhookReceiverViewShopify(APIView):
     def _on_order_updated(self, data):
         try:
             ConnectionsShopify().create_order_from_webhook(data)
-            print(f'[webhook orders/updated] orden {data.get("name")} actualizada')
+            print(
+                f'[webhook orders/updated] orden {data.get("name")} actualizada')
         except Exception as e:
             print(f'[webhook orders/updated error] {e}')
 
     def _on_order_cancelled(self, data):
         try:
             order_id = str(data.get('id'))
-            OrdersShopify.objects.filter(id=order_id).update(tracking_status='cancelled')
-            print(f'[webhook orders/cancelled] orden {data.get("name")} cancelada')
+            OrdersShopify.objects.filter(id=order_id).update(
+                tracking_status='cancelled')
+            print(
+                f'[webhook orders/cancelled] orden {data.get("name")} cancelada')
         except Exception as e:
             print(f'[webhook orders/cancelled error] {e}')
 
@@ -815,17 +850,20 @@ class WebhookReceiverViewShopify(APIView):
                         'shipping_company': shipping_company,
                     },
                 )
-            print(f'[webhook fulfillments/create] fulfillment orden {order_id} guardado')
+            print(
+                f'[webhook fulfillments/create] fulfillment orden {order_id} guardado')
         except OrdersShopify.DoesNotExist:
-            print(f'[webhook fulfillments/create] orden {data.get("order_id")} no encontrada en DB, ignorando')
+            print(
+                f'[webhook fulfillments/create] orden {data.get("order_id")} no encontrada en DB, ignorando')
         except Exception as e:
             print(f'[webhook fulfillments/create error] {e}')
-        
+
+
 class TrakingShippments(APIView):
 
     def get(self, request):
         envia = EnviaConnection()
-        traking_numbers = TrakingOrders.objects.filter(tracking_number__isnull=False, in_transit = False, tracking_number__regex=r'^\d+$').exclude(order__customer_name='SODIMAC COLOMBIA S A').values_list('tracking_number', flat=True)
+        traking_numbers = TrakingOrders.objects.filter(tracking_number__isnull=False, in_transit=False, tracking_number__regex=r'^\d+$').exclude(
+            order__customer_name='SODIMAC COLOMBIA S A').exclude(tracking_status='Canceled').values_list('tracking_number', flat=True)
         response = envia.get_traking_status(traking_numbers)
         return Response(data=response, status=status.HTTP_200_OK)
-    

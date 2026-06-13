@@ -54,7 +54,7 @@
           <tbody>
             {% for order in orders %}
               <tr data-id="{{ order.id }}">
-                <td class="text-center fw-bold">{{ order.pedido }}</td>
+                <td class="text-center fw-bold"><a href="https://admin.shopify.com/store/pamocolombia/orders/{{ order.id }}" target="_blank" >{{ order.pedido }}</a></td>
                 <td class="text-center" data-order="{{ order.created_at|date:'Y-m-d' }}">
                   {{ order.created_at|date:"d/m/Y" }}
                 </td>
