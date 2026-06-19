@@ -846,14 +846,14 @@ class WebhookReceiverViewShopify(APIView):
             tracking_urls = data.get('tracking_urls') or []
             print('obteniendo tracking_company (data)')
             shipping_company = data.get('tracking_company')
-            print('esto es lo que se va a actualizar')
-            print({'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,'shipping_company': shipping_company})
             print('recorriendo tracking_numbers')
             print('order')
             print(order)
             print('number')
             print(number)
             for i, number in enumerate(tracking_numbers):
+                print('esto es lo que se va a actualizar')
+                print({'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,'shipping_company': shipping_company})
                 TrakingOrders.objects.update_or_create(
                     order=order,
                     tracking_number=number,
