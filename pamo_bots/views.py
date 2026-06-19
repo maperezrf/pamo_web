@@ -801,11 +801,23 @@ class WebhookReceiverViewShopify(APIView):
 
     def _on_fulfillment_create(self, data):
         try:
+            print('obteniendo orden id (data)')
             order_id = str(data.get('order_id'))
+            print('obteniendo orden (db)')
             order = OrdersShopify.objects.get(id=order_id)
+            print('obteniendo tracking_numbers (data)')
             tracking_numbers = data.get('tracking_numbers') or []
+            print('obteniendo tracking_urls (data)')
             tracking_urls = data.get('tracking_urls') or []
+            print('obteniendo tracking_company (data)')
             shipping_company = data.get('tracking_company')
+            print('esto es lo que se va a actualizar')
+            print({'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,'shipping_company': shipping_company})
+            print('recorriendo tracking_numbers')
+            print('order')
+            print(order)
+            print('number')
+            print(number)
             for i, number in enumerate(tracking_numbers):
                 TrakingOrders.objects.update_or_create(
                     order=order,
