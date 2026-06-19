@@ -24,6 +24,7 @@ class OrdersShopify(models.Model):
     customer_name = models.CharField(max_length=200, null=True, blank=True)
     customer_id = models.CharField(max_length=50, null=True, blank=True)
     total_cost = models.DecimalField(max_digits=15, decimal_places=2)
+    order_is_cancelled = models.BooleanField(blank=False, null=False, default=False)
    
 class TrakingOrders(models.Model):
     order = models.ForeignKey(OrdersShopify, on_delete=models.CASCADE, related_name='traking')

@@ -716,7 +716,7 @@ def update_order_field(request, order_id):
         allowed = {'in_transit', 'comments'}
         if field not in allowed:
             return JsonResponse({'success': False, 'message': 'Campo no permitido'}, status=400)
-        order = OrdersShopify.objects.get(pk=order_id)
+        order = TrakingOrders.objects.get(tracking_number=order_id)
         if field == 'in_transit':
             order.in_transit = bool(value)
         else:
@@ -828,7 +828,7 @@ class WebhookReceiverViewShopify(APIView):
         try:
             order_id = str(data.get('id'))
             OrdersShopify.objects.filter(id=order_id).update(
-                tracking_status='cancelled')
+                order_is_cancelled=True)
             print(
                 f'[webhook orders/cancelled] orden {data.get("name")} cancelada')
         except Exception as e:
@@ -849,9 +849,9 @@ class WebhookReceiverViewShopify(APIView):
             print('recorriendo tracking_numbers')
             print('order')
             print(order)
-            print('number')
-            print(number)
             for i, number in enumerate(tracking_numbers):
+                print('number')
+                print(number)
                 print('esto es lo que se va a actualizar')
                 print({'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,'shipping_company': shipping_company})
                 TrakingOrders.objects.update_or_create(

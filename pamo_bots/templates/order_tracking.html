@@ -23,8 +23,42 @@
     .transit-on  { background-color: #198754; color: #fff; }
     .transit-off { background-color: #e0e0e0; color: #555; }
     .transit-toggle:hover { opacity: .85; }
+
+    /* Tabla card-style */
+    #order-tracking-table {
+      border-collapse: separate !important;
+      border-spacing: 0 5px !important;
+    }
+    #order-tracking-table thead th {
+      border: none;
+      padding-bottom: 12px;
+    }
+    #order-tracking-table tbody td {
+      background-color: #fff;
+      color: var(--bs-table-striped-color);
+      border-top: none;
+      border-bottom: none;
+      vertical-align: middle;
+    }
+    #order-tracking-table tbody tr {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    #order-tracking-table tbody td:first-child {
+      border-radius: 10px 0 0 10px;
+      border-left: 1px solid rgba(0,0,0,0.06);
+    }
+    #order-tracking-table tbody .action-cell {
+      border-radius: 0 10px 10px 0;
+      border-right: 1px solid rgba(0,0,0,0.06);
+    }
+
+    /* Semáforo */
+    .row-green  td { background-color: #82e0aa !important; }
+    .row-orange td { background-color: #f8c471 !important; }
+    .row-red    td { background-color: #ec7063 !important; color: #fff !important; }
+
     #order-tracking-table .editable { cursor: pointer; }
-    #order-tracking-table .editable:hover { background-color: #f0f4ff; }
+    #order-tracking-table .editable:hover { background-color: rgba(0,0,0,0.04); }
   </style>
 
   <div class="card mb-4">
@@ -34,7 +68,7 @@
     </div>
     <div class="card-body px-0 pb-0">
       <div class="table-responsive">
-        <table class="table table-striped table-sm" id="order-tracking-table">
+        <table class="table table-sm" id="order-tracking-table">
           <thead>
             <tr>
               <th class="text-center"># Pedido</th>
@@ -49,11 +83,15 @@
               <th class="text-center">En transporte</th>
               <th class="text-center">Comentarios</th>
               <th class="text-center">Acciones</th>
+              <th class="d-none">Prioridad</th>
             </tr>
           </thead>
           <tbody>
             {% for order in orders %}
-              <tr data-id="{{ order.id }}">
+              <tr data-id="{{ order.id }}"
+                  data-created="{{ order.created_at|date:'c' }}"
+                  data-cancelled="{% if order.order_is_cancelled %}true{% else %}false{% endif %}"
+                  data-any-transit="{% for t in order.traking.all %}{% if t.in_transit %}true{% else %}false{% endif %}{% endfor %}">
                 <td class="text-center fw-bold"><a href="https://admin.shopify.com/store/pamocolombia/orders/{{ order.id }}" target="_blank" >{{ order.pedido }}</a></td>
                 <td class="text-center" data-order="{{ order.created_at|date:'Y-m-d' }}">
                   {{ order.created_at|date:"d/m/Y" }}
@@ -118,7 +156,7 @@
                     <div class="{% if forloop.last and not forloop.first %}mb-2 my-4{% else %}mb-2 my-2{% endif %}">
                       <span class="transit-toggle {% if t.in_transit %}transit-on{% else %}transit-off{% endif %}"
                             style="cursor:pointer;display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;user-select:none;"
-                            data-tracking-id="{{ t.id }}"
+                            data-tracking-id="{{ t.tracking_number }}"
                             data-value="{% if t.in_transit %}true{% else %}false{% endif %}">
                         {% if t.in_transit %}En transporte{% else %}Sin despachar{% endif %}
                       </span>
@@ -135,10 +173,11 @@
                   {% endfor %}
                 </td>
                 <td class="text-center action-cell"></td>
+                <td class="d-none sort-priority-col">2</td>
               </tr>
             {% empty %}
               <tr>
-                <td colspan="12" class="text-center">No hay pedidos registrados.</td>
+                <td colspan="13" class="text-center">No hay pedidos registrados.</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -148,7 +187,7 @@
   </div>
 
   <script>
-    const TRACKING_URL_BASE = "/pamo_bots/update_tracking_field/";
+    const TRACKING_URL_BASE = "/pamo_bots/update_order_field/";
 
     function getCookie(name) {
       let val = null;
@@ -226,13 +265,51 @@
       });
     }
 
+    function calcPriority(row) {
+      if (row.dataset.cancelled === 'true') return 2;
+      const transitData = row.dataset.anyTransit || '';
+      // Verde si cualquier guía está en tránsito
+      if (transitData.includes('true')) return 3;
+      // Si hay alguna guía sin despachar → alerta por antigüedad
+      const created = new Date(row.dataset.created).getTime();
+      if (isNaN(created)) return 2;
+      const diffHours = (Date.now() - created) / 3600000;
+      if (diffHours >= 48) return 0;
+      if (diffHours >= 24) return 1;
+      return 2;
+    }
+
+    function applyRowColor(row) {
+      row.classList.remove('row-green', 'row-orange', 'row-red');
+      const p = calcPriority(row);
+      if (p === 0) row.classList.add('row-red');
+      else if (p === 1) row.classList.add('row-orange');
+      else if (p === 3) row.classList.add('row-green');
+    }
+
     window.addEventListener('load', function () {
+      // Calcular prioridades antes del init para que DataTable ordene correctamente
+      document.querySelectorAll('#order-tracking-table tbody tr[data-created]').forEach(row => {
+        row.querySelector('.sort-priority-col').textContent = calcPriority(row);
+      });
+
+      // Formatear columna Total como moneda colombiana (antes del init)
+      const currencyFmt = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      document.querySelectorAll('#order-tracking-table .total-col').forEach(td => {
+        const raw = parseFloat(td.dataset.order);
+        if (!isNaN(raw)) td.textContent = '$ ' + currencyFmt.format(raw);
+      });
+
       $('#order-tracking-table').DataTable({
         pageLength: 25,
-        order: [[1, 'desc']],
+        order: [[12, 'asc'], [1, 'asc']],
         columnDefs: [
           { orderable: false, targets: [9, 10, 11] },
+          { visible: false, searchable: false, targets: [12] },
         ],
+        rowCallback: function(row) {
+          applyRowColor(row);
+        },
         language: {
           sProcessing: 'Procesando...',
           sLengthMenu: 'Mostrar _MENU_ registros por página',
@@ -246,13 +323,6 @@
         },
       });
 
-      // Formatear columna Total como moneda colombiana
-      const currencyFmt = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-      document.querySelectorAll('#order-tracking-table .total-col').forEach(td => {
-        const raw = parseFloat(td.dataset.order);
-        if (!isNaN(raw)) td.textContent = '$ ' + currencyFmt.format(raw);
-      });
-
       // Doble click en comentarios
       document.querySelectorAll('#order-tracking-table .editable').forEach(cell => {
         cell.addEventListener('dblclick', function () { handleDblClick(this); });
@@ -261,6 +331,7 @@
       // Toggle pill en transporte
       document.querySelectorAll('#order-tracking-table .transit-toggle').forEach(pill => {
         pill.addEventListener('click', function () {
+          console.log(this.dataset)
           const trackingId = this.dataset.trackingId;
           const currentValue = this.dataset.value === 'true';
           const newValue = !currentValue;
