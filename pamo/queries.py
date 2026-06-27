@@ -291,6 +291,8 @@ GET_ORDERS = """
         id
         legacyResourceId
         createdAt
+        cancelledAt
+    		cancelReason
         paymentGatewayNames
         name
         transactions(first: 10) {{

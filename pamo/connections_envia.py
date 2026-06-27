@@ -1,8 +1,9 @@
 import requests
 import json
-from pamo.constants import URL_ENVIA_TRAKING
 import math
 import time
+import threading
+from pamo.constants import URL_ENVIA_TRAKING
 from pamo_bots.models import OrdersShopify, TrakingOrders
 
 
@@ -13,33 +14,47 @@ class EnviaConnection():
             'content-type': 'application/json'
         }
 
+
+    def _fetch_tracking_batch(self, batch, max_retries=5, backoff=5):
+        payload = json.dumps({"trackingNumbers": batch})
+        for attempt in range(1, max_retries + 1):
+            try:
+                time.sleep(10)
+                response = requests.request(
+                    "POST", URL_ENVIA_TRAKING, headers=self.headers, data=payload, timeout=15)
+                response.raise_for_status()
+                return response.json()['data']
+            except Exception as e:
+                print(f'Intento {attempt}/{max_retries} fallido para batch {batch}: {e}')
+                if attempt < max_retries:
+                    time.sleep(backoff ** attempt)
+        return None
+
+    def _run_traking_process(self, traking_numbers):
+        TRANSIT_STATUSES = {
+            'Delivered', 'Shipped', 'Picked Up', 'Undeliverable',
+            'Delivery attempt', 'Information', 'Out for Delivery', 'Delivered at Origin'
+        }
+        total_numbers = len(traking_numbers)
+        for i in range(math.ceil(total_numbers / 5)):
+            batch = traking_numbers[i*5:(i+1)*5]
+            data = self._fetch_tracking_batch(batch)
+            if data is None:
+                print(f'Se omite el batch {batch} después de varios reintentos.')
+                continue
+            dic_data = {item['trackingNumber']: item['status'] for item in data}
+            objs = TrakingOrders.objects.filter(tracking_number__in=dic_data.keys())
+            for obj in objs:
+                status = dic_data[obj.tracking_number]
+                obj.tracking_status = status
+                print(status)
+                if status in TRANSIT_STATUSES:
+                    obj.in_transit = True
+                obj.save()
+        print('[TrakingShippments] proceso completado.')
+
     def get_traking_status(self, traking_numbers):
         traking_numbers = list(traking_numbers)
-        total_numbers = len(traking_numbers)
-        count = 0
-        total_traking = []
-        for i in range(math.ceil(total_numbers / 10)):
-            time.sleep(120)
-            print(traking_numbers[count:count+10])
-            payload = json.dumps({
-                "trackingNumbers": traking_numbers[count:count+10]})
-            count += 10
-            print(traking_numbers[count:count+10])
-            response = requests.request(
-                "POST", URL_ENVIA_TRAKING, headers=self.headers, data=payload)
-            try:
-                data = response.json()['data']
-                print(data)
-                dic_data = {i['trackingNumber']: i['status'] for i in data}
-                objs = TrakingOrders.objects.filter(
-                    tracking_number__in=dic_data.keys())
-                for obj in objs:
-                    status = dic_data[obj.tracking_number]
-                    obj.tracking_status = dic_data[obj.tracking_number]
-                    print(status)
-                    if status in ['Delivered', 'Shipped', 'Picked Up', 'Undeliverable', 'Delivery attempt', 'Information', 'Out for Delivery', 'Delivered at Origin']:
-                        obj.in_transit = True
-                    obj.save()
-            except Exception as e:
-                print(f'error al tratar de traer las ordenes {e}')
-        print(total_traking)
+        hilo = threading.Thread(target=self._run_traking_process, args=(traking_numbers,), daemon=True)
+        hilo.start()
+        return hilo

@@ -256,6 +256,8 @@ def handle_invoices_and_billing():
     df = sodi.get_orders()
     sodi.update_tracking_status(df.groupby('ORDEN_COMPRA').agg(
         {'ESTADO_OC': lambda x: x.unique()[0]}).reset_index())
+    import time
+    time.sleep(500)
     invoices = df.loc[df["ESTADO_OC"] == "4-ESTADO FINAL"]
     invoices_values = pd.DataFrame(
         SodimacOrders.objects.filter(
@@ -796,21 +798,21 @@ class WebhookReceiverViewShopify(APIView):
 
     def post(self, request, *args, **kwargs):
         if request.headers.get('X-Shopify-Shop-Domain') != config('STORE_SHOPYFI'):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         topic = request.headers.get('X-Shopify-Topic')
         handler_name = self._HANDLERS.get(topic)
         if not handler_name:
             return Response(status=status.HTTP_200_OK)
-
         data = dict(request.data)
-        print(data)
         threading.Thread(target=getattr(self, handler_name),
                          args=(data,), daemon=True).start()
         return Response(status=status.HTTP_200_OK)
 
     def _on_order_create(self, data):
         try:
+            print('******* CREANDO ORDEN *******')
+            print(data)
             ConnectionsShopify().create_order_from_webhook(data)
             print(f'[webhook orders/create] orden {data.get("name")} guardada')
         except Exception as e:
@@ -818,6 +820,8 @@ class WebhookReceiverViewShopify(APIView):
 
     def _on_order_updated(self, data):
         try:
+            print('******* ACTUALIZANDO ORDEN *******')
+            print(data)
             ConnectionsShopify().create_order_from_webhook(data)
             print(
                 f'[webhook orders/updated] orden {data.get("name")} actualizada')
@@ -826,6 +830,8 @@ class WebhookReceiverViewShopify(APIView):
 
     def _on_order_cancelled(self, data):
         try:
+            print('******* CANCELANDO ORDEN *******')
+            print(data)
             order_id = str(data.get('id'))
             OrdersShopify.objects.filter(id=order_id).update(
                 order_is_cancelled=True)
@@ -836,6 +842,8 @@ class WebhookReceiverViewShopify(APIView):
 
     def _on_fulfillment_create(self, data):
         try:
+            print('******* CREANDO FULFILLMENT *******')
+            print(data)
             print('obteniendo orden id (data)')
             order_id = str(data.get('order_id'))
             print('obteniendo orden (db)')
@@ -875,7 +883,14 @@ class TrakingShippments(APIView):
 
     def get(self, request):
         envia = EnviaConnection()
-        traking_numbers = TrakingOrders.objects.filter(tracking_number__isnull=False, in_transit=False, tracking_number__regex=r'^\d+$').exclude(
-            order__customer_name='SODIMAC COLOMBIA S A').exclude(tracking_status='Canceled').values_list('tracking_number', flat=True)
-        response = envia.get_traking_status(traking_numbers)
-        return Response(data=response, status=status.HTTP_200_OK)
+        traking_numbers = TrakingOrders.objects.filter(
+            tracking_number__isnull=False,
+            in_transit=False,
+            tracking_number__regex=r'^\d+$'
+        ).exclude(
+            order__customer_name='SODIMAC COLOMBIA S A'
+        ).exclude(
+            tracking_status='Canceled'
+        ).values_list('tracking_number', flat=True)
+        envia.get_traking_status(traking_numbers)
+        return Response(data={'mensaje': 'Proceso de tracking iniciado.'}, status=status.HTTP_202_ACCEPTED)

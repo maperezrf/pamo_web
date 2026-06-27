@@ -192,7 +192,7 @@ class ConnectionsShopify:
             customer = node.get("customer") or {}
             address = customer.get("defaultAddress") or {}
             line_items = node.get("lineItems", {}).get("nodes", [])
-
+            order_is_cancelled = True if node.get('cancelledAt') else False
             products = []
             total_order = 0.0
             for item in line_items:
@@ -236,12 +236,15 @@ class ConnectionsShopify:
                 "total_cost": round(total_order, 2),
                 "trackings": trackings,
                 "products": products,
+                "order_is_cancelled": order_is_cancelled
             })
         return formatted
 
     def save_orders_to_db(self, formatted_data):
         count = 0
         for order_data in formatted_data:
+            if order_data.get('order_is_cancelled'):
+                print(order_data)
             products = order_data.pop("products")
             trackings = order_data.pop("trackings")
             order, created = OrdersShopify.objects.update_or_create(
@@ -286,7 +289,7 @@ class ConnectionsShopify:
             'Addi Payment'  if 'astroselling'  in gw else
             (gateways[0] if gateways else None)
         )
-        customer_name = data.get('billing_address', {}).get('name')
+        customer_name = data.get('billing_address') or {}.get('name')
         customer_id   = str(data.get('customer', {}).get('id') or '')
         line_items = data.get('line_items', [])
         total_cost = sum(
