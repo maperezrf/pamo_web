@@ -289,7 +289,7 @@ class ConnectionsShopify:
             'Addi Payment'  if 'astroselling'  in gw else
             (gateways[0] if gateways else None)
         )
-        customer_name = data.get('billing_address') or {}.get('name')
+        customer_name = (data.get('billing_address') or {}).get('name')
         customer_id   = str(data.get('customer', {}).get('id') or '')
         line_items = data.get('line_items', [])
         total_cost = sum(
