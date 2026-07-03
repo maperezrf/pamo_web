@@ -801,6 +801,7 @@ class WebhookReceiverViewShopify(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         topic = request.headers.get('X-Shopify-Topic')
+        print(f'TOPIC {topic}')
         handler_name = self._HANDLERS.get(topic)
         if not handler_name:
             return Response(status=status.HTTP_200_OK)
