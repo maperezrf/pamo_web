@@ -790,10 +790,11 @@ class WebhookReceiverViewShopify(APIView):
     permission_classes = [AllowAny]
 
     _HANDLERS = {
-        'orders/create':       '_on_order_create',
-        'orders/updated':      '_on_order_updated',
-        'orders/cancelled':    '_on_order_cancelled',
-        'fulfillments/create': '_on_fulfillment_create',
+        'orders/create':               '_on_order_create',
+        'orders/updated':              '_on_order_updated',
+        'orders/cancelled':            '_on_order_cancelled',
+        'fulfillments/create':         '_on_fulfillment_create',
+        'fulfillment_orders/cancelled':'_on_fulfillment_order_cancelled',
     }
 
     def post(self, request, *args, **kwargs):
@@ -844,25 +845,12 @@ class WebhookReceiverViewShopify(APIView):
     def _on_fulfillment_create(self, data):
         try:
             print('******* CREANDO FULFILLMENT *******')
-            print(data)
-            print('obteniendo orden id (data)')
             order_id = str(data.get('order_id'))
-            print('obteniendo orden (db)')
             order = OrdersShopify.objects.get(id=order_id)
-            print('obteniendo tracking_numbers (data)')
             tracking_numbers = data.get('tracking_numbers') or []
-            print('obteniendo tracking_urls (data)')
             tracking_urls = data.get('tracking_urls') or []
-            print('obteniendo tracking_company (data)')
             shipping_company = data.get('tracking_company')
-            print('recorriendo tracking_numbers')
-            print('order')
-            print(order)
             for i, number in enumerate(tracking_numbers):
-                print('number')
-                print(number)
-                print('esto es lo que se va a actualizar')
-                print({'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,'shipping_company': shipping_company})
                 TrakingOrders.objects.update_or_create(
                     order=order,
                     tracking_number=number,
@@ -878,6 +866,18 @@ class WebhookReceiverViewShopify(APIView):
                 f'[webhook fulfillments/create] orden {data.get("order_id")} no encontrada en DB, ignorando')
         except Exception as e:
             print(f'[webhook fulfillments/create error] {e}')
+
+    def _on_fulfillment_order_cancelled(self, data):
+        try:
+            print('******* CANCELANDO FULFILLMENT ORDER *******')
+            order_id = str(data.get('order_id'))
+            order = OrdersShopify.objects.get(id=order_id)
+            deleted_count, _ = TrakingOrders.objects.filter(order=order).delete()
+            print(f'[webhook fulfillment_orders/cancelled] {deleted_count} tracking(s) eliminados para orden {order_id}')
+        except OrdersShopify.DoesNotExist:
+            print(f'[webhook fulfillment_orders/cancelled] orden {data.get("order_id")} no encontrada en DB, ignorando')
+        except Exception as e:
+            print(f'[webhook fulfillment_orders/cancelled error] {e}')
 
 
 class TrakingShippments(APIView):
