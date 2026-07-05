@@ -15,13 +15,13 @@ class EnviaConnection():
         }
 
 
-    def _fetch_tracking_batch(self, batch, max_retries=5, backoff=5):
+    def _fetch_tracking_batch(self, batch, max_retries=5, backoff=3):
         payload = json.dumps({"trackingNumbers": batch})
         for attempt in range(1, max_retries + 1):
             try:
                 time.sleep(10)
                 response = requests.request(
-                    "POST", URL_ENVIA_TRAKING, headers=self.headers, data=payload, timeout=15)
+                    "POST", URL_ENVIA_TRAKING, headers=self.headers, data=payload)
                 response.raise_for_status()
                 return response.json()['data']
             except Exception as e:
@@ -36,7 +36,7 @@ class EnviaConnection():
             'Delivery attempt', 'Information', 'Out for Delivery', 'Delivered at Origin'
         }
         total_numbers = len(traking_numbers)
-        for i in range(math.ceil(total_numbers / 5)):
+        for i in range(math.ceil(total_numbers / 1)):
             batch = traking_numbers[i*5:(i+1)*5]
             data = self._fetch_tracking_batch(batch)
             if data is None:

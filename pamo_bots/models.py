@@ -28,11 +28,11 @@ class OrdersShopify(models.Model):
    
 class TrakingOrders(models.Model):
     order = models.ForeignKey(OrdersShopify, on_delete=models.CASCADE, related_name='traking')
-    tracking_number = models.CharField(max_length=50, null=True, blank=True)
+    tracking_number = models.CharField(max_length=60, null=True, blank=True)
     url_traking = models.CharField(max_length=150, null=True, blank=True)
     tracking_status = models.CharField(max_length=20, null=True, blank=True)
     in_transit = models.BooleanField(default=False)
-    shipping_company = models.CharField(max_length=50, null=True, blank=True)
+    shipping_company = models.CharField(max_length=60, null=True, blank=True)
     comments = models.CharField(max_length=100, null=True, blank=True)
 
 class ProductsOrders(models.Model):

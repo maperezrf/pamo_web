@@ -247,6 +247,8 @@ class ConnectionsShopify:
                 print(order_data)
             products = order_data.pop("products")
             trackings = order_data.pop("trackings")
+            for i in trackings:
+               i['tracking_number']= i['tracking_number'][0:50]
             order, created = OrdersShopify.objects.update_or_create(
                 id=order_data["id"],
                 defaults=order_data,
@@ -307,7 +309,7 @@ class ConnectionsShopify:
                 'total_cost':      total_cost,
             }
         )
-        ProductsOrders.objects.filter(order = order).delete()
+        ProductsOrders.objects.filter(order=order).delete()
         ProductsOrders.objects.bulk_create([
             ProductsOrders(
                 order=order,
@@ -319,3 +321,19 @@ class ConnectionsShopify:
             )
             for item in line_items
         ])
+        fulfillments = data.get('fulfillments') or []
+        if fulfillments:
+            TrakingOrders.objects.filter(order=order).delete()
+            new_trackings = []
+            for f in fulfillments:
+                tracking_numbers = f.get('tracking_numbers') or []
+                tracking_urls    = f.get('tracking_urls') or []
+                shipping_company = f.get('tracking_company')
+                for i, number in enumerate(tracking_numbers):
+                    new_trackings.append(TrakingOrders(
+                        order=order,
+                        tracking_number=number,
+                        url_traking=tracking_urls[i] if i < len(tracking_urls) else None,
+                        shipping_company=shipping_company,
+                    ))
+            TrakingOrders.objects.bulk_create(new_trackings)
