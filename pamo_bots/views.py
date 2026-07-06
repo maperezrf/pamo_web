@@ -844,6 +844,7 @@ class WebhookReceiverViewShopify(APIView):
 
     def _on_fulfillment_create(self, data):
         try:
+            print(data)
             print('******* CREANDO FULFILLMENT *******')
             order_id = str(data.get('order_id'))
             order = OrdersShopify.objects.get(id=order_id)
