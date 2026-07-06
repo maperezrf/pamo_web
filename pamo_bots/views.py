@@ -795,6 +795,7 @@ class WebhookReceiverViewShopify(APIView):
         'orders/cancelled':            '_on_order_cancelled',
         'fulfillments/create':         '_on_fulfillment_create',
         'fulfillment_orders/cancelled':'_on_fulfillment_order_cancelled',
+        'fulfillments/update':         '_on_fulfillment_order_update'
     }
 
     def post(self, request, *args, **kwargs):
@@ -869,6 +870,10 @@ class WebhookReceiverViewShopify(APIView):
                 f'[webhook fulfillments/create] orden {data.get("order_id")} no encontrada en DB, ignorando')
         except Exception as e:
             print(f'[webhook fulfillments/create error] {e}')
+    
+    def _on_fulfillment_order_update(self, data):
+        print('******* ACTUALIZADNO FULFILLMENT ORDER *******')
+        print(data)
 
     def _on_fulfillment_order_cancelled(self, data):
         try:
