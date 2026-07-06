@@ -871,6 +871,7 @@ class WebhookReceiverViewShopify(APIView):
     def _on_fulfillment_order_cancelled(self, data):
         try:
             print('******* CANCELANDO FULFILLMENT ORDER *******')
+            print(data)
             order_id = str(data.get('order_id'))
             order = OrdersShopify.objects.get(id=order_id)
             deleted_count, _ = TrakingOrders.objects.filter(order=order).delete()
