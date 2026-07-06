@@ -800,7 +800,8 @@ class WebhookReceiverViewShopify(APIView):
     def post(self, request, *args, **kwargs):
         if request.headers.get('X-Shopify-Shop-Domain') != config('STORE_SHOPYFI'):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-
+        
+        print(request.headers)
         topic = request.headers.get('X-Shopify-Topic')
         print(f'TOPIC {topic}')
         handler_name = self._HANDLERS.get(topic)
