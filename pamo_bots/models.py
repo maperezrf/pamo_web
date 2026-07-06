@@ -27,6 +27,7 @@ class OrdersShopify(models.Model):
     order_is_cancelled = models.BooleanField(blank=False, null=False, default=False)
    
 class TrakingOrders(models.Model):
+    id = models.CharField(max_length=50, null=False, blank=False, primary_key=True)
     order = models.ForeignKey(OrdersShopify, on_delete=models.CASCADE, related_name='traking')
     tracking_number = models.CharField(max_length=60, null=True, blank=True)
     url_traking = models.CharField(max_length=150, null=True, blank=True)

@@ -801,7 +801,6 @@ class WebhookReceiverViewShopify(APIView):
         if request.headers.get('X-Shopify-Shop-Domain') != config('STORE_SHOPYFI'):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
-        print(request.headers)
         topic = request.headers.get('X-Shopify-Topic')
         print(f'TOPIC {topic}')
         handler_name = self._HANDLERS.get(topic)
@@ -847,6 +846,7 @@ class WebhookReceiverViewShopify(APIView):
         try:
             print(data)
             print('******* CREANDO FULFILLMENT *******')
+            id = str(data.get('id'))
             order_id = str(data.get('order_id'))
             order = OrdersShopify.objects.get(id=order_id)
             tracking_numbers = data.get('tracking_numbers') or []
@@ -854,6 +854,7 @@ class WebhookReceiverViewShopify(APIView):
             shipping_company = data.get('tracking_company')
             for i, number in enumerate(tracking_numbers):
                 TrakingOrders.objects.update_or_create(
+                    id = id,
                     order=order,
                     tracking_number=number,
                     defaults={
