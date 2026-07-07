@@ -795,7 +795,7 @@ class WebhookReceiverViewShopify(APIView):
         'orders/cancelled':            '_on_order_cancelled',
         'fulfillments/create':         '_on_fulfillment_create',
         'fulfillment_orders/cancelled':'_on_fulfillment_order_cancelled',
-        'fulfillments/update':         '_on_fulfillment_order_update'
+        'fulfillments/update':         '_on_fulfillment_create'
     }
 
     def post(self, request, *args, **kwargs):
@@ -853,15 +853,14 @@ class WebhookReceiverViewShopify(APIView):
             tracking_numbers = data.get('tracking_numbers') or []
             tracking_urls = data.get('tracking_urls') or []
             shipping_company = data.get('tracking_company')
+            TrakingOrders.objects.filter(id = id).delete()
             for i, number in enumerate(tracking_numbers):
-                TrakingOrders.objects.update_or_create(
+                TrakingOrders.objects.create(
                     id = id,
                     order=order,
                     tracking_number=number,
-                    defaults={
-                        'url_traking': tracking_urls[i] if i < len(tracking_urls) else None,
-                        'shipping_company': shipping_company,
-                    },
+                    url_traking = tracking_urls[i] if i < len(tracking_urls) else None,
+                    shipping_company = shipping_company
                 )
             print(
                 f'[webhook fulfillments/create] fulfillment orden {order_id} guardado')
@@ -870,10 +869,6 @@ class WebhookReceiverViewShopify(APIView):
                 f'[webhook fulfillments/create] orden {data.get("order_id")} no encontrada en DB, ignorando')
         except Exception as e:
             print(f'[webhook fulfillments/create error] {e}')
-    
-    def _on_fulfillment_order_update(self, data):
-        print('******* ACTUALIZADNO FULFILLMENT ORDER *******')
-        print(data)
 
     def _on_fulfillment_order_cancelled(self, data):
         try:
