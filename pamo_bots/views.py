@@ -854,6 +854,7 @@ class WebhookReceiverViewShopify(APIView):
             tracking_urls = data.get('tracking_urls') or []
             shipping_company = data.get('tracking_company')
             TrakingOrders.objects.filter(id_fulfilments = id).delete()
+            print(data.get('tracking_company'))
             if data.get('tracking_company') == 'cancelled':
                 print(f'[webhook fulfillments/cancelled] fulfillment orden {order_id} Eliminado')
                 return ''
