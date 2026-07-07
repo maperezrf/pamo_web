@@ -874,9 +874,8 @@ class WebhookReceiverViewShopify(APIView):
         try:
             print('******* CANCELANDO FULFILLMENT ORDER *******')
             print(data)
-            order_id = str(data.get('order_id'))
-            order = OrdersShopify.objects.get(id=order_id)
-            deleted_count, _ = TrakingOrders.objects.filter(order=order).delete()
+            id = str(data.get('id'))
+            deleted_count, _ = TrakingOrders.objects.filter(order=id).delete()
             print(f'[webhook fulfillment_orders/cancelled] {deleted_count} tracking(s) eliminados para orden {order_id}')
         except OrdersShopify.DoesNotExist:
             print(f'[webhook fulfillment_orders/cancelled] orden {data.get("order_id")} no encontrada en DB, ignorando')
