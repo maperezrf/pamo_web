@@ -849,15 +849,15 @@ class WebhookReceiverViewShopify(APIView):
             print('******* CREANDO FULFILLMENT *******')
             id = str(data.get('id'))
             order_id = str(data.get('order_id'))
-            order = OrdersShopify.objects.get(id=order_id)
+            order_obj = OrdersShopify.objects.get(id=order_id)
             tracking_numbers = data.get('tracking_numbers') or []
             tracking_urls = data.get('tracking_urls') or []
             shipping_company = data.get('tracking_company')
             TrakingOrders.objects.filter(id = id).delete()
             for i, number in enumerate(tracking_numbers):
                 TrakingOrders.objects.create(
-                    id = id,
-                    order=order,
+                    id_fulfilments = id,
+                    order=order_obj,
                     tracking_number=number,
                     url_traking = tracking_urls[i] if i < len(tracking_urls) else None,
                     shipping_company = shipping_company
