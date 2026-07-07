@@ -219,6 +219,8 @@ class ConnectionsShopify:
             fulfillments = node.get("fulfillments") or []
             trackings = []
             for f in fulfillments:
+                if f.get('status') == 'CANCELLED':
+                    continue
                 for t in (f.get("trackingInfo") or []):
                     trackings.append({
                         "shipping_company": t.get("company"),
