@@ -323,38 +323,38 @@
         },
       });
 
-      // Doble click en comentarios
-      document.querySelectorAll('#order-tracking-table .editable').forEach(cell => {
-        cell.addEventListener('dblclick', function () { handleDblClick(this); });
+      // Doble click en comentarios (delegado: DataTables solo mantiene en el DOM
+      // las filas de la página visible, por lo que el binding directo no
+      // alcanza a las filas de otras páginas)
+      $('#order-tracking-table tbody').on('dblclick', '.editable', function () {
+        handleDblClick(this);
       });
 
-      // Toggle pill en transporte
-      document.querySelectorAll('#order-tracking-table .transit-toggle').forEach(pill => {
-        pill.addEventListener('click', function () {
-          console.log(this.dataset)
-          const trackingId = this.dataset.trackingId;
-          const currentValue = this.dataset.value === 'true';
-          const newValue = !currentValue;
-          Swal.fire({ title: 'Guardando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
-          fetch(TRACKING_URL_BASE + trackingId + '/', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ field: 'in_transit', value: newValue }),
-          })
-          .then(r => r.json())
-          .then(data => {
-            if (data.success) {
-              this.dataset.value = newValue ? 'true' : 'false';
-              this.textContent = newValue ? 'En transporte' : 'Sin despachar';
-              this.classList.toggle('transit-on', newValue);
-              this.classList.toggle('transit-off', !newValue);
-              Swal.fire({ icon: 'success', title: 'Guardado', timer: 1200, showConfirmButton: false });
-            } else {
-              Swal.fire({ icon: 'error', title: 'Error', text: data.message, timer: 2000, showConfirmButton: false });
-            }
-          })
-          .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión', timer: 2000, showConfirmButton: false }));
-        });
+      // Toggle pill en transporte (delegado, ver comentario anterior)
+      $('#order-tracking-table tbody').on('click', '.transit-toggle', function () {
+        const pill = this;
+        const trackingId = pill.dataset.trackingId;
+        const currentValue = pill.dataset.value === 'true';
+        const newValue = !currentValue;
+        Swal.fire({ title: 'Guardando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+        fetch(TRACKING_URL_BASE + trackingId + '/', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify({ field: 'in_transit', value: newValue }),
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            pill.dataset.value = newValue ? 'true' : 'false';
+            pill.textContent = newValue ? 'En transporte' : 'Sin despachar';
+            pill.classList.toggle('transit-on', newValue);
+            pill.classList.toggle('transit-off', !newValue);
+            Swal.fire({ icon: 'success', title: 'Guardado', timer: 1200, showConfirmButton: false });
+          } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message, timer: 2000, showConfirmButton: false });
+          }
+        })
+        .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión', timer: 2000, showConfirmButton: false }));
       });
     });
 
