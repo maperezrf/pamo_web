@@ -36,7 +36,7 @@ class EnviaConnection():
             'Delivery attempt', 'Information', 'Out for Delivery', 'Delivered at Origin'
         }
         total_numbers = len(traking_numbers)
-        for i in range(math.ceil(total_numbers / 1)):
+        for i in range(math.ceil(total_numbers / 5)):
             batch = traking_numbers[i*5:(i+1)*5]
             data = self._fetch_tracking_batch(batch)
             if data is None:

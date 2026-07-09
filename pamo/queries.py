@@ -322,6 +322,7 @@ GET_ORDERS = """
           }}
         }}
         fulfillments(first: 10) {{
+          id
           status
           trackingInfo(first: 10) {{
             company

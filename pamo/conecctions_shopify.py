@@ -226,6 +226,7 @@ class ConnectionsShopify:
                         "shipping_company": t.get("company"),
                         "tracking_number": t.get("number"),
                         "url_traking": t.get("url"),
+                        "id_fulfilments":fulfillments[0].get('id').replace('gid://shopify/Fulfillment/', '')
                     })
 
             formatted.append({
