@@ -59,6 +59,28 @@
 
     #order-tracking-table .editable { cursor: pointer; }
     #order-tracking-table .editable:hover { background-color: rgba(0,0,0,0.04); }
+
+    /* Cuadritos de alertas */
+    .alert-box {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      min-width: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: default;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: opacity .15s;
+    }
+    .alert-box:hover { opacity: .9; }
+    .alert-box-count { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .alert-box-label { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; text-align: center; }
+    .alert-box-red    { background-color: #ec7063; color: #fff; }
+    .alert-box-yellow { background-color: #f8c471; color: #5a3d00; }
+    .alert-box-green  { background-color: #82e0aa; color: #0b4a24; }
+    .alert-box-active { outline: 3px solid #212529; outline-offset: 2px; }
   </style>
 
   <div class="card mb-4">
@@ -67,6 +89,20 @@
       <button class="btn btn-primary btn-sm" id="btn-sync-orders">Sincronizar pedidos</button>
     </div>
     <div class="card-body px-0 pb-0">
+      <div class="d-flex gap-3 flex-wrap px-3 pb-3" id="alert-boxes">
+        <button type="button" class="alert-box alert-box-red" id="alert-box-roja">
+          <span class="alert-box-count">-</span>
+          <span class="alert-box-label">Alerta roja</span>
+        </button>
+        <button type="button" class="alert-box alert-box-yellow" id="alert-box-amarilla">
+          <span class="alert-box-count">-</span>
+          <span class="alert-box-label">Alerta amarilla</span>
+        </button>
+        <button type="button" class="alert-box alert-box-green" id="alert-box-verde">
+          <span class="alert-box-count">-</span>
+          <span class="alert-box-label">En transporte</span>
+        </button>
+      </div>
       <div class="table-responsive">
         <table class="table table-sm" id="order-tracking-table">
           <thead>
@@ -87,99 +123,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for order in orders %}
-              <tr data-id="{{ order.id }}"
-                  data-created="{{ order.created_at|date:'c' }}"
-                  data-cancelled="{% if order.order_is_cancelled %}true{% else %}false{% endif %}"
-                  data-any-transit="{% for t in order.traking.all %}{% if t.in_transit %}true{% else %}false{% endif %}{% endfor %}">
-                <td class="text-center fw-bold"><a href="https://admin.shopify.com/store/pamocolombia/orders/{{ order.id }}" target="_blank" >{{ order.pedido }}</a></td>
-                <td class="text-center" data-order="{{ order.created_at|date:'Y-m-d' }}">
-                  {{ order.created_at|date:"d/m/Y" }}
-                </td>
-                <td>{{ order.customer_name|default:"-" }}</td>
-                <td class="text-center total-col" data-order="{{ order.total_cost|floatformat:0 }}">{{ order.total_cost|floatformat:0 }}</td>
-                <td class="text-center">{{ order.payment_method|default:"-" }}</td>
-                <td class="text-center">
-                  {% for t in order.traking.all %}
-                    <div>{{ t.shipping_company|default:"-" }}</div>
-                    {% if not forloop.last %}<hr class="my-3">{% endif %}
-                  {% empty %}
-                    <span class="text-muted">-</span>
-                  {% endfor %}
-                </td>
-                <td class="text-center">
-                  {% for t in order.traking.all %}
-                    <div>{{ t.tracking_number|default:"-" }}</div>
-                    {% if not forloop.last %}<hr class="my-3">{% endif %}
-                  {% empty %}
-                    <span class="text-muted">-</span>
-                  {% endfor %}
-                </td>
-                <td class="text-center">
-                  {% for t in order.traking.all %}
-                    <div>
-                      {% if t.tracking_status == "delivered" %}
-                        <span class="badge bg-success">Entregado</span>
-                      {% elif t.tracking_status == "transit" %}
-                        <span class="badge bg-primary">En tránsito</span>
-                      {% elif t.tracking_status == "pending" %}
-                        <span class="badge bg-warning text-dark">Pendiente</span>
-                      {% elif t.tracking_status == "failure" %}
-                        <span class="badge bg-danger">Fallido</span>
-                      {% elif t.tracking_status %}
-                        <span class="badge bg-secondary">{{ t.tracking_status }}</span>
-                      {% else %}
-                        <span class="text-muted">-</span>
-                      {% endif %}
-                    </div>
-                    {% if not forloop.last %}<hr class="my-3">{% endif %}
-                  {% empty %}
-                    <span class="text-muted">-</span>
-                  {% endfor %}
-                </td>
-                <td class="text-center">
-                  {% for t in order.traking.all %}
-                    <div>
-                      {% if t.url_traking %}
-                        <a href="{{ t.url_traking }}" target="_blank" class="btn btn-outline-secondary btn-sm">Ver</a>
-                      {% else %}
-                        <span class="text-muted">-</span>
-                      {% endif %}
-                    </div>
-                    {% if not forloop.last %}<hr class="my-1">{% endif %}
-                  {% empty %}
-                    <span class="text-muted">-</span>
-                  {% endfor %}
-                </td>
-                <td class="text-center">
-                  {% for t in order.traking.all %}
-                    <div class="{% if forloop.last and not forloop.first %}mb-2 my-4{% else %}mb-2 my-2{% endif %}">
-                      <span class="transit-toggle {% if t.in_transit %}transit-on{% else %}transit-off{% endif %}"
-                            style="cursor:pointer;display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;user-select:none;"
-                            data-tracking-id="{{ t.tracking_number }}"
-                            data-value="{% if t.in_transit %}true{% else %}false{% endif %}">
-                        {% if t.in_transit %}En transporte{% else %}Sin despachar{% endif %}
-                      </span>
-                    </div>
-                  {% empty %}
-                    <span class="text-muted">-</span>
-                  {% endfor %}
-                </td>
-                <td class="text-center">
-                  {% for t in order.traking.all %}
-                    <div class="editable {% if not forloop.last %}mb-2{% endif %}" data-field="comments" data-tracking-id="{{ t.id }}">{{ t.comments|default:"" }}</div>
-                  {% empty %}
-                    <span class="text-muted">-</span>
-                  {% endfor %}
-                </td>
-                <td class="text-center action-cell"></td>
-                <td class="d-none sort-priority-col">2</td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="13" class="text-center">No hay pedidos registrados.</td>
-              </tr>
-            {% endfor %}
+            <tr><td colspan="13" class="text-center">Cargando pedidos...</td></tr>
           </tbody>
         </table>
       </div>
@@ -265,42 +209,129 @@
       });
     }
 
-    function calcPriority(row) {
-      if (row.dataset.cancelled === 'true') return 2;
-      const transitData = row.dataset.anyTransit || '';
-      // Verde si cualquier guía está en tránsito
-      if (transitData.includes('true')) return 3;
-      // Si hay alguna guía sin despachar → alerta por antigüedad
-      const created = new Date(row.dataset.created).getTime();
-      if (isNaN(created)) return 2;
-      const diffHours = (Date.now() - created) / 3600000;
-      if (diffHours >= 48) return 0;
-      if (diffHours >= 24) return 1;
-      return 2;
+    const ORDERS_API_URL = "{% url 'pamo_bots:order_tracking_orders_api' %}";
+    const ALERTS_API_URL = "{% url 'pamo_bots:order_tracking_alerts_api' %}";
+
+    function escapeHtml(value) {
+      if (value === null || value === undefined) return '';
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    const currencyFmt = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+    function formatOrderDate(iso) {
+      const d = iso ? new Date(iso) : null;
+      if (!d || isNaN(d.getTime())) return { display: '-', sortKey: '' };
+      const pad = n => String(n).padStart(2, '0');
+      return {
+        display: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`,
+        sortKey: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+      };
+    }
+
+    function trackingStatusBadge(statusVal) {
+      const map = {
+        delivered: '<span class="badge bg-success">Entregado</span>',
+        transit: '<span class="badge bg-primary">En tránsito</span>',
+        pending: '<span class="badge bg-warning text-dark">Pendiente</span>',
+        failure: '<span class="badge bg-danger">Fallido</span>',
+      };
+      if (!statusVal) return '<span class="text-muted">-</span>';
+      return map[statusVal] || `<span class="badge bg-secondary">${escapeHtml(statusVal)}</span>`;
+    }
+
+    function joinTrackingCells(trackings, cellFn, hrClass) {
+      if (!trackings.length) return '<span class="text-muted">-</span>';
+      return trackings.map((t, i) => {
+        const isLast = i === trackings.length - 1;
+        return `<div>${cellFn(t)}</div>${!isLast ? `<hr class="${hrClass}">` : ''}`;
+      }).join('');
+    }
+
+    function buildRowHTML(order) {
+      const { display: dateDisplay, sortKey: dateSortKey } = formatOrderDate(order.created_at);
+      const totalNum = parseFloat(order.total_cost) || 0;
+      const trackings = order.trackings || [];
+
+      const shippingCompanyCells = joinTrackingCells(trackings, t => escapeHtml(t.shipping_company || '-'), 'my-3');
+      const trackingNumberCells = joinTrackingCells(trackings, t => escapeHtml(t.tracking_number || '-'), 'my-3');
+      const statusCells = joinTrackingCells(trackings, t => trackingStatusBadge(t.tracking_status), 'my-3');
+
+      const urlCells = trackings.length
+        ? trackings.map((t, i) => {
+            const isLast = i === trackings.length - 1;
+            const link = t.url_traking
+              ? `<a href="${escapeHtml(t.url_traking)}" target="_blank" class="btn btn-outline-secondary btn-sm">Ver</a>`
+              : '<span class="text-muted">-</span>';
+            return `<div>${link}</div>${!isLast ? '<hr class="my-1">' : ''}`;
+          }).join('')
+        : '<span class="text-muted">-</span>';
+
+      const transitCells = trackings.length
+        ? trackings.map((t, i) => {
+            const isLast = i === trackings.length - 1;
+            const isFirst = i === 0;
+            const marginClass = (isLast && !isFirst) ? 'mb-2 my-4' : 'mb-2 my-2';
+            const cls = t.in_transit ? 'transit-on' : 'transit-off';
+            const label = t.in_transit ? 'En transporte' : 'Sin despachar';
+            return `<div class="${marginClass}">
+              <span class="transit-toggle ${cls}" style="cursor:pointer;display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:600;user-select:none;" data-tracking-id="${escapeHtml(t.tracking_number)}" data-value="${t.in_transit ? 'true' : 'false'}">${label}</span>
+            </div>`;
+          }).join('')
+        : '<span class="text-muted">-</span>';
+
+      const commentsCells = trackings.length
+        ? trackings.map((t, i) => {
+            const isLast = i === trackings.length - 1;
+            return `<div class="editable ${!isLast ? 'mb-2' : ''}" data-field="comments" data-tracking-id="${t.id}">${escapeHtml(t.comments || '')}</div>`;
+          }).join('')
+        : '<span class="text-muted">-</span>';
+
+      return `
+        <tr data-id="${escapeHtml(order.id)}">
+          <td class="text-center fw-bold"><a href="https://admin.shopify.com/store/pamocolombia/orders/${escapeHtml(order.id)}" target="_blank">${escapeHtml(order.pedido)}</a></td>
+          <td class="text-center" data-order="${dateSortKey}">${dateDisplay}</td>
+          <td>${escapeHtml(order.customer_name || '-')}</td>
+          <td class="text-center total-col" data-order="${totalNum.toFixed(0)}">$ ${currencyFmt.format(totalNum)}</td>
+          <td class="text-center">${escapeHtml(order.payment_method || '-')}</td>
+          <td class="text-center">${shippingCompanyCells}</td>
+          <td class="text-center">${trackingNumberCells}</td>
+          <td class="text-center">${statusCells}</td>
+          <td class="text-center">${urlCells}</td>
+          <td class="text-center">${transitCells}</td>
+          <td class="text-center">${commentsCells}</td>
+          <td class="text-center action-cell"></td>
+          <td class="d-none sort-priority-col">${order.priority}</td>
+        </tr>
+      `;
     }
 
     function applyRowColor(row) {
       row.classList.remove('row-green', 'row-orange', 'row-red');
-      const p = calcPriority(row);
+      const p = parseInt(row.querySelector('.sort-priority-col').textContent, 10);
       if (p === 0) row.classList.add('row-red');
       else if (p === 1) row.classList.add('row-orange');
       else if (p === 3) row.classList.add('row-green');
     }
 
-    window.addEventListener('load', function () {
-      // Calcular prioridades antes del init para que DataTable ordene correctamente
-      document.querySelectorAll('#order-tracking-table tbody tr[data-created]').forEach(row => {
-        row.querySelector('.sort-priority-col').textContent = calcPriority(row);
-      });
+    let dataTable = null;
 
-      // Formatear columna Total como moneda colombiana (antes del init)
-      const currencyFmt = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-      document.querySelectorAll('#order-tracking-table .total-col').forEach(td => {
-        const raw = parseFloat(td.dataset.order);
-        if (!isNaN(raw)) td.textContent = '$ ' + currencyFmt.format(raw);
-      });
+    function renderOrders(orders) {
+      if (dataTable) {
+        dataTable.destroy();
+        dataTable = null;
+      }
+      const tbody = document.querySelector('#order-tracking-table tbody');
+      tbody.innerHTML = orders.length
+        ? orders.map(buildRowHTML).join('')
+        : '<tr><td colspan="13" class="text-center">No hay pedidos registrados.</td></tr>';
 
-      $('#order-tracking-table').DataTable({
+      dataTable = $('#order-tracking-table').DataTable({
         pageLength: 25,
         order: [[12, 'asc'], [1, 'asc']],
         columnDefs: [
@@ -322,10 +353,73 @@
           oPaginate: { sFirst: 'Primero', sLast: 'Último', sNext: '>>', sPrevious: '<<' },
         },
       });
+    }
 
-      // Doble click en comentarios (delegado: DataTables solo mantiene en el DOM
-      // las filas de la página visible, por lo que el binding directo no
-      // alcanza a las filas de otras páginas)
+    function loadOrders(alertFilter) {
+      const url = alertFilter ? `${ORDERS_API_URL}?alert=${encodeURIComponent(alertFilter)}` : ORDERS_API_URL;
+      return fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success) throw new Error(data.message || 'Error al cargar pedidos');
+          renderOrders(data.orders);
+        });
+    }
+
+    function loadAlertBoxes() {
+      fetch(ALERTS_API_URL)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.success) return;
+          const a = data.alertas;
+          document.querySelector('#alert-box-roja .alert-box-count').textContent = a.roja.count;
+          document.querySelector('#alert-box-amarilla .alert-box-count').textContent = a.amarilla.count;
+          document.querySelector('#alert-box-verde .alert-box-count').textContent = a.verde.count;
+        })
+        .catch(() => {});
+    }
+
+    let activeAlertFilter = null;
+
+    function setActiveAlertBox(boxEl) {
+      document.querySelectorAll('#alert-boxes .alert-box').forEach(b => b.classList.remove('alert-box-active'));
+      if (boxEl) boxEl.classList.add('alert-box-active');
+    }
+
+    function handleAlertBoxClick(apiFilterValue, boxEl) {
+      const isTogglingOff = activeAlertFilter === apiFilterValue;
+      const nextFilter = isTogglingOff ? null : apiFilterValue;
+
+      Swal.fire({ title: 'Cargando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+      loadOrders(nextFilter)
+        .then(() => {
+          activeAlertFilter = nextFilter;
+          setActiveAlertBox(nextFilter ? boxEl : null);
+          Swal.close();
+        })
+        .catch(() => {
+          Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo cargar el listado de pedidos.', timer: 2000, showConfirmButton: false });
+        });
+    }
+
+    window.addEventListener('load', function () {
+      loadAlertBoxes();
+      loadOrders(null).catch(() => {
+        document.querySelector('#order-tracking-table tbody').innerHTML =
+          '<tr><td colspan="13" class="text-center text-danger">No se pudo cargar el listado de pedidos.</td></tr>';
+      });
+
+      document.getElementById('alert-box-roja').addEventListener('click', function () {
+        handleAlertBoxClick('red', this);
+      });
+      document.getElementById('alert-box-amarilla').addEventListener('click', function () {
+        handleAlertBoxClick('yellow', this);
+      });
+      document.getElementById('alert-box-verde').addEventListener('click', function () {
+        handleAlertBoxClick('green', this);
+      });
+
+      // Doble click en comentarios (delegado: el tbody se reconstruye en cada
+      // fetch/filtro, por lo que el binding directo no sobrevive al reemplazo)
       $('#order-tracking-table tbody').on('dblclick', '.editable', function () {
         handleDblClick(this);
       });

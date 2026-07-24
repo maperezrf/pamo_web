@@ -19,10 +19,12 @@ import os
 from django.contrib.auth.decorators import login_required
 from pamo.connecctions_sigo import SigoConnection
 from pamo.email_sender import EmailSender
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField, ExpressionWrapper, DurationField, F, Exists, OuterRef, Count
+from django.db.models.functions import Now
 from pamo_bots.models import InvoicesSiigo
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 from decouple import config
@@ -730,9 +732,110 @@ def update_order_field(request, order_id):
 
 @login_required
 def order_tracking_view(request):
-    orders = OrdersShopify.objects.prefetch_related(
-        'products', 'traking').order_by('-created_at')
-    return render(request, "order_tracking.html", {"orders": orders})
+    return render(request, "order_tracking.html", {})
+
+
+def annotate_order_priority(queryset):
+    """Anota `priority` en un queryset de OrdersShopify replicando el semáforo
+    de order_tracking.html (antiguo calcPriority en JS).
+
+    0=red (+48h sin despachar), 1=yellow (24-48h sin despachar),
+    2=none (cancelado o <24h sin despachar), 3=green (en tránsito).
+    """
+    tracking_en_transito = TrakingOrders.objects.filter(
+        order_id=OuterRef('pk'), in_transit=True)
+
+    return queryset.annotate(
+        has_transit=Exists(tracking_en_transito),
+        age=ExpressionWrapper(Now() - F('created_at'), output_field=DurationField()),
+    ).annotate(
+        priority=Case(
+            When(order_is_cancelled=True, then=Value(2)),
+            When(has_transit=True, then=Value(3)),
+            When(age__gte=datetime.timedelta(hours=48), then=Value(0)),
+            When(age__gte=datetime.timedelta(hours=24), then=Value(1)),
+            default=Value(2),
+            output_field=IntegerField(),
+        )
+    )
+
+
+ORDER_ALERT_PRIORITY = {'red': 0, 'yellow': 1, 'green': 3, 'none': 2}
+
+
+class OrderTrackingAlertsAPI(APIView):
+    """Conteos del semáforo de order_tracking.html."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        qs = annotate_order_priority(OrdersShopify.objects.all())
+        counts = dict(qs.values_list('priority').annotate(c=Count('id')).order_by())
+
+        return Response({
+            'success': True,
+            'alertas': {
+                'roja': {'label': 'Alerta roja (+48h sin despachar)', 'count': counts.get(0, 0)},
+                'amarilla': {'label': 'Alerta amarilla (24-48h sin despachar)', 'count': counts.get(1, 0)},
+                'verde': {'label': 'En transporte', 'count': counts.get(3, 0)},
+                'sin_alerta': {'label': 'Sin alerta / cancelados', 'count': counts.get(2, 0)},
+            },
+            'total': sum(counts.values()),
+        }, status=status.HTTP_200_OK)
+
+
+class OrderTrackingListAPI(APIView):
+    """Datos de la tabla de order_tracking.html.
+
+    Query param opcional `alert` = red | yellow | green | none.
+    Sin parámetro devuelve todos los pedidos.
+
+    Autenticación: header `Authorization: Token <token>` (DRF TokenAuthentication),
+    para permitir el consumo desde servicios externos sin sesión/cookies.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        alert_param = request.query_params.get('alert')
+        if alert_param and alert_param not in ORDER_ALERT_PRIORITY:
+            return Response(
+                {'success': False, 'message': f"Valor de 'alert' inválido. Use uno de: {', '.join(ORDER_ALERT_PRIORITY)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        qs = annotate_order_priority(
+            OrdersShopify.objects.prefetch_related('traking').order_by('-created_at')
+        )
+        if alert_param:
+            qs = qs.filter(priority=ORDER_ALERT_PRIORITY[alert_param])
+
+        orders_data = [
+            {
+                'id': order.id,
+                'pedido': order.pedido,
+                'created_at': order.created_at.isoformat() if order.created_at else None,
+                'customer_name': order.customer_name,
+                'total_cost': str(order.total_cost),
+                'payment_method': order.payment_method,
+                'order_is_cancelled': order.order_is_cancelled,
+                'priority': order.priority,
+                'trackings': [
+                    {
+                        'id': t.id,
+                        'tracking_number': t.tracking_number,
+                        'shipping_company': t.shipping_company,
+                        'tracking_status': t.tracking_status,
+                        'url_traking': t.url_traking,
+                        'in_transit': t.in_transit,
+                        'comments': t.comments,
+                    }
+                    for t in order.traking.all()
+                ],
+            }
+            for order in qs
+        ]
+
+        return Response({'success': True, 'count': len(orders_data), 'orders': orders_data}, status=status.HTTP_200_OK)
 
 
 def get_orders_Without_invoices():
